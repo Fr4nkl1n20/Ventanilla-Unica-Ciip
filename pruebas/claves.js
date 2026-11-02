@@ -374,7 +374,11 @@ const SALTOS = new Set([
        · ay_rec_parafiscales_lista, ay_rec_bomberos_lista  listas de
                      enlaces: el «?» es el de la dirección web. */
   'vt_dev_rev', 'pp_ciip', 'pp_boveda', 'pu_total',
-  'ay_rec_parafiscales_lista', 'ay_rec_bomberos_lista'
+  'ay_rec_parafiscales_lista', 'ay_rec_bomberos_lista',
+  /* Y a quién le toca cada sistema del SACS (2-11-2026): van detrás de
+     «Te toca si» en negrita, y siguen la frase en minúscula. */
+  'yt_toca_siacvisa', 'yt_toca_censo', 'yt_toca_siacsv2', 'yt_toca_sivercos',
+  'yt_toca_clv'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;

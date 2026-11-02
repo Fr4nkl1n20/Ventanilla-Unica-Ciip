@@ -4372,6 +4372,74 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .sol-campo input:focus, .sol-campo select:focus, .sol-campo textarea:focus{border-color:var(--cyan-deep); background:var(--bg);
   box-shadow:0 0 0 3px rgba(32,176,240,.12);}
 .sol-campo.mal input, .sol-campo.mal select, .sol-campo.mal textarea{border-color:var(--rust);}
+/* Las tarjetas de los sistemas del SACS (Franklin Reyes, 2-11-2026,
+   maquetas/sacs-por-etapa-portadas.html, la 6): por etapa, el logo de la
+   página a un lado y el texto al otro. Elegida, sombreada y con la marca;
+   sin marcos de color. Sin elegir al enviar, el rótulo en rojo. */
+/* Y desde el mismo día en pestañas por etapa (sacs-sin-scroll.html, la 4):
+   el logo arriba y el texto debajo, dos por fila. */
+.st-caja{display:grid; gap:12px; margin-top:4px;}
+.st-pes{display:flex; flex-wrap:wrap; gap:4px; border-bottom:1px solid var(--line);}
+.st-pe{font:inherit; font-size:13px; font-weight:700; color:var(--gray); background:none; border:0; border-bottom:2px solid transparent; padding:9px 14px; margin-bottom:-1px; cursor:pointer;}
+.st-pe:hover{color:var(--ink);}
+.st-pe.on{color:var(--ink); border-bottom-color:var(--navy2);}
+.st-pe:focus-visible{outline:2px solid var(--navy2); outline-offset:-2px; border-radius:6px;}
+.st-etapa[hidden]{display:none;}
+.st-rej{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 290px)); gap:12px;}
+.st-tarjeta{position:relative; display:flex; flex-direction:column; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--bg); cursor:pointer;}
+.st-tarjeta:hover{background:var(--block);}
+.st-tarjeta.on{background:var(--activa-bg);}
+.st-tarjeta:focus-visible{outline:2px solid var(--navy2); outline-offset:2px;}
+/* La portada dibujada de cada sistema (2-11-2026, la 4 de
+   sacs-por-etapa-portadas.html). Todo en cqw: mide lo mismo en
+   proporción sea cual sea el ancho de la tarjeta. */
+.st-pt{position:relative; aspect-ratio:16/9; overflow:hidden; container-type:inline-size; font-family:system-ui, sans-serif;}
+.st-pt.nueva{background:linear-gradient(135deg, #14306A, #1D4A96);}
+.st-pt.nueva::after{content:''; position:absolute; top:0; bottom:0; left:56%; right:0; background:#EEF2F9; border-radius:60% 0 0 60% / 100% 0 0 100%;}
+.st-pt-izq{position:absolute; left:8%; top:50%; transform:translateY(-50%); width:44%; color:#fff;}
+.st-pt-izq b{display:block; font-size:5.4cqw; line-height:1.15; font-weight:800;}
+.st-pt-izq i{display:block; font-family:Georgia, serif; font-size:5.4cqw; line-height:1.15;}
+.st-pt-der{position:absolute; z-index:1; right:6%; top:14%; bottom:14%; width:30%; background:#fff; border-radius:3cqw; box-shadow:0 1.5cqw 5cqw rgba(20,48,106,.18); display:grid; place-items:center; align-content:center; gap:1.6cqw;}
+.st-pt-der img{width:58%;}
+.st-pt-der em{font-style:normal; font-size:4.6cqw; font-weight:800; color:#14306A;}
+.st-pt-der .cp, .st-pt-der .bt{width:70%; height:3.6cqw; border-radius:2cqw;}
+.st-pt-der .cp{border:1px solid #D5DBE8; box-sizing:border-box;}
+.st-pt-der .bt{background:#1D4A96;}
+.st-pt.siver{background:#fff;}
+.st-pt-barra{height:24%; background:linear-gradient(90deg, #1F4FD1, #4A8FF0); display:flex; align-items:center; padding:0 6%;}
+.st-pt-barra img{height:62%; background:#fff; border-radius:1.4cqw; padding:.6cqw 1.6cqw;}
+.st-pt-cuerpo{position:absolute; top:32%; left:6%; right:6%; bottom:10%; display:grid; grid-template-columns:1fr 1.2fr; border:1px solid #E3E6EE; border-radius:2cqw; overflow:hidden;}
+.st-pt-cuerpo .f{background:linear-gradient(160deg, #CFDBE8, #F1F4F8 60%, #B9C7D6);}
+.st-pt-cuerpo .d{padding:3cqw; display:grid; gap:2.2cqw; align-content:start; background:#fff;}
+.st-pt-cuerpo .d b{font-size:4.6cqw; line-height:1.2; color:#111;}
+.st-pt-cuerpo .d i{height:3.6cqw; border:1px solid #E3E6EE; border-radius:1.4cqw;}
+.st-pt-cuerpo .d u{height:4cqw; width:40%; border-radius:1.4cqw; background:#1F6FF2;}
+.st-pt.vieja{display:grid; place-items:center; align-content:center; gap:3cqw;}
+.st-pt.censo{background:radial-gradient(circle at 70% 40%, #6CB8FF, #1556C0 55%, #0B2F78);}
+.st-pt.clv{background:radial-gradient(circle at 80% 90%, #7FB8D4, #E8F1F6 45%, #fff);}
+.st-pt-cartel{width:74%; border-radius:2cqw; padding:2.6cqw 3.4cqw; color:#fff; font-size:4.4cqw; font-weight:700; text-align:center; line-height:1.2;}
+.st-pt.censo .st-pt-cartel{background:linear-gradient(180deg, #2A3E66, #131F3B); border:2px solid #C9D3E3;}
+.st-pt.clv .st-pt-cartel{background:linear-gradient(90deg, #3B4352, #8A6A3A 55%, #C58A3D); text-align:right;}
+.st-pt-form{width:62%; display:grid; gap:1.2cqw;}
+.st-pt-form i{height:3.6cqw; border-radius:.8cqw;}
+.st-pt.censo .st-pt-form i{background:#127E8F;}
+.st-pt.clv .st-pt-form i{background:#C8E8EA;}
+.st-pt-form u{height:4cqw; width:34%; justify-self:end; background:#0B3EA8; border-radius:.8cqw;}
+.st-cu{flex:1 1 auto; min-width:0; display:grid; gap:4px; align-content:start; padding:11px 13px 13px; overflow-wrap:anywhere;}
+.st-sig{font-size:11px; font-weight:800; letter-spacing:.02em; color:var(--navy2);}
+.st-nom{font-size:13px; font-weight:700; line-height:1.35;}
+.st-toca{font-size:12px; color:var(--gray); line-height:1.5;}
+.st-toca b{color:var(--ink); font-weight:700;}
+.st-ir{font-size:12px; font-weight:700; color:var(--navy2); text-decoration:none; justify-self:start;}
+.st-ir:hover{text-decoration:underline;}
+.st-marca{position:absolute; z-index:2; top:8px; right:8px; width:20px; height:20px; border-radius:50%; border:1.5px solid var(--gray-soft, #8A93A6); background:#fff; display:grid; place-items:center;}
+.st-marca svg{width:11px; height:11px; stroke:#fff; fill:none; stroke-width:3; display:none;}
+.st-tarjeta.on .st-marca{background:var(--navy2); border-color:var(--navy2);}
+.st-tarjeta.on .st-marca svg{display:block;}
+.sol-campo.con-tarjetas.mal > label{color:var(--rust);}
+@media (max-width:640px){
+  .st-rej{grid-template-columns:1fr;}
+}
 /* La caja que crece con lo escrito (tipo 'area'): sin asa ni barra, el
    alto lo pone panel.js. */
 .sol-campo textarea.sol-crece{display:block; resize:none; overflow:hidden; line-height:1.4;}
@@ -4602,6 +4670,16 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
    adelante no lleva -eso lo decide la validación del paso-, y por eso el
    que aún no toca no es pulsable y lo dice con el cursor. */
 .pa-barra{display:flex; gap:10px; list-style:none; margin:0 0 6px; padding:0;}
+/* Y escondida en los permisos agrupados (2-11-2026, esPermisoAgrupado). */
+.pa.sin-barra .pa-barra{display:none;}
+/* Y el cuadro sube: los 26 px de encima y los 18 de cada hoja eran el
+   aire de la barra (Franklin Reyes, 2-11-2026: «que el cuadro suba un poco
+   más»). */
+.tr-real:has(> .pa.sin-barra){margin-top:6px;}
+.pa.sin-barra > .pa-hoja{margin-top:0;}
+/* Y fuera el renglón del plazo cuando no trae nada (estos permisos no
+   tienen plazo publicado): vacío, seguía ocupando su alto y su margen. */
+.tr-plazo:has(~ .tr-real > .pa.sin-barra):has(> .t-time[hidden]:only-child){display:none;}
 .pa-seg{flex:1 1 0; min-width:0;}
 .pa-ir{display:block; width:100%; font:inherit; text-align:left; padding:0;
   background:none; border:0; cursor:default; color:inherit;}

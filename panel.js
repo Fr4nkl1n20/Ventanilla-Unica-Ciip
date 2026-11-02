@@ -4829,6 +4829,203 @@ applyLang(idiomaParaMi());
       'https://sistemas.sacs.gob.ve/siacsv2/login_user#'
   };
 
+  /* ── LAS TARJETAS DE LOS SISTEMAS DEL SACS ──
+     Franklin Reyes, 2-11-2026 (maquetas/sacs-por-etapa-portadas.html, la
+     6): en vez del desplegable, una tarjeta por sistema con el logo de su
+     página, ordenadas por etapa -el local, el producto, exportar- y con
+     a quién le toca. El desplegable sigue debajo, escondido: es el que se
+     guarda, se valida y decide el enlace del paso 1, y las tarjetas solo
+     lo eligen. Las claves son el texto en español de o_sacs_sistema; cada
+     tarjeta lleva la cara de su página (portadaDelSacs). Lo de a quién le toca del CLV y del Censo está por confirmar con
+     el CIIP: el SACS casi no publica nada de esos dos.
+
+     Y el mismo día, en vez del recorte, la portada DIBUJADA (la 4 de
+     sacs-por-etapa-portadas.html, «trabájalo con el tramado de esta
+     maqueta»): los colores y la forma de cada página, hechos con CSS
+     (.st-pt). SIACVISA y SIACSv2, el azul con su frase y la hoja de
+     entrada; SIVERCOS, la barra azul y la foto; el Censo y el CLV, el
+     cartel de las páginas antiguas. Las frases son las de cada página, en
+     español en todos los idiomas: son su cara, no un texto nuestro. */
+  var TARJETAS_DEL_SACS = {
+    'SIACVISA · Sistema de Información Automatizado de Control y Vigilancia Sanitaria':
+      {etapa: 1, cara: 'nueva', frase: 'Solicitudes Sanitarias para Establecimientos y Transporte', toca: 'yt_toca_siacvisa'},
+    'Censo Nacional Automatizado · Establecimientos de Salud y Similares':
+      {etapa: 1, cara: 'vieja censo', frase: 'Censo Nacional Automatizado de Establecimientos de Salud y Similares', toca: 'yt_toca_censo'},
+    'SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria':
+      {etapa: 2, cara: 'nueva', frase: 'Prevenimos riesgos, contribuimos a la salud', cursiva: true, toca: 'yt_toca_siacsv2'},
+    'SIVERCOS · Sistema Venezolano de Registro de Cosméticos':
+      {etapa: 2, cara: 'siver', frase: 'Sistema Venezolano de Registro de Cosméticos (SIVERCOS)', toca: 'yt_toca_sivercos'},
+    'CLV · Certificados Electrónicos de Libre Venta':
+      {etapa: 3, cara: 'vieja clv', frase: 'Certificados Electrónicos de Libre Venta', toca: 'yt_toca_clv'}
+  };
+  /* La portada dibujada de un sistema (d, de TARJETAS_DEL_SACS) con su
+     sigla. Todo dentro mide en cqw, así crece y encoge con la tarjeta. */
+  function portadaDelSacs(d, sig){
+    var pt = el('div', 'st-pt ' + d.cara);
+    if (d.cara === 'nueva'){
+      var izq = el('div', 'st-pt-izq');
+      izq.appendChild(el(d.cursiva ? 'i' : 'b', null, d.frase));
+      pt.appendChild(izq);
+      var der = el('div', 'st-pt-der');
+      var lg = document.createElement('img');
+      lg.src = 'logos/sacs.png';
+      lg.alt = '';
+      der.appendChild(lg);
+      der.appendChild(el('em', null, sig));
+      der.appendChild(el('span', 'cp'));
+      der.appendChild(el('span', 'cp'));
+      der.appendChild(el('span', 'bt'));
+      pt.appendChild(der);
+    } else if (d.cara === 'siver'){
+      var barra = el('div', 'st-pt-barra');
+      var lb = document.createElement('img');
+      lb.src = 'logos/sacs.png';
+      lb.alt = '';
+      barra.appendChild(lb);
+      pt.appendChild(barra);
+      var cu = el('div', 'st-pt-cuerpo');
+      cu.appendChild(el('span', 'f'));
+      var dd = el('span', 'd');
+      dd.appendChild(el('b', null, d.frase));
+      dd.appendChild(el('i'));
+      dd.appendChild(el('i'));
+      dd.appendChild(el('u'));
+      cu.appendChild(dd);
+      pt.appendChild(cu);
+    } else {
+      pt.appendChild(el('div', 'st-pt-cartel', d.frase));
+      var fo = el('div', 'st-pt-form');
+      fo.appendChild(el('i'));
+      fo.appendChild(el('i'));
+      fo.appendChild(el('u'));
+      pt.appendChild(fo);
+    }
+    pt.setAttribute('aria-hidden', 'true');
+    return pt;
+  }
+  var ETAPAS_DEL_SACS = [
+    {n: 1, t: 'yt_etapa1', d: 'yt_etapa1_d'},
+    {n: 2, t: 'yt_etapa2', d: 'yt_etapa2_d'},
+    {n: 3, t: 'yt_etapa3', d: 'yt_etapa3_d'}
+  ];
+  /* Monta las tarjetas encima del desplegable sel, que se queda escondido
+     en la casilla. Desde el 2-11-2026, en pestañas por etapa (Franklin
+     Reyes, maquetas/sacs-sin-scroll.html, la 4, «sin el número de la
+     cantidad en gris»): arriba «1 · El local · 2 · El producto · 3 ·
+     Exportar» y debajo solo las tarjetas de esa etapa, el logo arriba y
+     el texto debajo, dos por fila. Las cinco una debajo de otra eran unas
+     tres pantallas antes de la razón social. La frase de cada etapa va de
+     título de su pestaña. Marcar una tarjeta pone su valor en sel y lanza change,
+     así que lo que cuelga del desplegable -el enlace, las casillas que
+     dependen de él- no se entera de que ya no se ve. */
+  function montaTarjetas(campo, sel, c, u){
+    var datos = c.tarjetas, urls = c.urls || {};
+    var caja = el('div', 'st-caja');
+    var todas = [];
+    var pes = el('div', 'st-pes');
+    pes.setAttribute('role', 'tablist');
+    var paneles = [];
+    function abre(n){
+      paneles.forEach(function(p){
+        var on = p.n === n;
+        p.panel.hidden = !on;
+        p.boton.classList.toggle('on', on);
+        p.boton.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+    }
+    function etapaDe(t){ return (datos[t.getAttribute('data-valor')] || {}).etapa; }
+    function marca(){
+      todas.forEach(function(t){
+        var on = t.getAttribute('data-valor') === sel.value;
+        t.classList.toggle('on', on);
+        t.setAttribute('aria-checked', on ? 'true' : 'false');
+        t.tabIndex = on || (!sel.value && t === todas[0]) ? 0 : -1;
+      });
+    }
+    function elige(t){
+      sel.value = t.getAttribute('data-valor');
+      sel.dispatchEvent(new Event('change', {bubbles: true}));
+      abre(etapaDe(t));
+      marca();
+    }
+    ETAPAS_DEL_SACS.forEach(function(e){
+      var ops = [].slice.call(sel.options).filter(function(o){
+        return o.value && datos[o.value] && datos[o.value].etapa === e.n;
+      });
+      /* En el orden de TARJETAS_DEL_SACS, no en el del desplegable. */
+      var orden = Object.keys(datos);
+      ops.sort(function(x, y){ return orden.indexOf(x.value) - orden.indexOf(y.value); });
+      if (!ops.length) return;
+      var bloque = el('div', 'st-etapa');
+      bloque.setAttribute('role', 'tabpanel');
+      var b = el('button', 'st-pe', e.n + ' · ' + (u[e.t] || ''));
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.title = u[e.d] || '';
+      b.addEventListener('click', function(){ abre(e.n); });
+      pes.appendChild(b);
+      paneles.push({n: e.n, panel: bloque, boton: b});
+      var rej = el('div', 'st-rej');
+      rej.setAttribute('role', 'radiogroup');
+      ops.forEach(function(o){
+        var d = datos[o.value];
+        var corte = o.textContent.indexOf(' · ');
+        var sig = corte < 0 ? o.textContent : o.textContent.slice(0, corte);
+        var nom = corte < 0 ? '' : o.textContent.slice(corte + 3);
+        var t = el('div', 'st-tarjeta');
+        t.setAttribute('role', 'radio');
+        t.setAttribute('data-valor', o.value);
+        t.appendChild(portadaDelSacs(d, sig));
+        var cu = el('div', 'st-cu');
+        cu.appendChild(el('div', 'st-sig', sig));
+        if (nom) cu.appendChild(el('div', 'st-nom', nom));
+        var toca = el('div', 'st-toca');
+        toca.appendChild(el('b', null, (u.yt_toca || '') + ' '));
+        toca.appendChild(document.createTextNode(u[d.toca] || ''));
+        cu.appendChild(toca);
+        if (urls[o.value]){
+          var a = el('a', 'st-ir', (u.yt_ver || '') + ' ›');
+          a.href = urls[o.value];
+          a.target = '_blank';
+          a.rel = 'noopener';
+          cu.appendChild(a);
+        }
+        t.appendChild(cu);
+        var m = el('span', 'st-marca');
+        m.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
+        t.appendChild(m);
+        t.addEventListener('click', function(ev){
+          if (ev.target.closest('a')) return;
+          elige(t);
+        });
+        t.addEventListener('keydown', function(ev){
+          if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); elige(t); return; }
+          var paso = (ev.key === 'ArrowDown' || ev.key === 'ArrowRight') ? 1
+                   : (ev.key === 'ArrowUp' || ev.key === 'ArrowLeft') ? -1 : 0;
+          if (!paso) return;
+          ev.preventDefault();
+          var i = (todas.indexOf(t) + paso + todas.length) % todas.length;
+          elige(todas[i]);
+          todas[i].focus();
+        });
+        todas.push(t);
+        rej.appendChild(t);
+      });
+      bloque.appendChild(rej);
+      caja.appendChild(bloque);
+    });
+    caja.insertBefore(pes, caja.firstChild);
+    var ya = sel.value && datos[sel.value];
+    abre(ya ? ya.etapa : (paneles[0] || {}).n);
+    sel.style.display = 'none';
+    sel.setAttribute('aria-hidden', 'true');
+    sel.tabIndex = -1;
+    campo.classList.add('con-tarjetas');
+    campo.appendChild(caja);
+    sel.addEventListener('change', marca);
+    marca();
+  }
+
   /* ── LOS SISTEMAS DE LOS PERMISOS DE AGRICULTURA ──
      Franklin Reyes, 30-10-2026 (mensaje del equipo «para Claude»): el INSAI
      tiene tres, SIGESAI, RUNSAI y la plataforma de certificados. El
@@ -6045,7 +6242,8 @@ applyLang(idiomaParaMi());
        o permiso solicitó?» delante. El representante es su nombre, como
        en c45 («Datos del representante legal», dice el documento). */
     permiso_sacs: [
-      {n:'sistema_sacs',         clave:'f_yssistema',   opcionesClave:'o_sacs_sistema', ancho:true},
+      {n:'sistema_sacs',         clave:'f_yssistema',   opcionesClave:'o_sacs_sistema', ancho:true,
+       tarjetas:TARJETAS_DEL_SACS, urls:PORTAL_DEL_SACS},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
       {n:'rif_empresa',          clave:'f_rifempresa'},
       {n:'cedula_representante', clave:'f_yscedrep'},
@@ -6053,7 +6251,8 @@ applyLang(idiomaParaMi());
       {n:'permiso_sacs',         clave:'f_yspermiso',   ancho:true}
     ],
     sacs_en_proceso: [
-      {n:'sistema_sacs',         clave:'f_yssistema',   opcionesClave:'o_sacs_sistema', ancho:true},
+      {n:'sistema_sacs',         clave:'f_yssistema',   opcionesClave:'o_sacs_sistema', ancho:true,
+       tarjetas:TARJETAS_DEL_SACS, urls:PORTAL_DEL_SACS},
       {n:'permiso_ya',           clave:'f_yspermisoya', ancho:true},
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
@@ -7028,6 +7227,14 @@ applyLang(idiomaParaMi());
     var barra = document.createElement('ol');
     barra.className = 'pa-barra';
     pa.appendChild(barra);
+    /* Sin la barra de «Tus datos · Recaudos · Repasar» en los permisos
+       agrupados del catálogo (Franklin Reyes, 2-11-2026: «quiero quitar
+       esto», «solo en los trámites de permisos agrupados»): los de GRUPOS
+       -registros sectoriales y permisos operativos- y la otra mitad del
+       SACS (c49), que no tiene tarjeta. La barra se sigue montando,
+       escondida: lo que cuenta las hojas y mueve Atrás / Siguiente no
+       cambia. */
+    if (esPermisoAgrupado(tipo.ref_panel || tipoRefDe(tipo.codigo))) pa.classList.add('sin-barra');
     /* «Paso 2 de 3» arriba y «Recaudos» debajo. Este renglon ES el titulo de
        la hoja: por eso los cuadros de dentro ya no llevan el suyo -decir
        «Tus datos» dos veces con dos centimetros de por medio no informa. */
@@ -7880,6 +8087,12 @@ applyLang(idiomaParaMi());
         /* Y si esta fecha tiene vigencia mínima -el pasaporte de las visas-,
            el aviso debajo, ya con lo que traiga puesto (VIGENCIA_MINIMA). */
         if (VIGENCIA_MINIMA[c.n]) vigilaVigencia(campo, entrada, c.n);
+      } else if (c.tarjetas && entrada.tagName === 'SELECT'){
+        /* Las tarjetas de los sistemas del SACS (2-11-2026): el desplegable
+           entra primero, escondido -es el que valida y guarda-, y las
+           tarjetas detrás (montaTarjetas). */
+        campo.appendChild(entrada);
+        montaTarjetas(campo, entrada, c, u);
       } else {
         campo.appendChild(entrada);
       }
@@ -27382,6 +27595,12 @@ applyLang(idiomaParaMi());
      Y no lleva contador ni se pliega: es un rótulo, no un desplegable.
      Lo que se aparta ya tiene su botón, y dos maneras distintas de
      agrupar en la misma pantalla se estorban. */
+  /* Si ref es de un permiso agrupado: de un grupo de GRUPOS, o el c49. */
+  function esPermisoAgrupado(ref){
+    if (!ref) return false;
+    if (ref === 'c49') return true;
+    return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
+  }
   var GRUPOS = [
     /* El rótulo va como una función que escribe la clave ENTERA, y no
        como dic[g.clave]. pruebas/claves.js averigua qué claves se usan
