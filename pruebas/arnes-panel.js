@@ -1646,28 +1646,19 @@
                 h2.slice(j+1, j+5).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
                 'c48 c30 c36 c39');
         }
-        /* Y el SEGUNDO: los permisos del local, que no son sectoriales. El
-           rótulo de un grupo no cierra nada -es un hijo más de la rejilla-,
-           así que estas dos, que venían detrás, se leían como licencias
-           sectoriales. Por eso se comprueba QUÉ va detrás de cada rótulo y
-           no sólo que el rótulo exista. */
-        var t3 = rej.querySelector('.grupo-t[data-grupo="g.operativo"]');
-        ok('grupo: y el de los permisos del local', !!t3,
-           t3 ? t3.textContent.trim() : 'no está', 'Permisos operativos');
-        if (t3){
-          var h3 = [].slice.call(rej.children);
-          var k  = h3.indexOf(t3);
-          igual('grupo: con la conformidad de uso y los bomberos detrás',
-                h3.slice(k+1, k+3).map(function(e){ return e.getAttribute('data-tr'); }).join(' '),
-                'c28 c29');
-          /* Y DETRÁS de las sectoriales: lo que depende del ramo primero y
-             lo que depende del inmueble después. */
-          ok('grupo: y va detrás de las licencias sectoriales',
-             !!t2 && k > h3.indexOf(t2),
-             'operativo en ' + k + ', sectorial en ' + h3.indexOf(t2), 'después');
-        }
-        igual('grupo: y son dos títulos, no uno repetido',
-              rej.querySelectorAll('.grupo-t').length, 2);
+        /* Y el RNC, la conformidad de uso y los bomberos, ARRIBA con los demás
+           trámites y delante del título (Franklin Reyes, 3-11-2026). El rótulo
+           no cierra nada: venían detrás y se habrían leído como sectoriales. */
+        (function(){
+          var hijos = [].slice.call(rej.children), it = hijos.indexOf(t);
+          ['c28', 'c29', 'c13'].forEach(function(r){
+            var pos = hijos.findIndex(function(e){ return e.getAttribute('data-tr') === r; });
+            ok('grupo: la ' + r + ' va arriba, delante del título', pos >= 0 && pos < it,
+               'en ' + pos + ', título en ' + it, 'antes');
+          });
+        })();
+        igual('grupo: y queda un solo título, sin «Permisos operativos»',
+              rej.querySelectorAll('.grupo-t').length, 1);
 
         /* Y el título es UN HIJO MÁS de la rejilla, no una caja con las
            tarjetas dentro. Es lo que hace que nada de lo que las cuenta
@@ -13409,9 +13400,8 @@
        c ? (c.getAttribute('data-tramo-de') || 'suelta') : 'no está', 'suelta');
     var rej = document.getElementById('trs-3'), hijos = rej ? [].slice.call(rej.children) : [];
     var ini = hijos.findIndex(function(e){ return e.getAttribute('data-grupo') === 'g.sectorial'; });
-    var fin = hijos.findIndex(function(e, i){ return i > ini && e.classList.contains('grupo-t'); });
-    ok('rnc: dentro de las licencias sectoriales', ini >= 0 && hijos.indexOf(c) > ini && hijos.indexOf(c) < fin,
-       'en ' + hijos.indexOf(c) + ' de ' + ini + ' a ' + fin, 'entre sus rótulos');
+    ok('rnc: arriba con los demás, no en las licencias sectoriales', ini >= 0 && hijos.indexOf(c) >= 0 && hijos.indexOf(c) < ini,
+       'en ' + hijos.indexOf(c) + ', título en ' + ini, 'antes del título');
     igual('rnc: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
     var caja = document.getElementById('trReal');
     igual('rnc: como el RTN, razón social y RIF', bienesCampos(caja), 'razon_social rif_empresa');

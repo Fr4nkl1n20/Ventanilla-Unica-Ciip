@@ -27998,7 +27998,8 @@ applyLang(idiomaParaMi());
      el c55 minero y el c56 del MINTUR-, que no tienen tarjeta. */
   function esPermisoAgrupado(ref){
     if (!ref) return false;
-    if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' || ref === 'c37' || ref === 'c44') return true;
+    if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' || ref === 'c37' || ref === 'c44' ||
+        ref === 'c28' || ref === 'c29' || ref === 'c13') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
   var GRUPOS = [
@@ -28034,22 +28035,15 @@ applyLang(idiomaParaMi());
        para el turismo, y lo da el MINTUR. */
     /* Y los permisos de agricultura (c51), del INSAI y el INTI, desde el
        30-10-2026: una tarjeta para los dos, como los del MINEC. */
-    /* Y el RNC (c13) desde el 2-11-2026 (Franklin Reyes: «saca el RNC de ese
-       grupo»), que deja las inscripciones: sólo para quien contrata con el
-       Estado, y lo da el Servicio Nacional de Contrataciones. */
-    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c13'],
-     rotulo:function(dic){ return dic['g.sectorial']; }},
-    /* Y los del LOCAL. Franklin Reyes, 22 de septiembre de 2026: «permiso
-       de bomberos y conformidad de usos no son sectoriales». Tenía razón y
-       la pantalla lo decía mal: el rótulo de las sectoriales no se cierra,
-       así que las dos fichas que venían detrás parecían suyas. No dependen
-       del ramo sino del INMUEBLE -que en ese local se pueda ejercer, y que
-       el local sea seguro-, y los dan la alcaldía y los bomberos.
-
-       La conformidad va PRIMERA porque va antes en la vida real: la
-       alcaldía certifica el uso del local, y la licencia viene después. */
-    {clave:'g.operativo', refs:['c28', 'c29'],
-     rotulo:function(dic){ return dic['g.operativo']; }}
+    /* EL RNC, LA CONFORMIDAD DE USO Y LOS BOMBEROS van ARRIBA, sueltos con los
+       demás trámites y delante del título (Franklin Reyes, 3-11-2026: «deben
+       quedar todos arriba con el resto de los trámites; el RNC no es un
+       permiso sectorial»). La conformidad y los bomberos tuvieron su grupo,
+       «Permisos operativos» (22-9-2026), y el RNC estuvo un día en éste. Van
+       en `antes` porque en el documento vienen detrás de la primera
+       sectorial, y sin moverlos se leerían como suyas. */
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51'], antes:['c28', 'c29', 'c13'],
+     rotulo:function(dic){ return dic['g.sectorial']; }}
   ];
 
   /* Va aquí y no en el catálogo de la base a propósito, y conviene
@@ -28082,6 +28076,12 @@ applyLang(idiomaParaMi());
         rejilla.insertBefore(t, cards[0]);
       }
       t.textContent = g.rotulo(dic) || g.rotulo(I18N.en) || '';
+
+      /* Las que no son del grupo y venían entre las suyas, delante del título. */
+      (g.antes || []).forEach(function(r){
+        var c = rejilla.querySelector(':scope > .tcard[data-tr="' + r + '"]');
+        if (c) rejilla.insertBefore(c, t);
+      });
 
       /* Y las demás, detrás del título y en el orden declarado. */
       var antes = t;
