@@ -6055,6 +6055,11 @@ body:has(#ciip-sin-guardia) .sup-fab{bottom:63px;}
 .av-i .av-f{font-size:var(--fs-nota); color:var(--gray-soft); margin-top:4px;}
 /* El punto marca lo que no habias visto. Se apaga al cerrar el buzon, no al
    abrirlo: si se apagara al abrirlo no llegarias a ver cual era nuevo. */
+.av-cab{display:flex; justify-content:space-between; align-items:center; gap:10px;}
+.av-cab .av-h{flex:1 1 auto; min-width:0;}
+.av-todos{font:inherit; font-size:var(--fs-nota); font-weight:700; color:var(--navy2); background:none; border:0; padding:4px 14px 4px 0; cursor:pointer; white-space:nowrap;}
+.av-todos:hover{text-decoration:underline;}
+.av-todos[hidden]{display:none;}
 .av-i.nuevo .av-t::before{content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
   background:var(--amber); margin-right:6px; vertical-align:middle;}
 .av-vacio{font-size:var(--fs-parrafo); color:var(--gray); padding:4px 10px 12px;}

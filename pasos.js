@@ -729,6 +729,7 @@ window.CIIP_PASOS = {
          no se actualizo. */
       /* --- El buzón de avisos, en la barra de arriba --- */
       av_titulo:    "Tus avisos",
+      av_marcar_todos: "Marcar todos como vistos",
       av_vacio:     "Todavía no hay nada que contarte.",
       /* Lo que llega al buzón además de los cambios de estado. Cada línea
          va DEBAJO del nombre de lo que pasó -el recaudo, el trámite, el
@@ -3208,6 +3209,7 @@ window.CIIP_PASOS = {
       sol_ya_viva: "You already have a request for this procedure under way. See it in “My procedures”: there is no need to ask again.",
       /* --- The alerts tray, in the top bar --- */
       av_titulo:    "Your alerts",
+      av_marcar_todos: "Mark all as seen",
       av_vacio:     "Nothing to tell you yet.",
       av_papel_ok:  "The CIIP accepted it.",
       av_papel_mal: "It has to be uploaded again.",
@@ -5463,6 +5465,7 @@ window.CIIP_PASOS = {
       sol_ya_viva: "Já tem um pedido deste trâmite em curso. Veja-o em «Meus trâmites»: não é preciso pedi-lo outra vez.",
       /* --- A caixa de avisos, na barra de cima --- */
       av_titulo:    "Os seus avisos",
+      av_marcar_todos: "Marcar todos como vistos",
       av_vacio:     "Ainda não há nada para lhe contar.",
       av_papel_ok:  "O CIIP deu-o por bom.",
       av_papel_mal: "É preciso voltar a carregá-lo.",
@@ -7703,6 +7706,7 @@ window.CIIP_PASOS = {
       sol_ya_viva: "Hai già una richiesta di questa pratica in corso. La trovi in «Le mie pratiche»: non serve richiederla.",
       /* --- La casella degli avvisi, nella barra in alto --- */
       av_titulo:    "I tuoi avvisi",
+      av_marcar_todos: "Segna tutti come visti",
       av_vacio:     "Non c'è ancora nulla da dirti.",
       av_papel_ok:  "Il CIIP l'ha accettato.",
       av_papel_mal: "Va caricato di nuovo.",
@@ -9943,6 +9947,7 @@ window.CIIP_PASOS = {
       sol_ya_viva: "您已有一份该业务的申请在办理中，可在“我的手续”中查看，无需重复提交。",
       /* --- 顶部导航栏的提醒栏 --- */
       av_titulo:    "您的提醒",
+      av_marcar_todos: "全部标为已读",
       av_vacio:     "暂时没有新消息。",
       av_papel_ok:  "CIIP 已确认该文件有效。",
       av_papel_mal: "该文件需要重新上传。",
@@ -12183,6 +12188,7 @@ window.CIIP_PASOS = {
       sol_ya_viva: "У вас уже есть заявка по этой процедуре. Она в разделе «Мои процедуры»: подавать её снова не нужно.",
       /* --- Лента уведомлений в верхней панели --- */
       av_titulo:    "Ваши уведомления",
+      av_marcar_todos: "Отметить все как просмотренные",
       av_vacio:     "Пока нечего сообщить.",
       av_papel_ok:  "CIIP принял документ.",
       av_papel_mal: "Документ нужно загрузить заново.",
@@ -14423,6 +14429,7 @@ window.CIIP_PASOS = {
       sol_ya_viva: "Vous avez déjà une demande en cours pour cette démarche. Consultez-la dans « Mes démarches » : inutile de la refaire.",
       /* --- The alerts tray, in the top bar --- */
       av_titulo:    "Vos alertes",
+      av_marcar_todos: "Tout marquer comme vu",
       av_vacio:     "Rien à vous signaler pour l’instant.",
       av_papel_ok:  "Le CIIP l’a accepté.",
       av_papel_mal: "Il doit être téléversé à nouveau.",
@@ -16678,6 +16685,7 @@ window.CIIP_PASOS = {
       sol_ya_viva: "この手続きの申請はすでに進行中です。「マイ手続き」でご確認ください。再度申請する必要はありません。",
       /* --- The alerts tray, in the top bar --- */
       av_titulo:    "お知らせ",
+      av_marcar_todos: "すべて既読にする",
       av_vacio:     "まだお知らせはありません。",
       av_papel_ok:  "CIIPが受理しました。",
       av_papel_mal: "再度アップロードが必要です。",

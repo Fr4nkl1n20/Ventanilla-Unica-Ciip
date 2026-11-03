@@ -2631,13 +2631,23 @@
            'q="Sent back to you: something is missing" cabecera="Your alerts"');
       })();
 
-      /* Al CERRAR, no al abrir: si se apagara al abrirlo, no daría tiempo a
-         ver cuál era nuevo. */
+      /* Cada aviso se marca por separado (Franklin Reyes, 3-11-2026): cerrar la
+         lista no apaga nada, y sólo «Marcar todos» los apaga de una vez. */
+      var nAntes = cuenta.textContent;
       document.body.click();
       ok('buzón: se cierra al pulsar fuera', !buzon.classList.contains('open'),
          buzon.className, 'sin la clase open');
-      ok('buzón: al cerrarlo se apaga el contador', cuenta.hidden,
-         'oculto=' + cuenta.hidden, 'oculto=true');
+      igual('buzón: cerrarlo no da nada por visto', cuenta.textContent, nAntes);
+      ok('buzón: y el contador sigue a la vista', !cuenta.hidden, 'oculto=' + cuenta.hidden, 'oculto=false');
+      var todosB = document.getElementById('avisosTodos');
+      ok('buzón: ofrece marcar todos cuando hay nuevos', !!todosB && !todosB.hidden && !!todosB.textContent.trim(),
+         todosB ? todosB.textContent : '(no está)', 'con su texto');
+      campana.click();
+      todosB.click();
+      ok('buzón: «marcar todos» apaga el contador', cuenta.hidden, 'oculto=' + cuenta.hidden, 'oculto=true');
+      ok('buzón: y deja de ofrecerse', todosB.hidden, 'oculto=' + todosB.hidden, 'oculto=true');
+      igual('buzón: ninguno queda como nuevo', document.querySelectorAll('#avisosLista .av-i.nuevo').length, 0);
+      document.body.click();
 
       (function(){
         var g = null;

@@ -15128,6 +15128,7 @@ applyLang(idiomaParaMi());
     avClave = 'ciip.avisos.' + uid;
     try { avVisto = parseInt(window.localStorage.getItem(avClave) || '0', 10) || 0; }
     catch(e){ avVisto = 0; }
+    leeLeidos();
   }
   function marcaVisto(){
     if (!avisos.length) return;
@@ -15136,7 +15137,32 @@ applyLang(idiomaParaMi());
     avVisto = t;
     try { window.localStorage.setItem(avClave, String(avVisto)); } catch(e){}
   }
-  function esNuevo(ev){ return (Date.parse(ev.creado_en) || 0) > avVisto; }
+  /* CADA AVISO SE MARCA POR SEPARADO (Franklin Reyes, 3-11-2026: «tenía 11
+     notificaciones, le di clic a una y se colocaron todas como si las
+     hubiera visto»). Había una sola marca, «visto hasta esta fecha», y
+     cerrar la lista -también al pulsar un aviso- la subía hasta el más
+     nuevo. Ahora pulsar uno apaga ése solo, y cerrar no apaga ninguno. La
+     fecha se queda para lo ya visto y para «Marcar todos como vistos». */
+  var avLeidos = [];
+  function avId(ev){
+    return [ev.clase || '', ev.tramite || '', ev.estado || '', ev.tipo || '', ev.ente || '', ev.creado_en || ''].join('|');
+  }
+  function leeLeidos(){
+    try { avLeidos = JSON.parse(window.localStorage.getItem(avClave + '.leidos') || '[]') || []; }
+    catch(e){ avLeidos = []; }
+  }
+  function marcaUno(ev){
+    var id = avId(ev);
+    if (avLeidos.indexOf(id) >= 0) return;
+    avLeidos.push(id);
+    /* Los que quedan por debajo de la fecha ya no hacen falta: que la lista
+       no crezca para siempre. */
+    if (avLeidos.length > 300) avLeidos = avLeidos.slice(-300);
+    try { window.localStorage.setItem(avClave + '.leidos', JSON.stringify(avLeidos)); } catch(e){}
+  }
+  function esNuevo(ev){
+    return (Date.parse(ev.creado_en) || 0) > avVisto && avLeidos.indexOf(avId(ev)) < 0;
+  }
 
   /* Un mensaje puede traer cuatro mil caracteres y aquí caben dos líneas.
      Se corta por la última palabra entera: cortar a media palabra hace
@@ -15435,6 +15461,7 @@ applyLang(idiomaParaMi());
       b.addEventListener('click', function(){
         /* Se cierra ANTES de irse. Si no, el menú se queda abierto encima
            de la pantalla nueva y hay que pincharlo aparte para verla. */
+        marcaUno(ev);
         cierraAvisos();
         f.ir();
       });
@@ -15444,6 +15471,12 @@ applyLang(idiomaParaMi());
     if (avN){
       avN.textContent = String(nuevos);
       avN.hidden = (nuevos === 0);
+    }
+    /* Y para apagarlos todos de una vez, solo si hay algo que apagar. */
+    var todos = document.getElementById('avisosTodos');
+    if (todos){
+      todos.textContent = u.av_marcar_todos || '';
+      todos.hidden = (nuevos === 0);
     }
   }
 
@@ -16043,12 +16076,17 @@ applyLang(idiomaParaMi());
     if (!avMenu || !avMenu.classList.contains('open')) return;
     avMenu.classList.remove('open');
     avBtn.setAttribute('aria-expanded', 'false');
-    /* Al cerrar, y no al abrir: así da tiempo a ver cuáles eran nuevos. */
-    marcaVisto();
     pintaAvisos();
   }
 
   if (avBtn && avMenu){
+    var avTodos = document.getElementById('avisosTodos');
+    if (avTodos) avTodos.addEventListener('click', function(e){
+      e.stopPropagation();
+      marcaVisto();
+      avisos.forEach(function(ev){ marcaUno(ev); });
+      pintaAvisos();
+    });
     avBtn.addEventListener('click', function(e){
       e.stopPropagation();
       if (avMenu.classList.contains('open')) cierraAvisos(); else abreAvisos();
