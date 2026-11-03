@@ -4507,7 +4507,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .sol-grupo:has(.st-entes .sol-casilla.mal) > legend{color:var(--rust);}
 .st-marcable{cursor:pointer;}
 .st-entes .st-tarjeta:not(.st-marcable){cursor:default;}
-.st-entes .st-tarjeta:not(.st-marcable):hover{background:var(--activa-bg);}
+.st-entes .st-tarjeta:not(.st-marcable):hover{background:var(--bg);}
 .pf-ban{background:linear-gradient(135deg, #0F3D8C, #1C5FC4);}
 .pf-ban .ban-t{position:absolute; left:8%; top:18%; color:#fff; font-weight:900; font-size:11cqw; letter-spacing:-.01em;}
 .pf-ban .ban-s{position:absolute; left:8%; top:44%; color:#FFD24A; font-weight:800; font-size:5cqw; line-height:1.15; width:54%;}
@@ -4540,7 +4540,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-unica{grid-column:1 / -1;}
 .st-unica > label{display:block; margin-bottom:6px;}
 .st-unica .st-tarjeta{max-width:330px; cursor:default;}
-.st-unica .st-tarjeta:hover{background:var(--activa-bg);}
+.st-unica .st-tarjeta:hover{background:var(--bg);}
 .st-mt-sig{background:#F4F5FB;}
 .st-mt-sig::before{content:''; position:absolute; right:-8%; top:-22%; width:34%; aspect-ratio:1; transform:rotate(45deg); background:#BCC4DE;}
 .st-mt-sig::after{content:''; position:absolute; left:-10%; bottom:-26%; width:36%; aspect-ratio:1; transform:rotate(45deg); background:#B5BACB;}

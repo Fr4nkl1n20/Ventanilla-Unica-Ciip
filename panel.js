@@ -4966,7 +4966,7 @@ applyLang(idiomaParaMi());
      Franklin Reyes, 3-11-2026 (maquetas/mineria-turismo-tarjetas.html):
      «aplícalo, pero que salga el formulario directamente, porque es una
      sola opción». El RUM y el RTN tienen un único sistema: la tarjeta con
-     la portada de su página va ya marcada y solo informa. No es una casilla:
+     la portada de su página solo informa. No es una casilla:
      no se elige, no se valida y no guarda nada, y el formulario sale desde
      el principio. Las frases de cada portada son las de su página. */
   var PORTADA_SIGDME = '<div class="st-pt st-mt-sig" aria-hidden="true"><div class="h"><div class="f"><i></i><i></i><i></i><u></u></div>' +
@@ -4981,7 +4981,8 @@ applyLang(idiomaParaMi());
   function tarjetaUnica(d, u){
     var caja = el('div', 'st-unica');
     caja.appendChild(el('label', null, u[d.rotulo] || ''));
-    var t = el('div', 'st-tarjeta on');
+    /* Sin check ni fondo de elegida (3-11-2026): informa, no se elige. */
+    var t = el('div', 'st-tarjeta');
     t.innerHTML = d.pt;
     var cu = el('div', 'st-cu');
     cu.appendChild(el('div', 'st-sig', d.sig));
@@ -4991,9 +4992,6 @@ applyLang(idiomaParaMi());
     toca.appendChild(document.createTextNode(u[d.toca] || ''));
     cu.appendChild(toca);
     t.appendChild(cu);
-    var m = el('span', 'st-marca');
-    m.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
-    t.appendChild(m);
     caja.appendChild(t);
     return caja;
   }
@@ -5048,14 +5046,15 @@ applyLang(idiomaParaMi());
       toca.appendChild(document.createTextNode(u[e.toca] || ''));
       cu.appendChild(toca);
       t.appendChild(cu);
-      var m = el('span', 'st-marca');
-      m.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
-      t.appendChild(m);
-      fila.appendChild(t);
-      if (!marcables){
-        t.classList.add('on');
-        return;
+      /* El check solo donde se marca (Franklin Reyes, 3-11-2026): por primera
+         vez la tarjeta informa, no se elige. */
+      if (marcables){
+        var m = el('span', 'st-marca');
+        m.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
+        t.appendChild(m);
       }
+      fila.appendChild(t);
+      if (!marcables) return;
       var casilla = grupo.querySelector('.sol-casilla[data-campo="' + e.ya + '"]');
       var marca = casilla && casilla.querySelector('input[type=checkbox]');
       var suyos = el('div', 'sol-campos st-ente-campos');
