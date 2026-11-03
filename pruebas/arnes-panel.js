@@ -5141,11 +5141,25 @@
        envío. */
     igual('rum: pide solo la razón social y el RIF',
           [].map.call(caja.querySelectorAll('.sol-campo'), function(c){ return c.getAttribute('data-campo'); }).join(','),
-          'razon_social,rif_empresa');
+          'sistema_minero,razon_social,rif_empresa,tramite_presencial');
     igual('rum: sin recaudos', caja.querySelectorAll('.sol-doc').length, 0);
     igual('rum: dos hojas, sin la de recaudos vacía',
           [].map.call(caja.querySelectorAll('.pa-barra .pa-l'), function(l){ return l.textContent; }).join(' · '),
           window.CIIP_T().tus_datos + ' · ' + window.CIIP_T().pa_repasar);
+    var tarjR = caja.querySelectorAll('.st-tarjeta');
+    igual('rum: su sistema y los trámites presenciales', tarjR.length, 2);
+    /* Con los presenciales pide el trámite, que sin elegirlos no se ve. */
+    var trR = caja.querySelector('.sol-campo[data-campo="tramite_presencial"]');
+    ok('rum: el trámite presencial, escondido en línea', !!trR && trR.hidden, trR ? 'a la vista' : 'no está', 'escondido');
+    tarjR[1].click();
+    ok('rum: y a la vista con los presenciales', !!trR && !trR.hidden, 'escondido', 'a la vista');
+    igual('rum: los presenciales no llevan enlace', window.CIIP_PASO_MIO.enlace('c36', 1, {datos: {sistema_minero: 'Trámites presenciales'}}), null);
+    ok('rum: una solicitud de antes conserva su enlace', !!window.CIIP_PASO_MIO.enlace('c36', 1, {datos: {}}), 'sin enlace', 'con enlace');
+    igual('rum: su paso 1 dice que es en la oficina',
+          window.CIIP_ESCALERA({estado: 'enviado', datos: {sistema_minero: 'Trámites presenciales'}}, 'registro_minero', 'Ministerio de Desarrollo Minero').todos[0].nombre,
+          'Solicita tu trámite en la oficina del organismo');
+    tarjR[0].click();
+    ok('rum: en línea se vuelve a esconder', !!trR && trR.hidden, 'a la vista', 'escondido');
     caja.querySelectorAll('.sol-campo input').forEach(function(e, i){
       e.value = i ? 'J-12345678-9' : 'Minera de Prueba, C.A.';
       e.dispatchEvent(new Event('input'));
@@ -5184,11 +5198,14 @@
     if (!caja) return ok('sidcai: hay formulario', false, '(sin #trReal)', 'el formulario');
     igual('sidcai: pide solo la razón social, el RIF y el representante legal',
           [].map.call(caja.querySelectorAll('.sol-campo'), function(c){ return c.getAttribute('data-campo'); }).join(','),
-          'razon_social,rif_empresa,representante');
+          'sistema_sidcai,razon_social,rif_empresa,representante,tramite_presencial');
     igual('sidcai: sin recaudos', caja.querySelectorAll('.sol-doc').length, 0);
     igual('sidcai: dos hojas, sin la de recaudos vacía',
           [].map.call(caja.querySelectorAll('.pa-barra .pa-l'), function(l){ return l.textContent; }).join(' · '),
           window.CIIP_T().tus_datos + ' · ' + window.CIIP_T().pa_repasar);
+    var tarjL = caja.querySelectorAll('.st-tarjeta');
+    igual('sidcai: su sistema y los trámites presenciales', tarjL.length, 2);
+    if (tarjL[0]) tarjL[0].click();
     var valores = ['Innova de Prueba, C.A.', 'J-12345678-9', 'Ana Pérez'];
     caja.querySelectorAll('.sol-campo input').forEach(function(e, i){
       e.value = valores[i] || 'x';
@@ -11073,15 +11090,15 @@
           R.de('licencia_municipal').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
     igual('rum: el Registro Único Minero tampoco',
           R.de('registro_minero').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
-    igual('rum: y pregunta solo razón social y RIF',
-          R.campos('registro_minero').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa');
+    igual('rum: y pregunta dónde, razón social y RIF, y el trámite si es presencial',
+          R.campos('registro_minero').map(function(c){ return c.n; }).join(','), 'sistema_minero,razon_social,rif_empresa,tramite_presencial');
     /* El Registro Turístico Nacional (c50, 13-10-2026), igual que el RUM. */
     /* Éste sí, como el SACS: los de la Resolución 007, artículo 9. */
     igual('rtn: pide los recaudos de la Resolución 007',
           R.de('registro_turistico').map(function(r){ return r.tipo; }).join(', ') || 'ninguno',
           'acta_constitutiva, rif_empresa, identidad_accionistas, poliza_responsabilidad_civil, poliza_incendio');
-    igual('rtn: y pregunta solo razón social y RIF',
-          R.campos('registro_turistico').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa');
+    igual('rtn: y pregunta dónde, razón social y RIF, y el trámite si es presencial',
+          R.campos('registro_turistico').map(function(c){ return c.n; }).join(','), 'sistema_turistico,razon_social,rif_empresa,tramite_presencial');
     /* Los permisos ambientales (c30, Franklin Reyes, 19-10-2026,
        Permisos_MINEC): sin recaudos, como el RUM, y el sistema del MINEC
        delante, como el SACS. */
@@ -11309,9 +11326,9 @@
     };
     igual('sidcai: ya no pide recaudos',
           R.de('aporte_locti').map(function(r){ return r.tipo; }).join(', ') || 'ninguno', 'ninguno');
-    igual('sidcai: y pregunta solo razón social, RIF y representante legal',
-          R.campos('aporte_locti').map(function(c){ return c.n; }).join(','), 'razon_social,rif_empresa,representante');
-    igual('sidcai: el representante, con el rótulo del nombre', u[(R.campos('aporte_locti')[2] || {}).clave],
+    igual('sidcai: y pregunta dónde, razón social, RIF y representante legal, y el trámite si es presencial',
+          R.campos('aporte_locti').map(function(c){ return c.n; }).join(','), 'sistema_sidcai,razon_social,rif_empresa,representante,tramite_presencial');
+    igual('sidcai: el representante, con el rótulo del nombre', u[(R.campos('aporte_locti')[3] || {}).clave],
           u.f_repnombre);
     igual('sidcai: ni pide comprobante para resolver', M.comprobante(tr('lt-c', 'ante_el_ente')), null);
     igual('sidcai: y su segundo tramo sigue pidiendo el RIF',
@@ -13097,7 +13114,8 @@
           '|SIACVISA · Sistema de Información Automatizado de Control y Vigilancia Sanitaria' +
           '|Censo Nacional Automatizado · Establecimientos de Salud y Similares' +
           '|SIVERCOS · Sistema Venezolano de Registro de Cosméticos' +
-          '|SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria');
+          '|SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria' +
+          '|Trámites presenciales');
     ok('sacs: y sin «Profesionales de la Salud»', bienesOpciones(caja, 'sistema_sacs').indexOf('Profesionales') < 0,
        bienesOpciones(caja, 'sistema_sacs'), 'sin él');
     igual('sacs: los rótulos del permiso y del representante',
@@ -13177,12 +13195,13 @@
 
     /* El enlace del paso 1: el del sistema elegido, y ninguno sin elegir. */
     var PM = window.CIIP_PASO_MIO;
-    var es = ((window.CIIP_PASOS.ui.es || {}).o_sacs_sistema || []).slice(1);
+    var es = ((window.CIIP_PASOS.ui.es || {}).o_sacs_sistema || []).slice(1, -1);
     if (PM){
       var url = function(n, datos){ var e = PM.enlace('c48', n, {datos: datos}); return e ? e.url : '(ninguno)'; };
       igual('sacs: el paso 1 lleva al enlace de cada sistema, el del documento',
             es.map(function(s){ return url(1, {sistema_sacs: s}); }).join(' '), SACS_URLS.join(' '));
       igual('sacs: sin sistema no hay enlace', url(1, {}), '(ninguno)');
+      igual('sacs: los trámites presenciales tampoco', url(1, {sistema_sacs: 'Trámites presenciales'}), '(ninguno)');
       igual('sacs: ni con uno que no está en la tabla', url(1, {sistema_sacs: 'Profesionales de la Salud'}), '(ninguno)');
       igual('sacs: y el paso 2 no lleva enlace', url(2, {sistema_sacs: es[0]}), '(ninguno)');
       igual('sacs: «ya solicité» no lleva enlace', (function(){ var e = PM.enlace('c49', 1, {datos: {sistema_sacs: es[0]}}); return e ? e.url : '(ninguno)'; })(), '(ninguno)');
@@ -13299,29 +13318,29 @@
           tarjetas: 7, gestion: 'En coordinación con el MINEC', fin: 'Permiso otorgado'},
     agr: {madre: 'c51', ya: 'c54', p: 'yg', codigo: 'agricola_en_proceso', ente: 'MPPAPT',
           campos: 'sistema_agricola permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
-          tarjetas: 4, gestion: 'En coordinación con el INSAI o el INTI', fin: 'Registro o permiso listo'},
+          tarjetas: 5, gestion: 'En coordinación con el INSAI o el INTI', fin: 'Registro o permiso listo'},
     /* Franklin Reyes, 2-11-2026: «lo mismo con permisos mineros y permisos de
-       turismo». Con un único portal: una sola tarjeta, fija (3-11-2026). */
+       turismo». Su portal y los trámites presenciales (3-11-2026). */
     min: {madre: 'c36', ya: 'c55', p: 'yr', codigo: 'minero_en_proceso', ente: 'Ministerio de Desarrollo Minero',
-          campos: 'permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          campos: 'sistema_minero permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           queSolicito: 'permiso_ya',
-          tarjetas: 1, gestion: 'En coordinación con el Ministerio de Desarrollo Minero', fin: 'Registro listo'},
+          tarjetas: 2, gestion: 'En coordinación con el Ministerio de Desarrollo Minero', fin: 'Registro listo'},
     tur: {madre: 'c50', ya: 'c56', p: 'yn', codigo: 'turistico_en_proceso', ente: 'MINTUR',
-          campos: 'permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          campos: 'sistema_turistico permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           queSolicito: 'permiso_ya',
-          tarjetas: 1, gestion: 'En coordinación con el MINTUR', fin: 'Registro listo'},
-    /* Franklin Reyes, 3-11-2026: hidrocarburos con su tarjeta fija, y pesca y
-       energía con las tres áreas. */
+          tarjetas: 2, gestion: 'En coordinación con el MINTUR', fin: 'Registro listo'},
+    /* Franklin Reyes, 3-11-2026: hidrocarburos con el SUTAP, y pesca y energía
+       con las tres áreas; y en todos, los trámites presenciales. */
     hid: {madre: 'c57', ya: 'c58', p: 'yh', codigo: 'hidrocarburos_en_proceso', ente: 'MINHIDROCARBUROS',
-          campos: 'permiso_hidrocarburos fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          campos: 'sistema_hidrocarburos permiso_hidrocarburos tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           queSolicito: 'permiso_hidrocarburos',
-          tarjetas: 1, gestion: 'En coordinación con el Ministerio de Hidrocarburos', fin: 'Permiso listo'},
+          tarjetas: 2, gestion: 'En coordinación con el Ministerio de Hidrocarburos', fin: 'Permiso listo'},
     pes: {madre: 'c59', ya: 'c60', p: 'ype', codigo: 'pesca_en_proceso', ente: 'INSOPESCA',
-          campos: 'area_pesca permiso_pesca fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
-          tarjetas: 3, gestion: 'En coordinación con INSOPESCA', fin: 'Permiso listo'},
+          campos: 'area_pesca permiso_pesca tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          tarjetas: 4, gestion: 'En coordinación con INSOPESCA', fin: 'Permiso listo'},
     ene: {madre: 'c61', ya: 'c62', p: 'yen', codigo: 'energia_en_proceso', ente: 'MPPEE',
-          campos: 'area_energia permiso_energia fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
-          tarjetas: 3, gestion: 'En coordinación con el Ministerio de Energía Eléctrica', fin: 'Permiso listo'}
+          campos: 'area_energia permiso_energia tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          tarjetas: 4, gestion: 'En coordinación con el Ministerio de Energía Eléctrica', fin: 'Permiso listo'}
   };
   function ypmAbre(k, sigue){
     if (PASE !== 'vacio') return sigue();
@@ -13490,15 +13509,28 @@
     if (PASE !== 'vacio') return sigue();
     var U = window.CIIP_PASOS.ui[curLang] || {};
     var caja = document.getElementById('trReal');
-    igual('hid: razón social, RIF, representante y permiso', bienesCampos(caja),
-          'razon_social rif_empresa representante permiso_hidrocarburos');
-    var uni = caja && caja.querySelector('.st-unica .st-tarjeta');
-    ok('hid: la tarjeta fija, sin elegir nada', !!uni && !uni.hasAttribute('role'),
-       uni ? uni.getAttribute('role') : 'no está', 'una tarjeta que informa');
-    igual('hid: del SUTAP', uni ? (uni.querySelector('.st-sig') || {}).textContent : '(no está)', 'SUTAP');
-    ok('hid: con la portada dibujada', !!uni && !!uni.querySelector('.st-pt.p-sut'), 'sin portada', 'p-sut');
-    ok('hid: sin enlace en la tarjeta', !!uni && !uni.querySelector('a'), 'con enlace', 'sin enlace');
-    ok('hid: el formulario sale directo', !!caja && !caja.querySelector('.st-sin-elegir'), 'esperando', 'a la vista');
+    igual('hid: dónde, razón social, RIF, representante y permiso', bienesCampos(caja),
+          'sistema_hidrocarburos razon_social rif_empresa representante permiso_hidrocarburos tramite_presencial');
+    var tarjH = caja ? caja.querySelectorAll('.st-tarjeta') : [];
+    igual('hid: el SUTAP y los trámites presenciales', tarjH.length, 2);
+    igual('hid: del SUTAP', tarjH[0] ? (tarjH[0].querySelector('.st-sig') || {}).textContent : '(no está)', 'SUTAP');
+    ok('hid: con la portada dibujada', !!tarjH[0] && !!tarjH[0].querySelector('.st-pt.p-sut'), 'sin portada', 'p-sut');
+    igual('hid: el otro recuadro, del CIIP', tarjH[1] ? (tarjH[1].querySelector('.st-sig') || {}).textContent : '(no está)', 'CIIP');
+    ok('hid: con su logo', !!tarjH[1] && !!tarjH[1].querySelector('.st-pt-ciip img'), 'sin logo', 'logos/ciip.png');
+    ok('hid: sin enlace en las tarjetas', !!caja && !caja.querySelector('.st-tarjeta a'), 'con enlace', 'sin enlace');
+    igual('hid: dos pestañas', caja ? caja.querySelectorAll('.st-pe').length : 0, 2);
+    ok('hid: el formulario espera hasta elegir', !!caja && !!caja.querySelector('.st-sin-elegir'), 'a la vista', 'esperando');
+    if (tarjH[1]) tarjH[1].click();
+    var pHid = caja && caja.querySelector('.sol-campo[data-campo="permiso_hidrocarburos"]');
+    var tHid = caja && caja.querySelector('.sol-campo[data-campo="tramite_presencial"]');
+    ok('hid: con los presenciales, sale el trámite', !!tHid && !tHid.hidden, 'escondido', 'a la vista');
+    ok('hid: y no la lista de permisos del SUTAP', !!pHid && pHid.hidden, 'a la vista', 'escondida');
+    igual('hid: los presenciales no llevan enlace', hpeEnlace('c57', {sistema_hidrocarburos: 'Trámites presenciales'}), 'sin enlace');
+    igual('hid: su paso 1 dice que es en la oficina', hpeEscalera('permisos_hidrocarburos', 'MINHIDROCARBUROS', {sistema_hidrocarburos: 'Trámites presenciales'}),
+          'Solicita tu trámite en la oficina del organismo');
+    if (tarjH[0]) tarjH[0].click();
+    ok('hid: con el SUTAP, la lista de permisos otra vez', !!pHid && !pHid.hidden, 'escondida', 'a la vista');
+    ok('hid: y sin el trámite', !!tHid && tHid.hidden, 'a la vista', 'escondido');
     igual('hid: la lista de permisos', bienesOpciones(caja, 'permiso_hidrocarburos'), (U.o_hid_permiso || []).join('|'));
     igual('hid: los nueve permisos de la maqueta', (U.o_hid_permiso || []).filter(Boolean).length, 9);
     igual('hid: los cuatro recaudos provisionales', hpeDocsSeVen(caja), 'acta_constitutiva cedula rif_empresa rif_personal');
@@ -13518,11 +13550,11 @@
     var U = window.CIIP_PASOS.ui[curLang] || {};
     var caja = document.getElementById('trReal');
     igual(k + ': razón social, RIF, representante y permiso, tras el área', bienesCampos(caja),
-          campo + ' razon_social rif_empresa representante ' + permiso);
+          campo + ' razon_social rif_empresa representante ' + permiso + ' tramite_presencial');
     var tarjetas = caja ? [].slice.call(caja.querySelectorAll('.st-rej .st-tarjeta')) : [];
-    igual(k + ': tres tarjetas', tarjetas.length, 3);
-    igual(k + ': en un solo bloque', caja ? caja.querySelectorAll('.st-rej').length : 0, 1);
-    igual(k + ': sin pestañas', caja ? caja.querySelectorAll('.st-pes, .st-pe').length : -1, 0);
+    igual(k + ': tres áreas y los trámites presenciales', tarjetas.length, 4);
+    igual(k + ': en dos bloques', caja ? caja.querySelectorAll('.st-rej').length : 0, 2);
+    igual(k + ': con dos pestañas', caja ? caja.querySelectorAll('.st-pe').length : -1, 2);
     ok(k + ': sin enlace en las tarjetas', !!caja && !caja.querySelector('.st-tarjeta a'), 'con enlace', 'sin enlace');
     var campoA = caja && caja.querySelector('.sol-campo[data-campo="' + campo + '"]');
     ok(k + ': hasta elegir, las casillas esperan',
@@ -13545,6 +13577,21 @@
       igual(k + ': su enlace del paso 1', hpeEnlace(a.ref, a.datos), a.enlace);
       igual(k + ': su paso 1', hpeEscalera(a.codigo, a.ente, a.datos), a.paso);
     });
+    /* Con los presenciales: el trámite en vez de la lista, sin recaudos. */
+    var pre = tarjetas[3];
+    if (pre){
+      igual(k + ': el cuarto recuadro, del CIIP', pre.getAttribute('data-valor'), 'Trámites presenciales');
+      pre.click();
+      var cP = caja.querySelector('.sol-campo[data-campo="' + permiso + '"]');
+      var cT = caja.querySelector('.sol-campo[data-campo="tramite_presencial"]');
+      ok(k + ': presenciales, sale el trámite', !!cT && !cT.hidden, 'escondido', 'a la vista');
+      ok(k + ': y no la lista de permisos', !!cP && cP.hidden, 'a la vista', 'escondida');
+      igual(k + ': y sin recaudos', hpeDocsSeVen(caja), '');
+      var datosP = {}; datosP[campo] = 'Trámites presenciales';
+      igual(k + ': sin enlace', hpeEnlace(areas[0].ref, datosP), 'sin enlace');
+      igual(k + ': su paso 1 dice que es en la oficina', hpeEscalera(areas[0].codigo, areas[0].ente, datosP),
+            'Solicita tu trámite en la oficina del organismo');
+    }
     /* Volver al primero deja sus recaudos, y borra el permiso del otro. */
     if (tarjetas[0]) tarjetas[0].click();
     igual(k + ': al volver a la primera, ningún permiso elegido', hp ? hp.value : '(sin lista)', '');

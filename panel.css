@@ -4564,6 +4564,9 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .pf-ivs .ins{position:absolute; right:4%; top:47%; background:#2F4069; color:#fff; font-style:italic; font-size:3.4cqw; padding:.8cqw 2.4cqw; border-radius:1cqw 1cqw 0 0;}
 .pf-ivs .sol{position:absolute; left:6%; top:64%; color:#10106A; font-weight:800; font-size:4.6cqw;}
 .pf-ivs i{position:absolute; left:6%; width:44%; height:3.2cqw; border:1px solid #AAA;}
+.p-sidcai{background:linear-gradient(150deg, #123F73, #1F6FB5); display:flex; flex-direction:column; justify-content:center; gap:1cqw; padding:0 9%; color:#fff;}
+.p-sidcai b{font-size:11cqw; font-weight:800; line-height:1;}
+.p-sidcai span{font-size:4.6cqw; color:#DCE6F5;}
 /* La tarjeta fija de los que tienen una sola página (2-11-2026, tarjetaUnica):
    informa, no se elige. Las dos portadas, en cqw como las demás. */
 .st-unica{grid-column:1 / -1;}

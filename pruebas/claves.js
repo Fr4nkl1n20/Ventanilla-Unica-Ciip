@@ -294,6 +294,7 @@ const PROPIOS = new Set((
                 white-space:pre-wrap, así que ese aire se ve. Está igual
                 en los seis idiomas: es una decisión, no un descuido. */
 const SALTOS = new Set([
+  'yt_toca_pr', 'yt_toca_sidcai',
   'tag.soon', 'asst.greet',
   /* Y estos dos no son rótulos: son TROZOS que se pegan detrás de otra
      cosa —«pasaporte.pdf · ya estaba en tu expediente», «resuelta el 4 de
