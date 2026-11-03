@@ -259,6 +259,8 @@ const PROPIOS = new Set((
      se libraba de la regla por tener seis palabras y no cinco, lo cual
      era suerte y no criterio. */
   'Extranjeros Estrangeiros Stranieri Foreigners ' +
+  /* El Colegio de Ingenieros, en los recaudos de CORPOELEC (3-11-2026). */
+  'Colegio Ingenieros ' +
   /* Tres nombres propios que la regla marcaba (23-10-2026): el «Servicio
      Autónomo de Contraloría Sanitaria» y el «Cuerpo de Bomberos» son
      organismos, y la «Ventanilla Verde» es el sistema del MINEC. Se
@@ -387,7 +389,10 @@ const SALTOS = new Set([
   /* Y los de la tarjeta fija del RUM y el RTN (3-11-2026). */
   'yt_toca_sigdme', 'yt_toca_rtn',
   /* Y los de los parafiscales (3-11-2026). */
-  'yt_toca_banavih', 'yt_toca_inces', 'yt_toca_rnet', 'yt_toca_rupdae', 'yt_toca_ivss'
+  'yt_toca_banavih', 'yt_toca_inces', 'yt_toca_rnet', 'yt_toca_rupdae', 'yt_toca_ivss',
+  /* Y los de hidrocarburos, pesca y energía (3-11-2026). */
+  'yt_toca_sutap', 'yt_toca_pescaemb', 'yt_toca_acui', 'yt_toca_empesca',
+  'yt_toca_autog', 'yt_toca_conex', 'yt_toca_renov'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;

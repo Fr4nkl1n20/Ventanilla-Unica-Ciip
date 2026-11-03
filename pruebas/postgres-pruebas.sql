@@ -2840,6 +2840,36 @@ select arnes.comprueba(
   'ya solicité: y sus motivos cuentan en las estadísticas',
   position('minero_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
   and position('turistico_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
+-- Hidrocarburos, pesca y energía (c57 a c62), Franklin Reyes, 3-11-2026.
+select arnes.comprueba(
+  'hidrocarburos, pesca y energía: las tres de primera vez, encendidas y con lo que emiten',
+  (select count(*) = 3 from public.tipos_tramite t join public.tipos_documento d on d.codigo = t.emite
+    where (t.codigo, t.ref_panel, t.ente) in (('permisos_hidrocarburos', 'c57', 'MINHIDROCARBUROS'),
+                                              ('permisos_pesca', 'c59', 'INSOPESCA'),
+                                              ('permisos_energia', 'c61', 'MPPEE'))
+      and t.activo and t.fase = 3 and t.nivel = 'actividad' and not d.vence));
+select arnes.comprueba(
+  'hidrocarburos, pesca y energía: sus «ya solicité», encendidos, sin emite ni plazo',
+  (select count(*) = 3 from public.tipos_tramite
+    where (codigo, ref_panel, ente) in (('hidrocarburos_en_proceso', 'c58', 'MINHIDROCARBUROS'),
+                                        ('pesca_en_proceso', 'c60', 'INSOPESCA'),
+                                        ('energia_en_proceso', 'c62', 'MPPEE'))
+      and activo and emite is null and plazo_dias is null and fase = 3 and nivel = 'actividad'));
+select arnes.comprueba(
+  'hidrocarburos, pesca y energía: confirma_paso conoce sus tres marcas',
+  position('''hidrocarburos_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('''pesca_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('''energia_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0);
+select arnes.comprueba(
+  'hidrocarburos, pesca y energía: y sus motivos cuentan en las estadísticas',
+  position('hidrocarburos_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('pesca_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('energia_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
+select arnes.comprueba(
+  'hidrocarburos, pesca y energía: los recaudos del panel que no se crearon aquí siguen en la base',
+  (select count(*) = 5 from public.tipos_documento
+    where codigo in ('conformidad_uso', 'acta_constitutiva', 'rif_empresa', 'cedula', 'rif_personal')));
+
 select arnes.comprueba(
   'rnc: confirma_paso conoce su marca y conserva la de antes',
   position('''rnc_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0

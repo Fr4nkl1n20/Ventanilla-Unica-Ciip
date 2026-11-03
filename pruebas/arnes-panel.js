@@ -484,6 +484,12 @@
               ypmMinAbre, ypmMinMira, ypmMinYaMira, ypmMinAtrasMira,
               ypmTurAbre, ypmTurMira, ypmTurYaMira, ypmTurAtrasMira,
               rncTarjetaAbre, rncTarjetaMira, rncFueraMira,
+              /* Las tres fichas de hidrocarburos (c57/c58), pesca (c59/c60) y
+                 energía (c61/c62), Franklin Reyes, 3-11-2026. */
+              ypmHidAbre, ypmHidMira, ypmHidYaMira, ypmHidAtrasMira,
+              ypmPesAbre, ypmPesMira, ypmPesYaMira, ypmPesAtrasMira,
+              ypmEneAbre, ypmEneMira, ypmEneYaMira, ypmEneAtrasMira,
+              hpeCatalogoMira, hpeHidAbre, hpeHidMira, hpePesAbre, hpePesMira, hpeEneAbre, hpeEneMira,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
@@ -865,7 +871,9 @@
 
        Y ONCE desde el 2-11-2026 (Franklin Reyes): el RNC (c13) sale de las
        inscripciones con tarjeta propia. */
-    igual('camino: la fase 03 cuenta sus 11',         deEtapa(2, '.jcount'), '0 de 11 listos');
+    /* Y CATORCE desde el 3-11-2026 (Franklin Reyes): hidrocarburos (c57), pesca
+       (c59) y energía (c61). */
+    igual('camino: la fase 03 cuenta sus 14',         deEtapa(2, '.jcount'), '0 de 14 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -1211,7 +1219,9 @@
              /* Y 44 con el RNC encendido (c13) y los dos ya solicitados del
                 ministerio minero (c55) y del MINTUR (c56), Franklin Reyes,
                 2-11-2026. */
-             pendS === 44, pendS + ' por iniciar de 45 ofrecidas', '44');
+             /* Y 50 con hidrocarburos, pesca y energía (c57 a c62), Franklin
+                Reyes, 3-11-2026. */
+             pendS === 50, pendS + ' por iniciar de 51 ofrecidas', '50');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1234,9 +1244,10 @@
              Y 40 con los permisos de agricultura (c51), 30-10-2026.
              Y 42 con los ya solicitados del MINEC (c53) y del INSAI o el
              INTI (c54), Franklin Reyes, 2-11-2026.
-             Y 45 con el RNC encendido (c13) y los de c55 y c56, el mismo día. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 45,
-             pend + ' por iniciar de 45 ofrecidas', '45');
+             Y 45 con el RNC encendido (c13) y los de c55 y c56, el mismo día.
+             Y 51 con hidrocarburos, pesca y energía (c57 a c62), 3-11-2026. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 51,
+             pend + ' por iniciar de 51 ofrecidas', '51');
       }
 
       /* ── la cadena entre trámites ──
@@ -1687,8 +1698,10 @@
            escondidos detrás de la c30 y la c51 pero presentes. */
         /* Y VEINTICUATRO desde el mismo día: el RNC (c13), encendido, y los
            dos escondidos del ministerio minero (c55) y del MINTUR (c56). */
-        igual('grupo: la fase 03 se queda con veinticuatro tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 24);
+        /* Y TREINTA desde el 3-11-2026: hidrocarburos, pesca y energía, con sus
+           tres escondidos. */
+        igual('grupo: la fase 03 se queda con treinta tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 30);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -13284,7 +13297,19 @@
     tur: {madre: 'c50', ya: 'c56', p: 'yn', codigo: 'turistico_en_proceso', ente: 'MINTUR',
           campos: 'permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           queSolicito: 'permiso_ya',
-          tarjetas: 1, gestion: 'En coordinación con el MINTUR', fin: 'Registro listo'}
+          tarjetas: 1, gestion: 'En coordinación con el MINTUR', fin: 'Registro listo'},
+    /* Franklin Reyes, 3-11-2026: hidrocarburos con su tarjeta fija, y pesca y
+       energía con las tres áreas. */
+    hid: {madre: 'c57', ya: 'c58', p: 'yh', codigo: 'hidrocarburos_en_proceso', ente: 'MINHIDROCARBUROS',
+          campos: 'permiso_hidrocarburos fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'permiso_hidrocarburos',
+          tarjetas: 1, gestion: 'En coordinación con el Ministerio de Hidrocarburos', fin: 'Permiso listo'},
+    pes: {madre: 'c59', ya: 'c60', p: 'ype', codigo: 'pesca_en_proceso', ente: 'INSOPESCA',
+          campos: 'area_pesca permiso_pesca fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          tarjetas: 3, gestion: 'En coordinación con INSOPESCA', fin: 'Permiso listo'},
+    ene: {madre: 'c61', ya: 'c62', p: 'yen', codigo: 'energia_en_proceso', ente: 'MPPEE',
+          campos: 'area_energia permiso_energia fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          tarjetas: 3, gestion: 'En coordinación con el Ministerio de Energía Eléctrica', fin: 'Permiso listo'}
   };
   function ypmAbre(k, sigue){
     if (PASE !== 'vacio') return sigue();
@@ -13381,6 +13406,194 @@
   function ypmTurMira(sigue){ ypmMira('tur', sigue); }
   function ypmTurYaMira(sigue){ ypmYaMira('tur', sigue); }
   function ypmTurAtrasMira(sigue){ ypmAtrasMira('tur', sigue); }
+  function ypmHidAbre(sigue){ ypmAbre('hid', sigue); }
+  function ypmHidMira(sigue){ ypmMira('hid', sigue); }
+  function ypmHidYaMira(sigue){ ypmYaMira('hid', sigue); }
+  function ypmHidAtrasMira(sigue){ ypmAtrasMira('hid', sigue); }
+  function ypmPesAbre(sigue){ ypmAbre('pes', sigue); }
+  function ypmPesMira(sigue){ ypmMira('pes', sigue); }
+  function ypmPesYaMira(sigue){ ypmYaMira('pes', sigue); }
+  function ypmPesAtrasMira(sigue){ ypmAtrasMira('pes', sigue); }
+  function ypmEneAbre(sigue){ ypmAbre('ene', sigue); }
+  function ypmEneMira(sigue){ ypmMira('ene', sigue); }
+  function ypmEneYaMira(sigue){ ypmYaMira('ene', sigue); }
+  function ypmEneAtrasMira(sigue){ ypmAtrasMira('ene', sigue); }
+
+  /* ═══════════ LAS FICHAS DE HIDROCARBUROS, PESCA Y ENERGÍA ═══════════
+     Franklin Reyes, 3-11-2026 (maquetas/hidrocarburos-pesca-energia.html):
+     «crea las fichas del catálogo». Las tres tarjetas al final de las
+     licencias sectoriales; hidrocarburos con tarjeta fija y formulario
+     directo; pesca y energía con sus áreas en una línea, sin pestañas, las
+     casillas esperando, y la lista de permisos y los recaudos según el área.
+     Solo en 'vacio', como las de arriba. */
+  function hpeCatalogoMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var rej = document.getElementById('trs-3'), hijos = rej ? [].slice.call(rej.children) : [];
+    var ini = hijos.findIndex(function(e){ return e.getAttribute('data-grupo') === 'g.sectorial'; });
+    var ultimas = hijos.filter(function(e){
+      return e.matches('.tcard[data-tr]') && !e.hasAttribute('data-tramo-de');
+    }).slice(-3).map(function(e){ return e.getAttribute('data-tr'); }).join(' ');
+    igual('hpe: las tres, al final de las licencias sectoriales', ultimas, 'c57 c59 c61');
+    [['c57', 'Permisos de hidrocarburos', 'Ministerio del Poder Popular de Hidrocarburos'],
+     ['c59', 'Permisos de pesca', 'Instituto Socialista de la Pesca y Acuicultura'],
+     ['c61', 'Permisos de energía', 'Ministerio del Poder Popular para la Energía Eléctrica']].forEach(function(x){
+      var c = document.querySelector('.grid-tr > .tcard[data-tr="' + x[0] + '"]');
+      ok('hpe: la ' + x[0] + ' va bajo el título', !!c && ini >= 0 && hijos.indexOf(c) > ini,
+         c ? 'en ' + hijos.indexOf(c) + ', título en ' + ini : 'no está', 'detrás del título');
+      if (!c) return;
+      igual('hpe: la ' + x[0] + ', con su nombre', (c.querySelector('.t-name') || {}).textContent, x[1]);
+      igual('hpe: la ' + x[0] + ', con su ente', (c.querySelector('.t-ente span') || {}).textContent, x[2]);
+      ok('hpe: la ' + x[0] + ', con su dibujo', !!c.querySelector('.t-ico svg path'), 'sin dibujo', 'un svg');
+    });
+    sigue();
+  }
+  function hpeAbreNueva(madre, sigue){
+    if (PASE !== 'vacio') return sigue();
+    location.hash = 'tramite-' + madre;
+    setTimeout(function(){
+      var op = document.querySelector('#trVisas [data-ya-op="' + madre + '"]');
+      if (op) op.click();
+      setTimeout(sigue, 800);
+    }, 800);
+  }
+  function hpeHidAbre(sigue){ hpeAbreNueva('c57', sigue); }
+  function hpePesAbre(sigue){ hpeAbreNueva('c59', sigue); }
+  function hpeEneAbre(sigue){ hpeAbreNueva('c61', sigue); }
+  function hpeDocsSeVen(caja){
+    return caja ? [].map.call(caja.querySelectorAll('.sol-doc'), function(d){ return d.hidden ? '' : d.getAttribute('data-doc'); })
+      .filter(Boolean).sort().join(' ') : '(sin formulario)';
+  }
+  function hpeNotas(caja){
+    return caja ? [].map.call(caja.querySelectorAll('.sol-docs-nota'), function(n){ return n.hidden ? '' : n.textContent; })
+      .filter(Boolean).join(' | ') : '(sin formulario)';
+  }
+  function hpeEscalera(codigo, ente, datos){
+    return window.CIIP_ESCALERA({estado: 'enviado', datos: datos || {}}, codigo, ente).todos[0].nombre;
+  }
+  function hpeEnlace(ref, datos){
+    var e = window.CIIP_PASO_MIO.enlace(ref, 1, {datos: datos || {}});
+    return e ? e.url + ' · ' + (window.CIIP_PASOS.ui[curLang] || {})[e.clave] : 'sin enlace';
+  }
+  function hpeHidMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var caja = document.getElementById('trReal');
+    igual('hid: razón social, RIF, representante y permiso', bienesCampos(caja),
+          'razon_social rif_empresa representante permiso_hidrocarburos');
+    var uni = caja && caja.querySelector('.st-unica .st-tarjeta');
+    ok('hid: la tarjeta fija, sin elegir nada', !!uni && !uni.hasAttribute('role'),
+       uni ? uni.getAttribute('role') : 'no está', 'una tarjeta que informa');
+    igual('hid: del SUTAP', uni ? (uni.querySelector('.st-sig') || {}).textContent : '(no está)', 'SUTAP');
+    ok('hid: con la portada dibujada', !!uni && !!uni.querySelector('.st-pt.p-sut'), 'sin portada', 'p-sut');
+    ok('hid: sin enlace en la tarjeta', !!uni && !uni.querySelector('a'), 'con enlace', 'sin enlace');
+    ok('hid: el formulario sale directo', !!caja && !caja.querySelector('.st-sin-elegir'), 'esperando', 'a la vista');
+    igual('hid: la lista de permisos', bienesOpciones(caja, 'permiso_hidrocarburos'), (U.o_hid_permiso || []).join('|'));
+    igual('hid: los nueve permisos de la maqueta', (U.o_hid_permiso || []).filter(Boolean).length, 9);
+    igual('hid: los cuatro recaudos provisionales', hpeDocsSeVen(caja), 'acta_constitutiva cedula rif_empresa rif_personal');
+    igual('hid: y lo dice debajo', hpeNotas(caja), U.d_nota_hid);
+    var pa = caja && caja.querySelector('.pa');
+    ok('hid: sin la barra de hojas', !!pa && pa.classList.contains('sin-barra'), pa ? pa.className : '(sin hojas)', 'sin-barra');
+    igual('hid: el paso 1 lleva al SUTAP', hpeEnlace('c57'), 'https://sutap.minhidrocarburos.gob.ve/ · ' + U.p_irsutap);
+    igual('hid: el paso 1 dice dónde', hpeEscalera('permisos_hidrocarburos', 'MINHIDROCARBUROS'),
+          'Solicita tu permiso en el SUTAP del ministerio');
+    var b = window.CIIP_PASO_MIO.boton({id: 'hid-1', tipo: 'permisos_hidrocarburos', estado: 'enviado', datos: {}, inversionista: 'u2', gestor: 'u1'}, 'c57', 1, null, null);
+    igual('hid: «Ya lo solicité» marca su llave', b ? b.textContent + ' · ' + b.getAttribute('data-clave') : '(sin botón)',
+          'Ya lo solicité · hidrocarburos_solicitado');
+    location.hash = '';
+    setTimeout(sigue, 200);
+  }
+  function hpeAreas(k, campo, permiso, areas){
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var caja = document.getElementById('trReal');
+    igual(k + ': razón social, RIF, representante y permiso, tras el área', bienesCampos(caja),
+          campo + ' razon_social rif_empresa representante ' + permiso);
+    var tarjetas = caja ? [].slice.call(caja.querySelectorAll('.st-rej .st-tarjeta')) : [];
+    igual(k + ': tres tarjetas', tarjetas.length, 3);
+    igual(k + ': en un solo bloque', caja ? caja.querySelectorAll('.st-rej').length : 0, 1);
+    igual(k + ': sin pestañas', caja ? caja.querySelectorAll('.st-pes, .st-pe').length : -1, 0);
+    ok(k + ': sin enlace en las tarjetas', !!caja && !caja.querySelector('.st-tarjeta a'), 'con enlace', 'sin enlace');
+    var campoA = caja && caja.querySelector('.sol-campo[data-campo="' + campo + '"]');
+    ok(k + ': hasta elegir, las casillas esperan',
+       !!campoA && campoA.parentNode.classList.contains('st-sin-elegir'), 'a la vista', 'st-sin-elegir');
+    igual(k + ': y sin ningún recaudo', hpeDocsSeVen(caja), '');
+    igual(k + ': ni nota', hpeNotas(caja), '');
+    var hp = caja && caja.querySelector('select[name="' + permiso + '"]');
+    areas.forEach(function(a, i){
+      var t = tarjetas[i];
+      if (!t) return;
+      igual(k + ': la tarjeta ' + (i + 1), t.getAttribute('data-valor'), a.valor);
+      t.click();
+      ok(k + ': elegida, salen las casillas', !campoA.parentNode.classList.contains('st-sin-elegir'), 'esperando', 'a la vista');
+      igual(k + ': elegida, se marca', caja.querySelectorAll('.st-tarjeta.on').length, 1);
+      igual(k + ': los permisos de «' + a.valor + '»',
+            hp ? [].map.call(hp.options, function(o){ return o.value; }).filter(Boolean).join('|') : '(sin lista)',
+            (U[a.lista] || []).join('|'));
+      igual(k + ': sus recaudos', hpeDocsSeVen(caja), a.docs.split(' ').sort().join(' '));
+      igual(k + ': su nota', hpeNotas(caja), a.nota ? U[a.nota] : '');
+      igual(k + ': su enlace del paso 1', hpeEnlace(a.ref, a.datos), a.enlace);
+      igual(k + ': su paso 1', hpeEscalera(a.codigo, a.ente, a.datos), a.paso);
+    });
+    /* Volver al primero deja sus recaudos, y borra el permiso del otro. */
+    if (tarjetas[0]) tarjetas[0].click();
+    igual(k + ': al volver a la primera, ningún permiso elegido', hp ? hp.value : '(sin lista)', '');
+    igual(k + ': y sus recaudos otra vez', hpeDocsSeVen(caja), areas[0].docs.split(' ').sort().join(' '));
+    /* El detalle no se llena solo: dos áreas en juego no pueden quedar con «undefined». */
+    ok(k + ': sin «undefined» en el detalle', document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
+    return caja;
+  }
+  function hpePesMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var ofi = 'Solicita tu permiso en la oficina de INSOPESCA en Parque Central';
+    var base = {ref: 'c59', codigo: 'permisos_pesca', ente: 'INSOPESCA'};
+    var uno = function(valor, lista, docs, nota, enlace, paso){
+      return {valor: valor, lista: lista, docs: docs, nota: nota, enlace: enlace, paso: paso, ref: base.ref,
+              codigo: base.codigo, ente: base.ente, datos: {area_pesca: valor}};
+    };
+    var caja = hpeAreas('pes', 'area_pesca', 'permiso_pesca', [
+      uno('Pesca y embarcaciones · Oficina de atención de INSOPESCA · Parque Central', 'o_pes_permiso1',
+          'comunicacion_insopesca inspeccion_artes_equipos informe_capitania_puerto certificado_arqueo_inea fotos_plano_buque comprobante_posicionamiento',
+          'd_nota_pes', 'sin enlace', ofi),
+      uno('Acuicultura · Oficina de atención de INSOPESCA · Parque Central', 'o_pes_permiso2',
+          'tenencia_tierra coordenadas_proyecto inspeccion_tecnica_acuicultura aot_aarn_conformidad analisis_agua_suelo deposito_tasa_acuicultura',
+          null, 'sin enlace', ofi),
+      uno('Empresa y comercio · Sistema de Trámites de INSOPESCA', 'o_pes_permiso3',
+          'planilla_solicitud_insopesca cedula registro_mercantil_empresa rif_empresa pago_tasa_insopesca analisis_agua_producto',
+          null, 'https://tramites.insopesca.gob.ve/ · ' + U.p_irinsopesca,
+          'Solicita tu permiso en el Sistema de Trámites de INSOPESCA')
+    ]);
+    ok('pes: sin el aviso de energía', !!caja && !caja.querySelector('.st-aviso'), 'con aviso', 'sin aviso');
+    var op = caja && caja.querySelector('.sol-doc[data-doc="analisis_agua_producto"]');
+    ok('pes: el análisis, sólo de plantas y laboratorios, no frena a los demás',
+       !!op && op.hasAttribute('data-opcional'), 'obligatorio', 'opcional');
+    location.hash = '';
+    setTimeout(sigue, 200);
+  }
+  function hpeEneMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var paso = 'Solicita tu permiso en la página de lo que vas a tramitar';
+    var uno = function(valor, lista, docs, nota, enlace){
+      return {valor: valor, lista: lista, docs: docs, nota: nota, enlace: enlace, paso: paso, ref: 'c61',
+              codigo: 'permisos_energia', ente: 'MPPEE', datos: {area_energia: valor}};
+    };
+    var caja = hpeAreas('ene', 'area_energia', 'permiso_energia', [
+      uno('Autogeneración · Ministerio de Energía Eléctrica · 2 MW o más', 'o_ene_permiso1',
+          'formulario_for_dgse ubicacion_regven_utm justificacion_autogeneracion especificaciones_equipos proyecto_conexion_sen racda_emisiones factibilidad_combustible legales_autogeneracion',
+          null, 'https://mppee.gob.ve/?page_id=1257 · ' + U.p_irmppee),
+      uno('Conexión y servicio · CORPOELEC', 'o_ene_permiso2',
+          'propiedad_o_alquiler conformidad_uso registro_mercantil_carta plano_utm_poste memoria_descriptiva_ingeniero solvencia_colegio_ingenieros',
+          null, 'https://corpoelec.gob.ve/tramites/ · ' + U.p_ircorpoelec),
+      uno('Renovables y eficiencia · Ministerio de Energía Eléctrica', 'o_ene_permiso3',
+          'acta_constitutiva rif_empresa cedula rif_personal',
+          'd_nota_ren', 'https://mppee.gob.ve/?page_id=760 · ' + U.p_irmppee)
+    ]);
+    igual('ene: con el aviso de la maqueta', caja ? (caja.querySelector('.st-aviso') || {}).textContent : '(sin formulario)', U.f_energiaaviso);
+    ok('ene: el aviso se ve antes de elegir, debajo de las tarjetas',
+       !!caja && !!caja.querySelector('.st-caja > .st-aviso'), 'fuera', 'en las tarjetas');
+    location.hash = '';
+    setTimeout(sigue, 200);
+  }
 
   /* ═══════════ EL RNC, FUERA DE LAS INSCRIPCIONES Y CON SU TARJETA ═══════════
      Franklin Reyes, 2-11-2026: «saca el RNC de ese grupo». La c13 ya existía,

@@ -1112,7 +1112,15 @@ function applyLang(lang){
        «Solicitar un permiso por primera vez» (c36 y c50, las de la
        portada), con los prefijos yr_ e yn_. */
     c36: {ya:'c55', nueva:'c36', p:'yr'},
-    c50: {ya:'c56', nueva:'c50', p:'yn'}
+    c50: {ya:'c56', nueva:'c50', p:'yn'},
+    /* Y los permisos de hidrocarburos, de pesca y de energía (Franklin Reyes,
+       3-11-2026, maquetas/hidrocarburos-pesca-energia.html): «Ya solicité un
+       permiso» (c58, c60 y c62, escondidas) o «Solicitar un permiso por
+       primera vez» (c57, c59 y c61, las de la portada), con los prefijos yh_,
+       ype_ e yen_. */
+    c57: {ya:'c58', nueva:'c57', p:'yh'},
+    c59: {ya:'c60', nueva:'c59', p:'ype'},
+    c61: {ya:'c62', nueva:'c61', p:'yen'}
   };
   /* De cada ref, su pareja: la de la portada y la escondida, las dos. */
   var GUIA_YA_DE = {};
@@ -1122,8 +1130,8 @@ function applyLang(lang){
   });
   /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
      escondida nace elegida, que solo se llega a ella eligiéndola. */
-  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false,
-                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true};
+  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false,
+                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true};
   window.CIIP_YA_ELEGIDA = function(ref){
     if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
     YA_ELEGIDA[ref] = true;
@@ -3500,6 +3508,18 @@ applyLang(idiomaParaMi());
      una regla de la interfaz —qué se le pide al usuario en pantalla—, no
      un dato del expediente. Cuando haya más de dos o tres trámites vivos,
      su sitio será una tabla. */
+  /* LAS ÁREAS DE LOS PERMISOS DE PESCA (c59) Y DE ENERGÍA (c61), Franklin Reyes,
+     3-11-2026 (maquetas/hidrocarburos-pesca-energia.html). Son el texto en
+     español de o_pesca_area y o_energia_area (pasos.js), letra por letra:
+     se guarda el español, y de él cuelgan las tarjetas, los permisos, los
+     recaudos y el enlace del paso 1. */
+  var AREA_PESCA_BUQUES = 'Pesca y embarcaciones · Oficina de atención de INSOPESCA · Parque Central';
+  var AREA_PESCA_ACUI = 'Acuicultura · Oficina de atención de INSOPESCA · Parque Central';
+  var AREA_PESCA_EMPRESA = 'Empresa y comercio · Sistema de Trámites de INSOPESCA';
+  var AREA_ENERGIA_AUTO = 'Autogeneración · Ministerio de Energía Eléctrica · 2 MW o más';
+  var AREA_ENERGIA_CONEXION = 'Conexión y servicio · CORPOELEC';
+  var AREA_ENERGIA_RENOV = 'Renovables y eficiencia · Ministerio de Energía Eléctrica';
+
   var RECAUDOS = {
     /* El SISREF pide identificarse como extranjero. Se piden el
        pasaporte y, si viene en otro idioma, su traduccion.
@@ -4388,7 +4408,89 @@ applyLang(idiomaParaMi());
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
       {tipo:'cedula',            clave:'d_cedrep'},
       {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    /* LOS PERMISOS DE HIDROCARBUROS (c57), Franklin Reyes, 3-11-2026: el
+       ministerio no publica una lista por permiso, y estos cuatro son
+       provisionales (lo dice NOTA_DE_RECAUDOS). */
+    permisos_hidrocarburos: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    /* LOS DE PESCA (c59) Y LOS DE ENERGÍA (c61): cada área los suyos. Con
+       siCasilla y siIgual (3-11-2026) cuelgan del VALOR del área: hasta
+       elegir no se pide ninguno, y por eso tampoco salen en la ficha ni en
+       la cadena entre trámites. Lo que la maqueta dice que sólo toca a
+       algunos -las plantas y los laboratorios, la instalación nueva- va
+       opcional: pedírselo a todos dejaría a los demás sin poder enviar. */
+    permisos_pesca: [
+      {tipo:'comunicacion_insopesca', clave:'d_ipcomunica', siCasilla:'area_pesca', siIgual:[AREA_PESCA_BUQUES]},
+      {tipo:'inspeccion_artes_equipos', clave:'d_ipartes', siCasilla:'area_pesca', siIgual:[AREA_PESCA_BUQUES]},
+      {tipo:'informe_capitania_puerto', clave:'d_ipcapitania', siCasilla:'area_pesca', siIgual:[AREA_PESCA_BUQUES]},
+      {tipo:'certificado_arqueo_inea', clave:'d_iparqueo', siCasilla:'area_pesca', siIgual:[AREA_PESCA_BUQUES]},
+      {tipo:'fotos_plano_buque', clave:'d_ipbuque', siCasilla:'area_pesca', siIgual:[AREA_PESCA_BUQUES]},
+      {tipo:'comprobante_posicionamiento', clave:'d_ipposicion', siCasilla:'area_pesca', siIgual:[AREA_PESCA_BUQUES]},
+      {tipo:'tenencia_tierra', clave:'d_iatierra', siCasilla:'area_pesca', siIgual:[AREA_PESCA_ACUI]},
+      {tipo:'coordenadas_proyecto', clave:'d_iacoord', siCasilla:'area_pesca', siIgual:[AREA_PESCA_ACUI]},
+      {tipo:'inspeccion_tecnica_acuicultura', clave:'d_iainspec', siCasilla:'area_pesca', siIgual:[AREA_PESCA_ACUI]},
+      {tipo:'aot_aarn_conformidad', clave:'d_iaaot', siCasilla:'area_pesca', siIgual:[AREA_PESCA_ACUI]},
+      {tipo:'analisis_agua_suelo', clave:'d_iaanalisis', siCasilla:'area_pesca', siIgual:[AREA_PESCA_ACUI]},
+      {tipo:'deposito_tasa_acuicultura', clave:'d_iadeposito', siCasilla:'area_pesca', siIgual:[AREA_PESCA_ACUI]},
+      {tipo:'planilla_solicitud_insopesca', clave:'d_ieplanilla', siCasilla:'area_pesca', siIgual:[AREA_PESCA_EMPRESA]},
+      {tipo:'cedula', clave:'d_cedrep', siCasilla:'area_pesca', siIgual:[AREA_PESCA_EMPRESA]},
+      {tipo:'registro_mercantil_empresa', clave:'d_ieregistro', siCasilla:'area_pesca', siIgual:[AREA_PESCA_EMPRESA]},
+      {tipo:'rif_empresa', clave:'d_rifempresa', siCasilla:'area_pesca', siIgual:[AREA_PESCA_EMPRESA]},
+      {tipo:'pago_tasa_insopesca', clave:'d_iepago', siCasilla:'area_pesca', siIgual:[AREA_PESCA_EMPRESA]},
+      {tipo:'analisis_agua_producto', clave:'d_ieanalisis', opcional:true, siCasilla:'area_pesca', siIgual:[AREA_PESCA_EMPRESA]}
+    ],
+    permisos_energia: [
+      {tipo:'formulario_for_dgse', clave:'d_eafor', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_AUTO]},
+      {tipo:'ubicacion_regven_utm', clave:'d_eaubica', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_AUTO]},
+      {tipo:'justificacion_autogeneracion', clave:'d_eajust', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_AUTO]},
+      {tipo:'especificaciones_equipos', clave:'d_eaequipos', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_AUTO]},
+      {tipo:'proyecto_conexion_sen', clave:'d_easen', opcional:true, siCasilla:'area_energia', siIgual:[AREA_ENERGIA_AUTO]},
+      {tipo:'racda_emisiones', clave:'d_earacda', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_AUTO]},
+      {tipo:'factibilidad_combustible', clave:'d_eacomb', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_AUTO]},
+      {tipo:'legales_autogeneracion', clave:'d_ealegal', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_AUTO]},
+      {tipo:'propiedad_o_alquiler', clave:'d_ecprop', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_CONEXION]},
+      {tipo:'conformidad_uso', clave:'d_ecconforme', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_CONEXION]},
+      {tipo:'registro_mercantil_carta', clave:'d_ecmerc', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_CONEXION]},
+      {tipo:'plano_utm_poste', clave:'d_ecplano', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_CONEXION]},
+      {tipo:'memoria_descriptiva_ingeniero', clave:'d_ecmemoria', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_CONEXION]},
+      {tipo:'solvencia_colegio_ingenieros', clave:'d_ecsolv', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_CONEXION]},
+      {tipo:'acta_constitutiva', clave:'d_actaempresa', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_RENOV]},
+      {tipo:'rif_empresa', clave:'d_rifempresa', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_RENOV]},
+      {tipo:'cedula', clave:'d_cedrep', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_RENOV]},
+      {tipo:'rif_personal', clave:'d_rifrep', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_RENOV]}
+    ],
+    /* Y «ya solicité un permiso» ante cada uno (c58, c60 y c62), Franklin
+       Reyes, 3-11-2026: los cuatro del c49. */
+    hidrocarburos_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    pesca_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    energia_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
     ]
+  };
+  /* Lo que se dice debajo de los recaudos, de la maqueta (Franklin Reyes,
+     3-11-2026). Con campo y valor, sólo con esa área elegida. */
+  var NOTA_DE_RECAUDOS = {
+    permisos_hidrocarburos: [{clave:'d_nota_hid'}],
+    permisos_pesca: [{clave:'d_nota_pes', campo:'area_pesca', valor:AREA_PESCA_BUQUES}],
+    permisos_energia: [{clave:'d_nota_ren', campo:'area_energia', valor:AREA_ENERGIA_RENOV}]
   };
 
   /* Qué trámites llevan banco asignado. Es una tabla y no un `===
@@ -4490,6 +4592,12 @@ applyLang(idiomaParaMi());
        en sus sistemas en línea; el INTI, en persona en la Oficina Regional
        de Tierras. Piden el RIF de la empresa: detrás del c6. */
     c51: {aplica:'cond', cond:'ft_c_agro', modo:'portal', depende:'c6'},
+    /* Los permisos de hidrocarburos (c57), de pesca (c59) y de energía (c61),
+       Franklin Reyes, 3-11-2026: sin plazo publicado, y la ficha se salta el
+       número. Piden el RIF de la empresa: detrás del c6. */
+    c57: {aplica:'cond', cond:'ft_c_hidrocarburos', modo:'portal', depende:'c6'},
+    c59: {aplica:'cond', cond:'ft_c_pesca', modo:'portal', depende:'c6'},
+    c61: {aplica:'cond', cond:'ft_c_energia', modo:'portal', depende:'c6'},
     /* El SIDCAI (c39): se inscribe una vez y luego se declara cada mes,
        dentro de los quince días siguientes (Providencia 015-004-2024).
        La inscripción no tiene plazo publicado, y la ficha se salta el
@@ -4976,8 +5084,15 @@ applyLang(idiomaParaMi());
     '<div class="der"><b>Experiencias Inolvidables</b><span>Sé parte del motor económico que transforma y proyecta a Venezuela hacia el futuro.</span></div></div>';
   var UNICO_MINERO = {rotulo: 'yt_u_minero', sig: 'SIGDME', nom: 'Ministerio de Desarrollo Minero Ecológico', toca: 'yt_toca_sigdme', pt: PORTADA_SIGDME};
   var UNICO_RTN = {rotulo: 'yt_u_rtn', sig: 'RTN Digital', nom: 'Portal Institucional de Turismo de Venezuela', toca: 'yt_toca_rtn', pt: PORTADA_RTN};
+  /* Y los permisos de hidrocarburos (Franklin Reyes, 3-11-2026): un solo
+     sistema, el SUTAP. */
+  var PORTADA_SUTAP = '<div class="st-pt p-sut" aria-hidden="true"><div class="tor"></div><div class="min">Ministerio del Poder Popular de<b>HIDROCARBUROS</b></div>' +
+    '<div class="log"><span class="gota"></span>SUTAP</div><div class="sub">Sistema Único de Trámites Autorizaciones y Permisos</div>' +
+    '<div class="caja"><b>Portal de Usuario SUTAP</b><i></i><i></i><u></u></div></div>';
+  var UNICO_SUTAP = {rotulo: 'yt_u_minero', sig: 'SUTAP', nom: 'Sistema Único de Trámites, Autorizaciones y Permisos', toca: 'yt_toca_sutap', pt: PORTADA_SUTAP};
   var TARJETA_UNICA = {registro_minero: UNICO_MINERO, minero_en_proceso: UNICO_MINERO,
-                       registro_turistico: UNICO_RTN, turistico_en_proceso: UNICO_RTN};
+                       registro_turistico: UNICO_RTN, turistico_en_proceso: UNICO_RTN,
+                       permisos_hidrocarburos: UNICO_SUTAP, hidrocarburos_en_proceso: UNICO_SUTAP};
   function tarjetaUnica(d, u){
     var caja = el('div', 'st-unica');
     caja.appendChild(el('label', null, u[d.rotulo] || ''));
@@ -5199,7 +5314,13 @@ applyLang(idiomaParaMi());
       bloque.appendChild(rej);
       caja.appendChild(bloque);
     });
-    caja.insertBefore(pes, caja.firstChild);
+    /* Con una sola etapa no hay nada entre qué elegir, y la barra sobra
+       (Franklin Reyes, 3-11-2026: las áreas de pesca y de energía, en una
+       línea y sin pestañas). */
+    if (paneles.length > 1) caja.insertBefore(pes, caja.firstChild);
+    else if (paneles[0]) paneles[0].panel.removeAttribute('role');
+    /* Lo que hay que saber antes de elegir: el aviso de energía (3-11-2026). */
+    if (c.aviso) caja.appendChild(el('div', 'st-aviso', u[c.aviso] || ''));
     var ya = sel.value && datos[sel.value];
     abre(ya ? ya.etapa : (paneles[0] || {}).n);
     sel.style.display = 'none';
@@ -5275,6 +5396,59 @@ applyLang(idiomaParaMi());
     pt.setAttribute('aria-hidden', 'true');
     return pt;
   }
+
+  /* ── LAS ÁREAS DE PESCA Y DE ENERGÍA, EN UNA LÍNEA ──
+     Franklin Reyes, 3-11-2026 (maquetas/hidrocarburos-pesca-energia.html):
+     tres tarjetas y sin pestañas, por eso una sola etapa. Las portadas, de
+     las páginas oficiales consultadas ese día; la tarjeta no lleva a ellas,
+     se llega desde el paso 1. Pesca y embarcaciones y acuicultura se
+     presentan en la oficina de Parque Central: no hay portal al que mandarlas
+     y su paso 1 lo dice (c59_oficina). */
+  var ETAPA_UNICA = [{n: 1}];
+  function portadaDibujada(d){
+    var w = el('div');
+    w.innerHTML = d.pt;
+    return w.firstChild;
+  }
+  function portadaInsopesca(tit, ver, pie){
+    return '<div class="st-pt p-ins" aria-hidden="true"><div class="bar"><em></em><span>Autenticar · Registrarse</span></div><div class="tit">' + tit +
+      '</div><div class="ver">' + ver + '</div><div class="pie2">' + pie + '</div></div>';
+  }
+  var TARJETAS_DE_PESCA = {};
+  TARJETAS_DE_PESCA[AREA_PESCA_BUQUES] = {etapa: 1, toca: 'yt_toca_pescaemb',
+    pt: portadaInsopesca('INSOPESCA', 'Pesca y embarcaciones', 'Permisos de pesca · Buques')};
+  TARJETAS_DE_PESCA[AREA_PESCA_ACUI] = {etapa: 1, toca: 'yt_toca_acui',
+    pt: portadaInsopesca('INSOPESCA', 'Acuicultura', 'Cultivo de especies acuáticas')};
+  TARJETAS_DE_PESCA[AREA_PESCA_EMPRESA] = {etapa: 1, toca: 'yt_toca_empesca',
+    pt: portadaInsopesca('Sistema de Trámites', 'Empresa, certificados y guías', 'tramites.insopesca.gob.ve')};
+  var TARJETAS_DE_ENERGIA = {};
+  TARJETAS_DE_ENERGIA[AREA_ENERGIA_AUTO] = {etapa: 1, toca: 'yt_toca_autog',
+    pt: '<div class="st-pt p-mee" aria-hidden="true"><div class="fl"></div><div class="min">Ministerio del Poder Popular para la<b>ENERGÍA ELÉCTRICA</b></div><div class="lin"></div>' +
+        '<div class="tit">Solicitud de Habilitación para Autogeneración</div><div class="cui">Cuida la Energía</div></div>'};
+  TARJETAS_DE_ENERGIA[AREA_ENERGIA_CONEXION] = {etapa: 1, toca: 'yt_toca_conex',
+    pt: '<div class="st-pt p-cor" aria-hidden="true"><div class="log"><em></em>CORPOELEC</div><div class="bar"></div><div class="ges">GESTIONA TU TRÁMITE</div>' +
+        '<div class="pil"><i>Factibilidad</i><i>Disminución</i><i>Comerciales</i></div></div>'};
+  TARJETAS_DE_ENERGIA[AREA_ENERGIA_RENOV] = {etapa: 1, toca: 'yt_toca_renov',
+    pt: '<div class="st-pt p-ren" aria-hidden="true"><div class="fl"></div><div class="min">Ministerio del Poder Popular para la<b>ENERGÍA ELÉCTRICA</b></div>' +
+        '<div class="cui">Cuida la Energía</div><div class="enc">ENCIENDE LA VIDA</div></div>'};
+  /* Los permisos de cada área, en pasos.js y en los ocho idiomas: aquí cada
+     área dice su clave, y lo que se guarda es el español. */
+  var PERMISOS_DE_PESCA = {};
+  PERMISOS_DE_PESCA[AREA_PESCA_BUQUES] = 'o_pes_permiso1';
+  PERMISOS_DE_PESCA[AREA_PESCA_ACUI] = 'o_pes_permiso2';
+  PERMISOS_DE_PESCA[AREA_PESCA_EMPRESA] = 'o_pes_permiso3';
+  var PERMISOS_DE_ENERGIA = {};
+  PERMISOS_DE_ENERGIA[AREA_ENERGIA_AUTO] = 'o_ene_permiso1';
+  PERMISOS_DE_ENERGIA[AREA_ENERGIA_CONEXION] = 'o_ene_permiso2';
+  PERMISOS_DE_ENERGIA[AREA_ENERGIA_RENOV] = 'o_ene_permiso3';
+  /* Adónde lleva el paso 1. Las dos áreas presenciales de pesca no están:
+     sin página no hay botón. */
+  var PORTAL_DE_PESCA = {};
+  PORTAL_DE_PESCA[AREA_PESCA_EMPRESA] = 'https://tramites.insopesca.gob.ve/';
+  var PORTAL_DE_ENERGIA = {};
+  PORTAL_DE_ENERGIA[AREA_ENERGIA_AUTO] = 'https://mppee.gob.ve/?page_id=1257';
+  PORTAL_DE_ENERGIA[AREA_ENERGIA_CONEXION] = 'https://corpoelec.gob.ve/tramites/';
+  PORTAL_DE_ENERGIA[AREA_ENERGIA_RENOV] = 'https://mppee.gob.ve/?page_id=760';
 
   /* ── LOS SISTEMAS EN LÍNEA DEL MINEC ──
      Franklin Reyes, 19-10-2026, Permisos_MINEC (Valeria Ramos, CIIP): «solo
@@ -6179,6 +6353,35 @@ applyLang(idiomaParaMi());
       {n:'razon_social',         clave:'f_razon',         ancho:true},
       {n:'rif_empresa',          clave:'f_rifempresa'}
     ],
+    /* Los permisos de hidrocarburos (c57), Franklin Reyes, 3-11-2026: la
+       tarjeta fija del SUTAP (TARJETA_UNICA), la empresa y qué permiso. */
+    permisos_hidrocarburos: [
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'permiso_hidrocarburos', clave:'f_permisosol',    opcionesClave:'o_hid_permiso', ancho:true}
+    ],
+    /* Los de pesca (c59) y los de energía (c61), del mismo encargo: primero el
+       área, en tarjetas y sin pestañas, y lo demás espera hasta elegirla. La
+       lista de permisos depende del área. */
+    permisos_pesca: [
+      {n:'area_pesca',            clave:'f_pescaarea',     opcionesClave:'o_pesca_area', ancho:true,
+       tarjetas:TARJETAS_DE_PESCA, etapas:ETAPA_UNICA, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'permiso_pesca',         clave:'f_permisosol',    ancho:true,
+       opcionesSegun:'area_pesca', opcionesDe:PERMISOS_DE_PESCA}
+    ],
+    permisos_energia: [
+      {n:'area_energia',          clave:'f_energiaarea',   opcionesClave:'o_energia_area', ancho:true,
+       tarjetas:TARJETAS_DE_ENERGIA, etapas:ETAPA_UNICA, portada:portadaDibujada, aviso:'f_energiaaviso'},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'permiso_energia',       clave:'f_permisosol',    ancho:true,
+       opcionesSegun:'area_energia', opcionesDe:PERMISOS_DE_ENERGIA}
+    ],
     /* La inscripción en el SIDCAI (c39). Lo que piden las pantallas de
        «Nuevos Usuarios»: la empresa, el representante legal y el usuario
        principal, que tiene que ser del dominio de la empresa. Y los
@@ -6608,6 +6811,43 @@ applyLang(idiomaParaMi());
     ],
     turistico_en_proceso: [
       {n:'permiso_ya',           clave:'f_yspermisoya', ancho:true},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    /* «YA SOLICITÉ UN PERMISO» DE HIDROCARBUROS (c58), DE PESCA (c60) Y DE
+       ENERGÍA (c62), Franklin Reyes, 3-11-2026: lo del c53, con las listas de
+       su permiso de primera vez. El aviso de energía se queda en la c61: quien
+       llega aquí ya tiene hecha su solicitud. */
+    hidrocarburos_en_proceso: [
+      {n:'permiso_hidrocarburos', clave:'f_yspermisoya', opcionesClave:'o_hid_permiso', ancho:true},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    pesca_en_proceso: [
+      {n:'area_pesca',           clave:'f_pescaarea',   opcionesClave:'o_pesca_area', ancho:true,
+       tarjetas:TARJETAS_DE_PESCA, etapas:ETAPA_UNICA, portada:portadaDibujada},
+      {n:'permiso_pesca',        clave:'f_yspermisoya', ancho:true,
+       opcionesSegun:'area_pesca', opcionesDe:PERMISOS_DE_PESCA},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    energia_en_proceso: [
+      {n:'area_energia',         clave:'f_energiaarea', opcionesClave:'o_energia_area', ancho:true,
+       tarjetas:TARJETAS_DE_ENERGIA, etapas:ETAPA_UNICA, portada:portadaDibujada},
+      {n:'permiso_energia',      clave:'f_yspermisoya', ancho:true,
+       opcionesSegun:'area_energia', opcionesDe:PERMISOS_DE_ENERGIA},
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
       {n:'rif_empresa',          clave:'f_rifempresa'},
@@ -8547,11 +8787,19 @@ applyLang(idiomaParaMi());
       if (!sel) return;
       function llena(quiero){
         var ops = listaSegun(c.opcionesDe, loElegido());
+        /* La tabla puede dar una clave de pasos.js y no la lista (Franklin
+           Reyes, 3-11-2026, los permisos de pesca y de energía): se guarda
+           el español, como con opcionesClave, y se lee en tu idioma. */
+        var dice = ops;
+        if (typeof ops === 'string'){
+          dice = u[ops] || window.CIIP_PASOS.ui.es[ops] || [];
+          ops = window.CIIP_PASOS.ui.es[ops] || [];
+        }
         sel.innerHTML = '';
         sel.appendChild(document.createElement('option'));
-        ops.forEach(function(o){
+        ops.forEach(function(o, i){
           var op = document.createElement('option');
-          op.value = o; op.textContent = o;
+          op.value = o; op.textContent = dice[i] || o;
           sel.appendChild(op);
         });
         /* Lo escrito cuando la oficina era texto libre no se pierde: sale
@@ -8727,6 +8975,13 @@ applyLang(idiomaParaMi());
       if (r.siCasilla){
         fila.setAttribute('data-si', r.siCasilla);
         fila.hidden = !(datos[r.siCasilla] && datos[r.siCasilla] !== 'No');
+        /* Y con siIgual (Franklin Reyes, 3-11-2026), no basta con que la
+           casilla diga algo: tiene que decir uno de estos valores. Los
+           recaudos de cada área de pesca y de energía. */
+        if (r.siIgual){
+          fila.setAttribute('data-si-igual', JSON.stringify(r.siIgual));
+          fila.hidden = r.siIgual.indexOf(datos[r.siCasilla]) < 0;
+        }
       }
       /* Y noCasilla, al revés: el papel se pide con «No» y se esconde con
          cualquier otra cosa. Nació con la compraventa de un inmueble
@@ -9027,8 +9282,10 @@ applyLang(idiomaParaMi());
       var marca = caja.querySelector('input[type="checkbox"][name="' + deQuien + '"], select[name="' + deQuien + '"]');
       if (!marca) return;
       var porDentro = fila.getAttribute('data-no-dice');
+      var siIgual = JSON.parse(fila.getAttribute('data-si-igual') || 'null');
       function mira(){
-        var dice = porDentro ? dicePorDentro(marca.value, porDentro)
+        var dice = siIgual ? siIgual.indexOf(marca.value) >= 0
+                 : porDentro ? dicePorDentro(marca.value, porDentro)
                  : (marca.type === 'checkbox') ? marca.checked
                                                : !!(marca.value && marca.value !== 'No');
         fila.hidden = alContrario ? dice : !dice;
@@ -9038,6 +9295,16 @@ applyLang(idiomaParaMi());
       }
       mira();
       marca.addEventListener('change', mira);
+    });
+    /* Lo que se dice debajo de los recaudos (NOTA_DE_RECAUDOS, 3-11-2026). */
+    (NOTA_DE_RECAUDOS[tipo.codigo] || []).forEach(function(n){
+      var nota = el('p', 'sol-docs-nota', u[n.clave] || '');
+      lado.appendChild(nota);
+      var manda = n.campo && caja.querySelector('select[name="' + n.campo + '"]');
+      if (!manda) return;
+      var mira = function(){ nota.hidden = manda.value !== n.valor; };
+      mira();
+      manda.addEventListener('change', mira);
     });
 
 
@@ -9626,6 +9893,9 @@ applyLang(idiomaParaMi());
     INSAI: 'el Instituto Nacional de Salud Agrícola Integral',
     INTI: 'el Instituto Nacional de Tierras',
     MPPAPT: 'el Ministerio del Poder Popular para la Agricultura Productiva y Tierras',
+    MINHIDROCARBUROS: 'el Ministerio del Poder Popular de Hidrocarburos',
+    INSOPESCA: 'el Instituto Socialista de la Pesca y Acuicultura',
+    MPPEE: 'el Ministerio del Poder Popular para la Energía Eléctrica',
     'Entes varios': 'los organismos correspondientes'
   };
   function enteCompleto(ente, municipio){
@@ -12409,7 +12679,8 @@ applyLang(idiomaParaMi());
     var segun = (typeof ESCALERA_SEGUN !== 'undefined' && ESCALERA_SEGUN[ref]) || null;
     if (segun){
       var dicho = (tr.datos || {})[segun.campo];
-      var vale = segun.valor ? dicho === segun.valor : (dicho && dicho !== 'No');
+      var vale = segun.valores ? segun.valores.indexOf(dicho) >= 0
+               : segun.valor ? dicho === segun.valor : (dicho && dicho !== 'No');
       if (vale && mapaP[segun.si]) claveP = segun.si;
     }
 
@@ -27995,10 +28266,12 @@ applyLang(idiomaParaMi());
   /* Si ref es de un permiso agrupado: de un grupo de GRUPOS, o una de las
      escondidas de «ya solicité un permiso» -el c49 del SACS, y desde el
      2-11-2026 (Franklin Reyes) el c53 del MINEC, el c54 del INSAI o el INTI,
-     el c55 minero y el c56 del MINTUR-, que no tienen tarjeta. */
+     el c55 minero y el c56 del MINTUR, y desde el 3-11-2026 los c58, c60 y c62
+     de hidrocarburos, pesca y energía-, que no tienen tarjeta. */
   function esPermisoAgrupado(ref){
     if (!ref) return false;
-    if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' || ref === 'c37' || ref === 'c44' ||
+    if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' ||
+        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c37' || ref === 'c44' ||
         ref === 'c28' || ref === 'c29' || ref === 'c13') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
@@ -28042,7 +28315,9 @@ applyLang(idiomaParaMi());
        «Permisos operativos» (22-9-2026), y el RNC estuvo un día en éste. Van
        en `antes` porque en el documento vienen detrás de la primera
        sectorial, y sin moverlos se leerían como suyas. */
-    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51'], antes:['c28', 'c29', 'c13'],
+    /* Y los permisos de hidrocarburos (c57), de pesca (c59) y de energía
+       (c61), Franklin Reyes, 3-11-2026, al final. */
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c57', 'c59', 'c61'], antes:['c28', 'c29', 'c13'],
      rotulo:function(dic){ return dic['g.sectorial']; }}
   ];
 
@@ -28514,6 +28789,9 @@ applyLang(idiomaParaMi());
     c50: {1: {clave: 'rtn_solicitado',         texto: 'p_yalosolicite'}},
     c51: {1: {clave: 'agricola_solicitado',    texto: 'p_yalosolicite'}},
     c13: {1: {clave: 'rnc_solicitado',         texto: 'p_yalosolicite'}},
+    c57: {1: {clave: 'hidrocarburos_solicitado', texto: 'p_yalosolicite'}},
+    c59: {1: {clave: 'pesca_solicitado',       texto: 'p_yalosolicite'}},
+    c61: {1: {clave: 'energia_solicitado',     texto: 'p_yalosolicite'}},
     /* Y el permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos), con DOS pasos del inversionista: solicitarlo en el portal
        de los bomberos de su estado («Ya la solicité») e indicar en qué sede
@@ -28747,6 +29025,9 @@ applyLang(idiomaParaMi());
     c50: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c13: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c51: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c57: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c59: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c61: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Y la inscripción en el SIDCAI (c39), igual que el minero (Franklin
        Reyes, 1-10-2026, Ventanilla Única 2.3): «Inscríbete en el FONACIT a
        través del portal → Inscripción lista». Enviada no hay nada hecho; el
@@ -28793,6 +29074,11 @@ applyLang(idiomaParaMi());
        Franklin Reyes, 2-11-2026, igual. */
     c55: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c56: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    /* Y los ya solicitados de hidrocarburos (c58), pesca (c60) y energía (c62),
+       Franklin Reyes, 3-11-2026, igual. */
+    c58: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c60: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c62: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
        enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
        «recibida», así que la cuenta es la de siempre; están aquí porque son
@@ -28902,7 +29188,10 @@ applyLang(idiomaParaMi());
      Regional de Tierras (valor) la escalera es la del INTI, que se entrega
      en persona; con un sistema del INSAI, la de por defecto. */
   var ESCALERA_SEGUN = {c17: {campo: 'apostillado', si: 'c17_yaapostillado'},
-                        c51: {campo: 'sistema_agricola', valor: OFICINA_DEL_INTI, si: 'c51_inti'}};
+                        c51: {campo: 'sistema_agricola', valor: OFICINA_DEL_INTI, si: 'c51_inti'},
+                        /* Pesca y embarcaciones y acuicultura se presentan en la
+                           oficina de Parque Central (Franklin Reyes, 3-11-2026). */
+                        c59: {campo: 'area_pesca', valores: [AREA_PESCA_BUQUES, AREA_PESCA_ACUI], si: 'c59_oficina'}};
 
   /* Adónde te manda un paso, cuando lo que toca está fuera del panel. El
      enlace de Cancillería va con el paso que se marca solo al volver: son
@@ -28932,6 +29221,12 @@ applyLang(idiomaParaMi());
     c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme'}},
     c50: {1: {url: 'https://turismonac.mintur.gob.ve/', clave: 'p_irmintur'}},
     c13: {1: {url: 'https://rncenlinea.snc.gob.ve/', clave: 'p_irrnc'}},
+    /* Los permisos de hidrocarburos, de pesca y de energía (Franklin Reyes,
+       3-11-2026). En pesca, sólo el área que tiene sistema en línea. */
+    c57: {1: {url: 'https://sutap.minhidrocarburos.gob.ve/', clave: 'p_irsutap'}},
+    c59: {1: {campo: 'area_pesca', urls: PORTAL_DE_PESCA, clave: 'p_irinsopesca'}},
+    c61: {1: {campo: 'area_energia', urls: PORTAL_DE_ENERGIA, clave: 'p_irmppee',
+              claves: {'Conexión y servicio · CORPOELEC': 'p_ircorpoelec'}}},
     /* El texto del botón cambia con el ente (claves): con el INTI no se
        va a solicitar nada en línea, se consulta el estado. */
     c51: {1: {campo: 'sistema_agricola', urls: PORTAL_AGRICOLA, clave: 'p_irinsai',

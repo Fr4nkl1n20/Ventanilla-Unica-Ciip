@@ -4569,6 +4569,48 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-mt-rtn .der{position:absolute; left:36%; right:3%; top:5%; bottom:5%; border-radius:0 2cqw 2cqw 0; background:radial-gradient(circle at 55% 35%, #8F8D96, #3C3A44 45%, #0C0C12 80%); color:#fff; display:grid; align-content:center; padding:0 6cqw; gap:1.6cqw;}
 .st-mt-rtn .der b{font-size:8.6cqw; font-weight:800; line-height:1;}
 .st-mt-rtn .der span{font-size:3cqw; line-height:1.25;}
+/* Las portadas de hidrocarburos, pesca y energía (3-11-2026, de
+   maquetas/hidrocarburos-pesca-energia.html). Todo en cqw, como las demás. */
+.p-sut{background:#fff;}
+.p-sut .tor{position:absolute; inset:0; background:repeating-linear-gradient(115deg, rgba(240,120,120,.12) 0 .6cqw, transparent .6cqw 2.1cqw), repeating-linear-gradient(65deg, rgba(90,120,220,.12) 0 .6cqw, transparent .6cqw 2.1cqw);}
+.p-sut .min{position:absolute; left:5%; top:6%; font-size:2.6cqw; color:#1E2A4A;}
+.p-sut .min b{display:block; font-size:3.6cqw; font-weight:900;}
+.p-sut .log{position:absolute; left:5%; top:40%; display:flex; align-items:center; gap:1.4cqw; color:#0B0B4F; font-weight:900; font-size:10.5cqw; letter-spacing:-.02em; line-height:1;}
+.p-sut .gota{width:8.6cqw; height:10cqw; background:linear-gradient(180deg, #F7D21B 0 34%, #3D6FE0 34% 66%, #E5261F 66%);}
+.p-sut .sub{position:absolute; left:5%; top:62%; width:50%; font-size:2.5cqw; font-weight:800; color:#0B0B4F;}
+.p-sut .caja{position:absolute; right:5%; top:14%; bottom:8%; width:32%; background:#fff; border-radius:2cqw; box-shadow:0 1cqw 4cqw rgba(0,0,0,.18); padding:2.6cqw; display:grid; gap:1.4cqw; align-content:center; text-align:center; box-sizing:border-box;}
+.p-sut .caja b{font-size:3.6cqw; line-height:1.1;}
+.p-sut .caja i{height:3cqw; border:1px solid #DDD; border-radius:.7cqw;}
+.p-sut .caja u{height:3.6cqw; border-radius:.7cqw; background:#003C85;}
+.p-ins{background:linear-gradient(120deg, #D9D1D8, #F1EDEF 45%, #B7C4BE);}
+.p-ins .bar{position:absolute; left:0; right:0; top:0; height:13%; background:#F8F8F8; display:flex; align-items:center; gap:2cqw; padding:0 4cqw; font-size:3cqw; font-weight:700; color:#666;}
+.p-ins .bar em{font-style:normal; width:7cqw; height:7cqw; border-radius:50%; background:conic-gradient(#2A6FB3, #F4C21F, #D8452F, #2A6FB3); border:.4cqw solid #fff;}
+.p-ins .tit{position:absolute; left:6%; right:6%; top:21%; text-align:center; color:#123F73; font-size:4.6cqw; font-weight:600;}
+.p-ins .ver{position:absolute; left:6%; right:6%; top:38%; bottom:24%; background:#CDEBE8; border:1px solid #1E6E66; border-radius:1.4cqw; display:grid; align-content:center; padding:0 4cqw; color:#0C4A44; font-size:5.2cqw; font-weight:800; line-height:1.15;}
+.p-ins .pie2{position:absolute; left:6%; right:6%; bottom:6%; text-align:center; color:#333; font-size:3.2cqw; font-weight:700;}
+.p-mee{background:#fff;}
+.p-mee .fl, .p-ren .fl{position:absolute; left:5%; top:8%; width:13cqw; height:9cqw; background:linear-gradient(180deg, #F7C600 0 33%, #1B3F94 33% 66%, #B8132E 66%); border-radius:1cqw;}
+.p-mee .min, .p-ren .min{position:absolute; left:21%; top:8%; font-size:2.8cqw; color:#1E2A4A;}
+.p-mee .min b, .p-ren .min b{display:block; font-size:4.4cqw; font-weight:900; color:#1B3672;}
+.p-mee .lin{position:absolute; left:0; right:0; top:27%; height:1cqw; background:#00208A;}
+.p-mee .tit{position:absolute; left:6%; right:6%; top:36%; font-size:6.4cqw; color:#333; line-height:1.15;}
+.p-mee .cui{position:absolute; right:5%; bottom:7%; font-family:Georgia, serif; font-style:italic; font-weight:700; font-size:4cqw; color:#0E5F5B;}
+.p-cor{background:#fff;}
+.p-cor .log{position:absolute; left:6%; top:12%; display:flex; align-items:center; gap:1.6cqw; color:#1E2F6B; font-weight:900; font-size:9.6cqw; line-height:1; letter-spacing:-.01em;}
+.p-cor .log em{width:9cqw; height:9cqw; border-radius:50%; background:radial-gradient(circle at 60% 40%, #fff 0 18%, #E0231B 20%);}
+.p-cor .bar{position:absolute; left:0; right:0; top:40%; height:14%; background:#003C80;}
+.p-cor .ges{position:absolute; left:18%; right:18%; top:62%; height:14%; border-radius:6cqw; background:linear-gradient(90deg, #3CC6E8, #0F5CAD); color:#fff; display:grid; place-items:center; font-size:4cqw; font-weight:800;}
+.p-cor .pil{position:absolute; left:8%; bottom:6%; right:8%; display:flex; gap:1.4cqw; justify-content:center;}
+.p-cor .pil i{font-style:normal; font-size:2.5cqw; padding:.8cqw 2cqw; border-radius:3cqw; background:#EEF0F7; color:#123F73;}
+.p-cor .pil i:first-child{background:#C33; color:#fff;}
+.p-ren{background:linear-gradient(160deg, #E6F4E7, #fff);}
+.p-ren .cui{position:absolute; left:6%; right:6%; top:38%; text-align:center; font-family:Georgia, serif; font-style:italic; font-weight:700; font-size:9cqw; color:#0E5F5B; line-height:1;}
+.p-ren .enc{position:absolute; left:6%; right:6%; top:60%; text-align:center; font-weight:900; font-size:6.4cqw; color:#A8C70B;}
+/* El aviso bajo las tarjetas de energía y la nota de los recaudos (3-11-2026),
+   con la letra de las notas. */
+.st-aviso{font-size:var(--fs-nota); line-height:1.5; background:var(--block); border-radius:10px; padding:9px 12px;}
+.sol-docs-nota{font-size:var(--fs-nota); color:var(--gray); line-height:1.45; margin:8px 0 0;}
+.sol-docs-nota[hidden]{display:none;}
 /* Sin sistema elegido, las demás casillas esperan (montaTarjetas). */
 .st-sin-elegir > .sol-campo:not(.con-tarjetas), .st-sin-elegir > .sol-grupo, .st-sin-elegir > .sol-casilla, .st-sin-elegir > .pa-lee{display:none;}
 /* Y el cuadro del lector, cuando va debajo de las tarjetas, a todo lo ancho. */

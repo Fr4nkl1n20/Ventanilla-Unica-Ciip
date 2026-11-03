@@ -352,7 +352,11 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    las inscripciones y con su tarjeta, Franklin Reyes, 2-11-2026. Enciende el
    trámite, deja en cinco los entes y redefine confirma_paso y
    estadisticas_control(); va la última. */
-'supabase-ya-solicite-mineria-turismo'];
+'supabase-ya-solicite-mineria-turismo',
+/* Los permisos de hidrocarburos (c57/c58), de pesca (c59/c60) y de energía
+   (c61/c62), Franklin Reyes, 3-11-2026: los seis trámites, sus documentos, y
+   confirma_paso y estadisticas_control() redefinidas; va la última. */
+'supabase-hidrocarburos-pesca-energia'];
 
 let mal = 0;
 for (const n of orden) {
