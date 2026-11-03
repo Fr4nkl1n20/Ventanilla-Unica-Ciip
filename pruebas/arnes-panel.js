@@ -11212,8 +11212,10 @@
     (function minecMira(){
       var D = window.CIIP_PASOS || {};
       var ops = ((D.ui || {}).es || {}).o_minec_sistema || [];
-      igual('ambiental: el desplegable nace vacío y trae los seis sistemas', ops.length + ' · ' + JSON.stringify(ops[0]), '7 · ""');
-      var sin = ops.slice(1).filter(function(o){ return !url('c30', 1, {sistema_minec: o}).match(/^https:\/\/[a-z]+\.minec\.gob\.ve\/$/); });
+      igual('ambiental: el desplegable nace vacío y trae los seis sistemas y los presenciales', ops.length + ' · ' + JSON.stringify(ops[0]), '8 · ""');
+      /* Los presenciales (3-11-2026) no tienen página: se van en persona. */
+      igual('ambiental: los trámites presenciales no llevan enlace', url('c30', 1, {sistema_minec: 'Trámites presenciales'}), '(ninguno)');
+      var sin = ops.slice(1).filter(function(o){ return o !== 'Trámites presenciales'; }).filter(function(o){ return !url('c30', 1, {sistema_minec: o}).match(/^https:\/\/[a-z]+\.minec\.gob\.ve\/$/); });
       igual('ambiental: cada sistema del desplegable lleva a su portal del MINEC', sin.join(' | ') || 'todos', 'todos');
       /* Y al elegir el sistema se despliegan sus permisos (Franklin Reyes,
          19-10-2026): los códigos del cuadro de Permisos_MINEC, con el R14
@@ -11221,7 +11223,7 @@
       var tm = R.campos('permiso_ambiental').filter(function(c){ return c.n === 'tramite_minec'; })[0] || {};
       igual('ambiental: el permiso se elige según el sistema', tm.opcionesSegun || '(sin origen)', 'sistema_minec');
       igual('ambiental: y cada sistema trae sus permisos',
-            ops.slice(1).map(function(o){ return ((tm.opcionesDe || {})[o] || []).length; }).join(' '), '23 33 40 2 1 3');
+            ops.slice(1).map(function(o){ return ((tm.opcionesDe || {})[o] || []).length; }).join(' '), '23 33 40 2 1 3 28');
       var malos = [];
       Object.keys(tm.opcionesDe || {}).forEach(function(k){
         (tm.opcionesDe[k] || []).forEach(function(t){ if (!/^(\d{3}|R14) · \S/.test(t)) malos.push(t); });
@@ -12952,8 +12954,8 @@
     igual('ya: la c45 nace elegida, con la guía plegada',
           guia ? (guia.querySelector('.gv-resumen-t') || {}).textContent : '(sin guía)', U.yl_ya_c);
     var caja = document.getElementById('trReal');
-    igual('ya: la licencia ya solicitada, sus cinco datos y el motivo', bienesCampos(caja),
-          'fecha_solicitud_ya alcaldia_ya razon_social rif_empresa representante motivo_ya detalle_ya');
+    igual('ya: la licencia ya solicitada, primero la alcaldía en tarjetas, sus datos y el motivo', bienesCampos(caja),
+          'alcaldia_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya');
     igual('ya: con las tres alcaldías del encargo, sin ninguna elegida', bienesOpciones(caja, 'alcaldia_ya'),
           '|Baruta|Chacao|Libertador');
     igual('ya: y sus cuatro recaudos', bienesDocs(caja), 'cedula rif_personal acta_constitutiva rif_empresa');
@@ -13294,7 +13296,7 @@
   var YPM = {
     amb: {madre: 'c30', ya: 'c53', p: 'ym', codigo: 'ambiental_en_proceso', ente: 'MINEC',
           campos: 'sistema_minec tramite_minec fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
-          tarjetas: 6, gestion: 'En coordinación con el MINEC', fin: 'Permiso otorgado'},
+          tarjetas: 7, gestion: 'En coordinación con el MINEC', fin: 'Permiso otorgado'},
     agr: {madre: 'c51', ya: 'c54', p: 'yg', codigo: 'agricola_en_proceso', ente: 'MPPAPT',
           campos: 'sistema_agricola permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 4, gestion: 'En coordinación con el INSAI o el INTI', fin: 'Registro o permiso listo'},

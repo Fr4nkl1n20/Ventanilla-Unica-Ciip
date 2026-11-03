@@ -4959,6 +4959,30 @@ applyLang(idiomaParaMi());
   };
   var ESTADOS_DE_BOMBEROS = Object.keys(PORTAL_DE_BOMBEROS);
 
+  /* ── LAS TARJETAS DE LAS ALCALDÍAS ──
+     Franklin Reyes, 3-11-2026 (maquetas/licencia-conformidad-tarjetas.html):
+     la licencia y la conformidad de uso, «lo mismo» que los otros permisos,
+     «menos la de bomberos, que es presencial». Una tarjeta por alcaldía en
+     vez del desplegable, que sigue escondido y es el que decide el enlace del
+     paso 1. Portadas de sus páginas del 3-11-2026; la de Baruta es un dibujo
+     propio, porque no respondió y su enlace es el de Chacao (por confirmar). */
+  var TARJETAS_DE_ALCALDIA = {
+    'Chacao':     {etapa: 1, nom: 'Oficina Virtual de Chacao', toca: 'yt_toca_chacao', pt:
+      '<div class="st-pt a-cha" aria-hidden="true"><div class="top">Oficina Virtual<em>Chacao</em></div><div class="lat"><i></i><i></i><i></i><i></i></div><div class="f"><i></i><i></i><i></i><u></u></div></div>'},
+    'Baruta':     {etapa: 1, nom: 'Alcaldía de Baruta', toca: 'yt_toca_baruta', pt:
+      '<div class="st-pt a-bar" aria-hidden="true"><b>Alcaldía de Baruta</b><span>Oficina virtual</span></div>'},
+    'Libertador': {etapa: 1, nom: 'SUMAR · Registro del Contribuyente', toca: 'yt_toca_libertador', pt:
+      '<div class="st-pt a-col" aria-hidden="true"><div class="izq"></div><div class="der"><svg viewBox="0 0 100 100"><path d="M50 4l13 30 33 3-25 22 8 33-29-18-29 18 8-33L4 37l33-3z" fill="#D3121B"/></svg><b>SUMAR</b><span>Registro del Contribuyente</span></div></div>'},
+    'Sucre':      {etapa: 1, nom: 'SEDAT · Registro del Contribuyente', toca: 'yt_toca_sucre', pt:
+      '<div class="st-pt a-col" aria-hidden="true"><div class="izq"></div><div class="der"><div class="sed">Sedat</div><span>Registro del Contribuyente</span></div></div>'}
+  };
+  var ETAPAS_DE_ALCALDIA = [{n: 1, t: 'yt_mn_etapa1', d: 'yt_mn_etapa1_d'}];
+  function portadaDeAlcaldia(d){
+    var w = document.createElement('div');
+    w.innerHTML = d.pt;
+    return w.firstChild;
+  }
+
   /* Las tres alcaldías de «Ya solicité» la licencia o la conformidad de uso
      (Franklin Reyes, 5-10-2026, Ventanilla única 2.6), con la primera
      vacía: elegir es obligatorio, y un desplegable que nace en «Baruta» lo
@@ -5277,6 +5301,7 @@ applyLang(idiomaParaMi());
         var sig = corte < 0 ? o.textContent : o.textContent.slice(0, corte);
         var nom = corte < 0 ? (datos[o.value].nom || '') : o.textContent.slice(corte + 3);
         if (corte < 0 && datos[o.value].sig){ nom = o.textContent; sig = datos[o.value].sig; }
+        if (datos[o.value].ciip) sig = 'CIIP';
         var t = el('div', 'st-tarjeta');
         t.setAttribute('role', 'radio');
         t.setAttribute('data-valor', o.value);
@@ -5493,6 +5518,12 @@ applyLang(idiomaParaMi());
      Por confirmar con el CIIP: la Ventanilla Verde y SIFORTRAT comparten
      los trámites forestales 033 a 037. */
   var TARJETAS_DEL_MINEC = {
+    /* Y los PRESENCIALES (Franklin Reyes, 3-11-2026, maquetas/minec-tarjetas.html):
+       una pestaña más y un recuadro con el logo del CIIP. Son los 28 trámites
+       con código de Permisos_MINEC.docx que no están en ningún sistema en
+       línea: el 221 dice «Presencial» y los otros 27 «No se especifica», por
+       confirmar con el CIIP. Sin enlace en el paso 1 (no hay página). */
+    'Trámites presenciales': {etapa: 4, ciip: true, nom: 'Trámites presenciales', toca: 'yt_toca_mn_presencial'},
     'SIGETRAT': {etapa: 1, nom: 'Sistema de Gestión de Trámites Autorizatorios Territoriales',
       barra: '#DC3545', ini: '#22C79A', toca: 'yt_toca_sigetrat',
       marca: [['SIG', 'az'], ['ET', 'ro'], ['RAT', 'vo']]},
@@ -5513,7 +5544,8 @@ applyLang(idiomaParaMi());
   var ETAPAS_DEL_MINEC = [
     {n: 1, t: 'yt_mn_etapa1', d: 'yt_mn_etapa1_d'},
     {n: 2, t: 'yt_mn_etapa2', d: 'yt_mn_etapa2_d'},
-    {n: 3, t: 'yt_mn_etapa3', d: 'yt_mn_etapa3_d'}
+    {n: 3, t: 'yt_mn_etapa3', d: 'yt_mn_etapa3_d'},
+    {n: 4, t: 'yt_mn_etapa4', d: 'yt_mn_etapa4_d'}
   ];
   /* El dibujo de hojas y animales de la Ventanilla Verde, en pequeño. */
   var MINEC_ANIMALES = '<svg viewBox="0 0 120 90" aria-hidden="true">' +
@@ -5525,6 +5557,15 @@ applyLang(idiomaParaMi());
     '<path d="M48 52q6-10 14-4-2 6-14 4z" fill="#F2C31B"/><path d="M90 20l8-6 2 8z" fill="#D9558B"/></svg>';
   function portadaDelMinec(d, sig){
     var pt;
+    if (d.ciip){
+      pt = el('div', 'st-pt st-pt-ciip');
+      var lgC = document.createElement('img');
+      lgC.src = 'logos/ciip.png';
+      lgC.alt = '';
+      pt.appendChild(lgC);
+      pt.setAttribute('aria-hidden', 'true');
+      return pt;
+    }
     if (d.verde){
       pt = el('div', 'st-pt st-vv');
       var izq = el('div', 'st-vv-izq');
@@ -5573,6 +5614,36 @@ applyLang(idiomaParaMi());
      donde lo busca el gestor en www.minec.gob.ve; no se traduce, como las
      oficinas del SAREN. Las llaves son las de PORTAL_DEL_MINEC. */
   var TRAMITES_DEL_MINEC = {
+    'Trámites presenciales': [
+      '001 · Autorización para la instalación y funcionamiento de zoocriaderos',
+      '002 · Autorización para ser proveedor de materia prima (huevos, neonatos) para zoocría',
+      '003 · Autorización de aprovechamiento comercial de ejemplares de flora no maderable',
+      '004 · Autorización de aprovechamiento comercial de ejemplares de fauna silvestre',
+      '005 · Asignación de marcas o aretes metálicos para ejemplares de fauna silvestre',
+      '006 · Licencia para el comercio o industria de animales silvestres vivos, muertos y sus productos',
+      '007 · Autorización para importación, introducción, exportación, cría o cultivo de especies exóticas',
+      '010 · Registro de industrias, expendios, almacenes o depósitos de fauna silvestre',
+      '011 · Registro de participantes en programas de aprovechamiento sustentable de fauna y flora',
+      '012 · Registro de viveros comerciales de flora no maderable',
+      '013 · Registro de proveedores de materia prima para zoocría',
+      '014 · Registro Nacional de Colecciones Biológicas',
+      '015 · Permiso de movilización de animales silvestres en emergencia o contingencia',
+      '016 · Licencia de caza con fines científicos',
+      '018 · Licencia de caza para control de animales perjudiciales',
+      '019 · Permiso de captura de invertebrados con fines científicos',
+      '055 · Autorización para la importación y exportación de sustancias agotadoras de la capa de ozono (cada operación)',
+      '058 · Conformidad del certificado de emisiones de fuentes móviles',
+      '060 · Constancias de cumplimiento de las regulaciones ambientales para exportar materiales peligrosos recuperables (cada operación)',
+      '062 · Autorización de importación de sustancias químicas controladas (régimen legal 10 del arancel) (cada operación)',
+      '065 · Autorización de exportación de materiales peligrosos recuperables (cada operación)',
+      '071 · Registro e importación de gases refrigerantes con alto potencial de calentamiento global (cada operación)',
+      '106 · Autorización para la exportación de desechos peligrosos (cada operación)',
+      '174 · Aprobación de planes de adecuación ambiental para actividades capaces de degradar el ambiente de interés local',
+      '176 · Aprobación de planes de adecuación ambiental',
+      '221 · Aprobación del Programa de Responsabilidad Extendida del Productor (ProREP)',
+      '222 · Alianza estratégica Empresa Nacional Forestal - MINEC dentro de ABRAE forestales',
+      '223 · Alianza estratégica Empresa Nacional Forestal - MINEC fuera de ABRAE forestales'
+    ],
     'Ventanilla Verde': [
       '033 · Aprovechamiento de productos forestales maderables del bosque natural dentro de ABRAE de manejo forestal',
       '035 · Registro de proyectos de bosque plantado y sistemas agroforestales',
@@ -6137,7 +6208,8 @@ applyLang(idiomaParaMi());
     licencia_municipal: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'municipio',           clave:'f_municipio',   opciones:MUNICIPIOS_DEL_LOCAL}
+      {n:'municipio',           clave:'f_municipio',   opciones:MUNICIPIOS_DEL_LOCAL,
+       tarjetas:TARJETAS_DE_ALCALDIA, etapas:ETAPAS_DE_ALCALDIA, portada:portadaDeAlcaldia}
     ],
 
     /* El rubro y la partida arancelaria van delante porque de ellos depende
@@ -6236,7 +6308,8 @@ applyLang(idiomaParaMi());
     conformidad_uso: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
-      {n:'municipio',           clave:'f_municipio',   opciones:MUNICIPIOS_DEL_LOCAL}
+      {n:'municipio',           clave:'f_municipio',   opciones:MUNICIPIOS_DEL_LOCAL,
+       tarjetas:TARJETAS_DE_ALCALDIA, etapas:ETAPAS_DE_ALCALDIA, portada:portadaDeAlcaldia}
     ],
     /* El aforo es lo que manda en esta inspección: de él salen cuántas
        salidas de emergencia y cuántos extintores hacen falta. */
@@ -6707,7 +6780,8 @@ applyLang(idiomaParaMi());
     ],
     licencia_en_proceso: [
       {n:'fecha_solicitud_ya', clave:'f_yafecha',    tipo:'date'},
-      {n:'alcaldia_ya',        clave:'f_yaalcaldia', opciones:ALCALDIAS_YA},
+      {n:'alcaldia_ya',        clave:'f_yaalcaldia', opciones:ALCALDIAS_YA,
+       tarjetas:TARJETAS_DE_ALCALDIA, etapas:ETAPAS_DE_ALCALDIA, portada:portadaDeAlcaldia},
       {n:'razon_social',       clave:'f_razon',      ancho:true},
       {n:'rif_empresa',        clave:'f_rifempresa'},
       {n:'representante',      clave:'f_yarep'},
@@ -6716,7 +6790,8 @@ applyLang(idiomaParaMi());
     ],
     conformidad_en_proceso: [
       {n:'fecha_solicitud_ya', clave:'f_yafecha',    tipo:'date'},
-      {n:'alcaldia_ya',        clave:'f_yaalcaldia', opciones:ALCALDIAS_YA},
+      {n:'alcaldia_ya',        clave:'f_yaalcaldia', opciones:ALCALDIAS_YA,
+       tarjetas:TARJETAS_DE_ALCALDIA, etapas:ETAPAS_DE_ALCALDIA, portada:portadaDeAlcaldia},
       {n:'razon_social',       clave:'f_razon',      ancho:true},
       {n:'rif_empresa',        clave:'f_rifempresa'},
       {n:'representante',      clave:'f_yarep'},
@@ -8650,7 +8725,7 @@ applyLang(idiomaParaMi());
          salió: sin decirlo, parecería que el panel se lo inventó. */
       if (datos[c.n]){
         entrada.value = datos[c.n];
-      } else if (EMPRESA && EMPRESA[c.n]){
+      } else if (!c.tarjetas && EMPRESA && EMPRESA[c.n]){
         entrada.value = EMPRESA[c.n];
         var sello = el('span', 'de-empresa', u.em_deempresa || '');
         campo.querySelector('label').appendChild(sello);
@@ -8678,7 +8753,7 @@ applyLang(idiomaParaMi());
            un adorno -avisa de que esto lo puso el panel y no tú-, y en
            «Nombres» y «Apellidos» es además donde se ve si el corte del
            nombre cayó donde debía. */
-        var dep = rellenaDelPerfil(c.n);
+        var dep = c.tarjetas ? null : rellenaDelPerfil(c.n);
         if (dep){
           entrada.value = dep.valor;
           var sp = el('span', 'de-perfil', u.em_deperfil || '');
@@ -8723,6 +8798,14 @@ applyLang(idiomaParaMi());
            el aviso debajo, ya con lo que traiga puesto (VIGENCIA_MINIMA). */
         if (VIGENCIA_MINIMA[c.n]) vigilaVigencia(campo, entrada, c.n);
       } else if (c.tarjetas && entrada.tagName === 'SELECT'){
+        /* Que no nazca elegida la primera: la lista de municipios no trae
+           opción vacía, y saldría una tarjeta marcada sin que nadie la eligiera. */
+        if (!entrada.querySelector('option[value=""]')){
+          var vacia = document.createElement('option');
+          vacia.value = '';
+          entrada.insertBefore(vacia, entrada.firstChild);
+          entrada.value = datos[c.n] || '';
+        }
         /* Las tarjetas de los sistemas del SACS (2-11-2026): el desplegable
            entra primero, escondido -es el que valida y guarda-, y las
            tarjetas detrás (montaTarjetas). */
@@ -8879,6 +8962,8 @@ applyLang(idiomaParaMi());
       g.lastChild.appendChild(suCampo);
     });
     vigilaOrden(rejilla);
+    var conTarjetas = rejilla.querySelector(':scope > .sol-campo.con-tarjetas');
+    if (conTarjetas && conTarjetas !== rejilla.firstChild) rejilla.insertBefore(conTarjetas, rejilla.firstChild);
     if (TARJETA_UNICA[tipo.codigo]) rejilla.insertBefore(tarjetaUnica(TARJETA_UNICA[tipo.codigo], u), rejilla.firstChild);
     if (tipo.codigo === 'registros_parafiscales' || tipo.codigo === 'parafiscales_en_proceso') tarjetasDeEntes(rejilla, tipo.codigo, u);
     col.appendChild(rejilla);
@@ -28309,7 +28394,7 @@ applyLang(idiomaParaMi());
   function esPermisoAgrupado(ref){
     if (!ref) return false;
     if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' ||
-        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c37' || ref === 'c44' ||
+        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
         ref === 'c28' || ref === 'c29' || ref === 'c13') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
@@ -29225,7 +29310,10 @@ applyLang(idiomaParaMi());
   /* Y los permisos de agricultura (c51), 30-10-2026: con la Oficina
      Regional de Tierras (valor) la escalera es la del INTI, que se entrega
      en persona; con un sistema del INSAI, la de por defecto. */
-  var ESCALERA_SEGUN = {c17: {campo: 'apostillado', si: 'c17_yaapostillado'},
+  /* Y los trámites presenciales del MINEC (c30), 3-11-2026: se piden en la
+     oficina, y el resto de la escalera es igual. */
+  var ESCALERA_SEGUN = {c30: {campo: 'sistema_minec', valor: 'Trámites presenciales', si: 'c30_presencial'},
+                        c17: {campo: 'apostillado', si: 'c17_yaapostillado'},
                         c51: {campo: 'sistema_agricola', valor: OFICINA_DEL_INTI, si: 'c51_inti'},
                         /* Pesca y embarcaciones y acuicultura se presentan en la
                            oficina de Parque Central (Franklin Reyes, 3-11-2026). */

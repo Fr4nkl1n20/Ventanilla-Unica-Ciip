@@ -4501,6 +4501,28 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-tarjeta.on .st-marca{background:var(--navy2); border-color:var(--navy2);}
 .st-tarjeta.on .st-marca svg{display:block;}
 .sol-campo.con-tarjetas.mal > label{color:var(--rust);}
+.sol-campo.con-tarjetas{grid-column:1 / -1;}
+/* El recuadro del CIIP y las portadas de las alcaldías (3-11-2026), en cqw. */
+.st-pt.st-pt-ciip{background:#fff; display:grid; place-items:center;}
+.st-pt-ciip img{width:62%; height:auto;}
+.a-cha{background:#F1F3F6;}
+.a-cha .top{position:absolute; left:0; right:0; top:0; height:20%; background:#14305E; color:#fff; display:flex; align-items:center; padding:0 5cqw; font-size:6.4cqw; font-weight:800; white-space:nowrap;}
+.a-cha .top em{font-style:normal; color:#F08A24; margin-left:1.4cqw;}
+.a-cha .lat{position:absolute; left:0; top:20%; bottom:0; width:26%; background:#20262E;}
+.a-cha .lat i{display:block; height:2.6cqw; margin:3.4cqw 3cqw; background:#59626E; border-radius:.6cqw;}
+.a-cha .f{position:absolute; left:32%; right:12%; top:30%; display:grid; gap:2cqw;}
+.a-cha .f i{height:4.4cqw; background:#fff; border:1px solid #D5D9DF; border-radius:.8cqw;}
+.a-cha .f u{height:5cqw; width:42%; justify-self:end; background:#1E8E3E; border-radius:.8cqw;}
+.a-col{background:#fff;}
+.a-col .izq{position:absolute; inset:0 42% 0 0; background:radial-gradient(circle at 25% 75%, #F5B92F 0 24%, transparent 25%), radial-gradient(circle at 78% 22%, #45B6BF 0 26%, transparent 27%), radial-gradient(circle at 82% 84%, #EE343A 0 24%, transparent 25%), linear-gradient(135deg, #F68B33 0 45%, #4F6B6E 45% 100%);}
+.a-col .der{position:absolute; left:60%; right:3%; top:14%; bottom:8%; display:grid; justify-items:center; align-content:center; gap:1.2cqw; text-align:center;}
+.a-col .der svg{width:13cqw; height:13cqw;}
+.a-col .der b{font-size:7cqw; font-weight:900; line-height:1; color:#111;}
+.a-col .der .sed{font-size:9cqw; font-weight:800; color:#4A1D3F; letter-spacing:-.02em;}
+.a-col .der span{font-size:3.2cqw; color:#333; line-height:1.15;}
+.a-bar{background:linear-gradient(150deg, #123F73, #1F6FB5);}
+.a-bar b{position:absolute; left:8%; right:16%; top:26%; color:#fff; font-size:7.4cqw; font-weight:800; line-height:1.1;}
+.a-bar span{position:absolute; left:8%; right:8%; bottom:14%; color:#DCE6F5; font-size:4cqw;}
 /* Los entes de los parafiscales en una fila (3-11-2026, tarjetasDeEntes):
    las cinco caben a lo ancho, con la medida de todas las tarjetas; en
    pantallas estrechas bajan a la línea siguiente. */

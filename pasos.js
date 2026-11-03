@@ -1661,6 +1661,13 @@ window.CIIP_PASOS = {
       yt_toca_racda:    "tu actividad genera efluentes, emisiones o desechos peligrosos, o manejas sustancias o materiales peligrosos.",
       yt_toca_sialamb:  "tienes un laboratorio que caracteriza efluentes, emisiones, suelos, materiales o desechos.",
       yt_toca_renma:    "recuperas o trasladas materiales aprovechables no peligrosos, o produces envases de un solo uso o neumáticos.",
+      yt_mn_etapa4:     "Trámites presenciales",
+      yt_mn_etapa4_d:   "Los que no están en los sistemas en línea del MINEC.",
+      yt_toca_mn_presencial:"tu trámite no está en los sistemas en línea del MINEC: lo eliges de la lista y el CIIP te acompaña en la oficina.",
+      yt_toca_chacao:   "tu local está en Chacao.",
+      yt_toca_baruta:   "tu local está en Baruta.",
+      yt_toca_libertador:"tu local está en Libertador.",
+      yt_toca_sucre:    "tu local está en Sucre.",
       yt_ag_etapa1:     "Salud agrícola (INSAI)",
       yt_ag_etapa1_d:   "Animales, vegetales e insumos: registros, movilización y certificados.",
       yt_ag_etapa2:     "Tierras (INTI)",
@@ -1709,7 +1716,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "Sistema en línea del MINEC",
-      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA", "Trámites presenciales"],
       f_mntramite:    "Permiso que vas a solicitar en ese sistema",
       f_yscedrep:     "Cédula de identidad del representante legal",
       f_ysrifrep:     "RIF del representante legal",
@@ -4049,6 +4056,13 @@ window.CIIP_PASOS = {
       yt_toca_racda:    "your activity generates effluents, emissions or hazardous waste, or you handle hazardous substances or materials.",
       yt_toca_sialamb:  "you have a laboratory that characterises effluents, emissions, soils, materials or waste.",
       yt_toca_renma:    "you recover or transport non-hazardous recoverable materials, or produce single-use packaging or tyres.",
+      yt_mn_etapa4:     "In-person procedures",
+      yt_mn_etapa4_d:   "Those not available on MINEC’s online systems.",
+      yt_toca_mn_presencial:"your procedure is not on MINEC’s online systems: choose it from the list and CIIP goes with you to the office.",
+      yt_toca_chacao:   "your premises are in Chacao.",
+      yt_toca_baruta:   "your premises are in Baruta.",
+      yt_toca_libertador:"your premises are in Libertador.",
+      yt_toca_sucre:    "your premises are in Sucre.",
       yt_ag_etapa1:     "Agricultural health (INSAI)",
       yt_ag_etapa1_d:   "Animals, plants and inputs: registrations, movement and certificates.",
       yt_ag_etapa2:     "Land (INTI)",
@@ -4097,7 +4111,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "MINEC online system",
-      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA", "In-person procedures"],
       f_mntramite:    "Permit you are going to apply for in that system",
       f_yscedrep:     "ID card of the legal representative",
       f_ysrifrep:     "RIF of the legal representative",
@@ -6296,6 +6310,13 @@ window.CIIP_PASOS = {
       yt_toca_racda:    "a sua atividade gera efluentes, emissões ou resíduos perigosos, ou manuseia substâncias ou materiais perigosos.",
       yt_toca_sialamb:  "tem um laboratório que caracteriza efluentes, emissões, solos, materiais ou resíduos.",
       yt_toca_renma:    "recupera ou transporta materiais aproveitáveis não perigosos, ou produz embalagens descartáveis ou pneus.",
+      yt_mn_etapa4:     "Trâmites presenciais",
+      yt_mn_etapa4_d:   "Os que não estão nos sistemas on-line do MINEC.",
+      yt_toca_mn_presencial:"o seu trâmite não está nos sistemas on-line do MINEC: escolha-o na lista e o CIIP acompanha você no escritório.",
+      yt_toca_chacao:   "o seu local fica em Chacao.",
+      yt_toca_baruta:   "o seu local fica em Baruta.",
+      yt_toca_libertador:"o seu local fica em Libertador.",
+      yt_toca_sucre:    "o seu local fica em Sucre.",
       yt_ag_etapa1:     "Saúde agrícola (INSAI)",
       yt_ag_etapa1_d:   "Animais, vegetais e insumos: registros, movimentação e certificados.",
       yt_ag_etapa2:     "Terras (INTI)",
@@ -6344,7 +6365,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "Sistema online do MINEC",
-      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA", "Trâmites presenciais"],
       f_mntramite:    "Licença que vai solicitar nesse sistema",
       f_yscedrep:     "Cartão de identidade do representante legal",
       f_ysrifrep:     "RIF do representante legal",
@@ -8537,6 +8558,13 @@ window.CIIP_PASOS = {
       yt_toca_racda:    "la tua attività genera effluenti, emissioni o rifiuti pericolosi, o maneggi sostanze o materiali pericolosi.",
       yt_toca_sialamb:  "hai un laboratorio che caratterizza effluenti, emissioni, suoli, materiali o rifiuti.",
       yt_toca_renma:    "recuperi o trasporti materiali recuperabili non pericolosi, o produci imballaggi monouso o pneumatici.",
+      yt_mn_etapa4:     "Pratiche in presenza",
+      yt_mn_etapa4_d:   "Quelle che non sono nei sistemi online del MINEC.",
+      yt_toca_mn_presencial:"la tua pratica non è nei sistemi online del MINEC: la scegli dall’elenco e il CIIP ti accompagna in ufficio.",
+      yt_toca_chacao:   "il tuo locale è a Chacao.",
+      yt_toca_baruta:   "il tuo locale è a Baruta.",
+      yt_toca_libertador:"il tuo locale è a Libertador.",
+      yt_toca_sucre:    "il tuo locale è a Sucre.",
       yt_ag_etapa1:     "Salute agricola (INSAI)",
       yt_ag_etapa1_d:   "Animali, vegetali e mezzi tecnici: registrazioni, movimentazione e certificati.",
       yt_ag_etapa2:     "Terreni (INTI)",
@@ -8585,7 +8613,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "Sistema online del MINEC",
-      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA", "Pratiche in presenza"],
       f_mntramite:    "Permesso che vuoi richiedere in quel sistema",
       f_yscedrep:     "Documento d'identità del rappresentante legale",
       f_ysrifrep:     "RIF del rappresentante legale",
@@ -10778,6 +10806,13 @@ window.CIIP_PASOS = {
       yt_toca_racda:    "活动产生废水、排放物或危险废物，或经手危险物质或材料。",
       yt_toca_sialamb:  "拥有对废水、排放物、土壤、材料或废弃物进行检测的实验室。",
       yt_toca_renma:    "回收或运输非危险可回收材料，或生产一次性包装或轮胎。",
+      yt_mn_etapa4:     "线下办理事项",
+      yt_mn_etapa4_d:   "未纳入 MINEC 在线系统的事项。",
+      yt_toca_mn_presencial:"你的事项不在 MINEC 在线系统中：从列表中选择，CIIP 陪同你前往办公室办理。",
+      yt_toca_chacao:   "你的场所位于 Chacao。",
+      yt_toca_baruta:   "你的场所位于 Baruta。",
+      yt_toca_libertador:"你的场所位于 Libertador。",
+      yt_toca_sucre:    "你的场所位于 Sucre。",
       yt_ag_etapa1:     "农业卫生（INSAI）",
       yt_ag_etapa1_d:   "动物、植物和投入品：登记、运输与证书。",
       yt_ag_etapa2:     "土地（INTI）",
@@ -10826,7 +10861,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "MINEC 在线系统",
-      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA", "线下办理事项"],
       f_mntramite:    "你要在该系统申请的许可",
       f_yscedrep:     "法定代表人身份证",
       f_ysrifrep:     "法定代表人 RIF",
@@ -13019,6 +13054,13 @@ window.CIIP_PASOS = {
       yt_toca_racda:    "ваша деятельность образует сточные воды, выбросы или опасные отходы, либо вы работаете с опасными веществами или материалами.",
       yt_toca_sialamb:  "у вас есть лаборатория, исследующая сточные воды, выбросы, почвы, материалы или отходы.",
       yt_toca_renma:    "вы собираете или перевозите неопасные вторичные материалы либо производите одноразовую упаковку или шины.",
+      yt_mn_etapa4:     "Очные процедуры",
+      yt_mn_etapa4_d:   "Те, которых нет в онлайн-системах MINEC.",
+      yt_toca_mn_presencial:"вашей процедуры нет в онлайн-системах MINEC: выберите её из списка, и CIIP сопроводит вас в ведомство.",
+      yt_toca_chacao:   "ваше помещение находится в Chacao.",
+      yt_toca_baruta:   "ваше помещение находится в Baruta.",
+      yt_toca_libertador:"ваше помещение находится в Libertador.",
+      yt_toca_sucre:    "ваше помещение находится в Sucre.",
       yt_ag_etapa1:     "Агросанитария (INSAI)",
       yt_ag_etapa1_d:   "Животные, растения и ресурсы: регистрация, перемещение и сертификаты.",
       yt_ag_etapa2:     "Земля (INTI)",
@@ -13067,7 +13109,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "Онлайн-система MINEC",
-      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA", "Очные процедуры"],
       f_mntramite:    "Разрешение, которое вы запросите в этой системе",
       f_yscedrep:     "Удостоверение личности законного представителя",
       f_ysrifrep:     "RIF законного представителя",
@@ -15269,6 +15311,13 @@ window.CIIP_PASOS = {
       yt_toca_racda:    "votre activité produit des effluents, des émissions ou des déchets dangereux, ou vous manipulez des substances ou matériaux dangereux.",
       yt_toca_sialamb:  "vous avez un laboratoire qui caractérise des effluents, émissions, sols, matériaux ou déchets.",
       yt_toca_renma:    "vous récupérez ou transportez des matériaux récupérables non dangereux, ou produisez des emballages à usage unique ou des pneus.",
+      yt_mn_etapa4:     "Démarches en personne",
+      yt_mn_etapa4_d:   "Celles qui ne sont pas dans les systèmes en ligne du MINEC.",
+      yt_toca_mn_presencial:"votre démarche n’est pas dans les systèmes en ligne du MINEC : vous la choisissez dans la liste et le CIIP vous accompagne au bureau.",
+      yt_toca_chacao:   "votre local se trouve à Chacao.",
+      yt_toca_baruta:   "votre local se trouve à Baruta.",
+      yt_toca_libertador:"votre local se trouve à Libertador.",
+      yt_toca_sucre:    "votre local se trouve à Sucre.",
       yt_ag_etapa1:     "Santé agricole (INSAI)",
       yt_ag_etapa1_d:   "Animaux, végétaux et intrants : enregistrements, transport et certificats.",
       yt_ag_etapa2:     "Terres (INTI)",
@@ -15317,7 +15366,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "Système en ligne du MINEC",
-      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA", "Démarches en personne"],
       f_mntramite:    "Permis que vous allez demander dans ce système",
       f_yscedrep:     "Carte d’identité du représentant légal",
       f_ysrifrep:     "RIF du représentant légal",
@@ -17525,6 +17574,13 @@ window.CIIP_PASOS = {
       yt_toca_racda:    "排水・排出物・有害廃棄物を出す、または有害物質・材料を扱う場合。",
       yt_toca_sialamb:  "排水、排出物、土壌、材料、廃棄物を分析する試験所がある場合。",
       yt_toca_renma:    "非有害の再生資源を回収・輸送する、または使い捨て容器やタイヤを製造する場合。",
+      yt_mn_etapa4:     "窓口での手続き",
+      yt_mn_etapa4_d:   "MINEC のオンラインシステムにない手続き。",
+      yt_toca_mn_presencial:"手続きが MINEC のオンラインシステムにない場合：一覧から選ぶと、CIIP が窓口に同行します。",
+      yt_toca_chacao:   "事業所が Chacao にある場合。",
+      yt_toca_baruta:   "事業所が Baruta にある場合。",
+      yt_toca_libertador:"事業所が Libertador にある場合。",
+      yt_toca_sucre:    "事業所が Sucre にある場合。",
       yt_ag_etapa1:     "農業衛生（INSAI）",
       yt_ag_etapa1_d:   "動物・植物・資材：登録、移動、証明書。",
       yt_ag_etapa2:     "土地（INTI）",
@@ -17573,7 +17629,7 @@ window.CIIP_PASOS = {
       /* Los permisos ambientales del MINEC (c30), Franklin Reyes, 19-10-2026, Permisos_MINEC: como el SACS; o_minec_sistema se
          guarda en español y cada nombre es una llave de PORTAL_DEL_MINEC, en panel.js. */
       f_mnsistema:    "MINECのオンラインシステム",
-      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA"],
+      o_minec_sistema: ["", "Ventanilla Verde", "SIGETRAT", "SIFORTRAT", "RACDA", "SIALAMB", "RENMA", "窓口での手続き"],
       f_mntramite:    "そのシステムで申請する許可",
       f_yscedrep:     "法定代表者の身分証明書",
       f_ysrifrep:     "法定代表者のRIF",
@@ -18898,6 +18954,7 @@ window.CIIP_PASOS = {
          día, tres pasos: «el paso lo cierra cuando el inversionista suba el permiso solicitado» y «el CIIP
          confirma el permiso y finaliza el trámite». */
       c30: ["Solicita tu permiso en el sistema en línea del MINEC", "Sube el permiso que te otorgó el MINEC", "Permiso confirmado por el CIIP"],
+      c30_presencial: ["Solicita tu permiso en la oficina del MINEC", "Sube el permiso que te otorgó el MINEC", "Permiso confirmado por el CIIP"],
       c31: ["Revisión de tus recaudos", "Expediente de la inversión ante el órgano rector", "Verificación del aporte y de su origen", "Evaluación y registro de la inversión", "Certificado de inversionista emitido"],
       c32: ["Solicitud recibida por el CIIP", "Revisión de tus recaudos", "Solicitud recibida por SAREN", "Autorización para la firma otorgada"],
       c33: ["Revisión de tus recaudos", "Verificado"],
@@ -18978,6 +19035,7 @@ window.CIIP_PASOS = {
       c29: ["Apply for the fire department permit on the portal", "Tell us the fire station where you filed the application", "Application under review", "Fire department certificate issued"],
       /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
       c30: ["Apply for your permit on the MINEC online system", "Upload the permit MINEC granted you", "Permit confirmed by CIIP"],
+      c30_presencial: ["Apply for your permit at the MINEC office", "Upload the permit MINEC granted you", "Permit confirmed by CIIP"],
       c31: ["Checking your documents", "Investment file submitted to the governing body", "Verification of the contribution and its origin", "Assessment and registration of the investment", "Investor certificate issued"],
       c32: ["Application received by CIIP", "Review of your documents", "Application received by SAREN", "Signature authorization granted"],
       c33: ["Review of your documents", "Verified"],
@@ -19046,6 +19104,7 @@ window.CIIP_PASOS = {
       c29: ["Faça o seu pedido de licença dos bombeiros no portal", "Indique a sede dos bombeiros onde apresentou o pedido", "Pedido em análise", "Certificado dos bombeiros emitido"],
       /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
       c30: ["Solicite a sua licença no sistema online do MINEC", "Carregue a licença que o MINEC lhe concedeu", "Licença confirmada pelo CIIP"],
+      c30_presencial: ["Solicite a sua licença no escritório do MINEC", "Carregue a licença que o MINEC lhe concedeu", "Licença confirmada pelo CIIP"],
       c31: ["Verificação dos seus documentos", "Processo do investimento junto do órgão regulador", "Verificação do aporte e da sua origem", "Avaliação e registo do investimento", "Certificado de investidor emitido"],
       c32: ["Solicitação recebida pelo CIIP", "Análise dos seus documentos", "Pedido recebido pelo SAREN", "Autorização para a assinatura concedida"],
       c33: ["Análise dos seus documentos", "Verificado"],
@@ -19112,6 +19171,7 @@ window.CIIP_PASOS = {
       c29: ["Presenta la richiesta di permesso dei vigili del fuoco sul portale", "Indica la sede dei vigili del fuoco in cui hai presentato la richiesta", "Richiesta in esame", "Certificato dei vigili del fuoco rilasciato"],
       /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
       c30: ["Richiedi il tuo permesso nel sistema online del MINEC", "Carica il permesso che ti ha rilasciato il MINEC", "Permesso confermato dal CIIP"],
+      c30_presencial: ["Richiedi il tuo permesso nell’ufficio del MINEC", "Carica il permesso che ti ha rilasciato il MINEC", "Permesso confermato dal CIIP"],
       c31: ["Verifica dei tuoi documenti", "Fascicolo dell'investimento all'organo competente", "Verifica del conferimento e della sua origine", "Valutazione e registrazione dell'investimento", "Certificato di investitore rilasciato"],
       c32: ["Richiesta ricevuta dal CIIP", "Esame dei tuoi documenti", "Richiesta ricevuta dal SAREN", "Autorizzazione alla firma concessa"],
       c33: ["Esame dei tuoi documenti", "Verificato"],
@@ -19178,6 +19238,7 @@ window.CIIP_PASOS = {
       c29: ["通过门户提交消防许可申请", "填写你提交申请的消防站", "申请审核中", "消防证书已签发"],
       /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
       c30: ["在 MINEC 在线系统申请许可", "上传 MINEC 发给你的许可", "CIIP 已确认许可"],
+      c30_presencial: ["到 MINEC 办公室申请许可", "上传 MINEC 发给你的许可", "CIIP 已确认许可"],
       c31: ["核验您的材料", "向主管机关提交投资档案", "核验出资及其来源", "评估并登记该项投资", "核发投资者证书"],
       c32: ["CIIP 已收到申请", "审核你的材料", "SAREN 已收到申请", "签名授权已批准"],
       c33: ["审核你的材料", "已核验"],
@@ -19244,6 +19305,7 @@ window.CIIP_PASOS = {
       c29: ["Подайте заявку на разрешение пожарной службы на портале", "Укажите пожарное отделение, в которое вы подали заявку", "Заявка на рассмотрении", "Сертификат пожарной службы выдан"],
       /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
       c30: ["Подайте заявку на разрешение в онлайн-системе MINEC", "Загрузите разрешение, выданное MINEC", "Разрешение подтверждено CIIP"],
+      c30_presencial: ["Подайте заявку на разрешение в офисе MINEC", "Загрузите разрешение, выданное MINEC", "Разрешение подтверждено CIIP"],
       c31: ["Проверка ваших документов", "Досье об инвестиции в профильный орган", "Проверка вклада и его происхождения", "Оценка и регистрация инвестиции", "Выдача свидетельства инвестора"],
       c32: ["Заявка получена CIIP", "Проверка ваших документов", "Заявка получена SAREN", "Разрешение на подпись выдано"],
       c33: ["Проверка ваших документов", "Проверено"],
@@ -19310,6 +19372,7 @@ window.CIIP_PASOS = {
       c29: ["Faites votre demande de permis des sapeurs-pompiers sur le portail", "Indiquez la caserne de pompiers où vous avez déposé la demande", "Demande en cours d’examen", "Certificat des sapeurs-pompiers délivré"],
       /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
       c30: ["Demandez votre permis dans le système en ligne du MINEC", "Téléversez le permis que le MINEC vous a accordé", "Permis confirmé par le CIIP"],
+      c30_presencial: ["Demandez votre permis au bureau du MINEC", "Téléversez le permis que le MINEC vous a accordé", "Permis confirmé par le CIIP"],
       c31: ["Vérification de vos documents", "Dossier d’investissement déposé auprès de l’organisme compétent", "Vérification de l’apport et de son origine", "Évaluation et enregistrement de l’investissement", "Certificat d’investisseur délivré"],
       c32: ["Demande reçue par le CIIP", "Examen de vos documents", "Demande reçue par le SAREN", "Autorisation de signature accordée"],
       c33: ["Examen de vos documents", "Vérifié"],
@@ -19376,6 +19439,7 @@ window.CIIP_PASOS = {
       c29: ["ポータルで消防許可を申請", "申請を提出した消防署を入力", "申請を審査中", "消防証明書の発行完了"],
       /* Franklin Reyes, 19-10-2026, Permisos_MINEC: en el sistema en línea del MINEC, como el SACS. */
       c30: ["MINECのオンラインシステムで許可を申請", "MINECから交付された許可をアップロード", "CIIPが許可を確認"],
+      c30_presencial: ["MINEC の窓口で許可を申請", "MINECから交付された許可をアップロード", "CIIPが許可を確認"],
       c31: ["書類を確認中", "所管機関への投資ファイルの提出", "出資とその出所の確認", "投資の評価と登録", "投資家証明書の発行"],
       c32: ["CIIPが申請を受理", "書類の審査", "SARENが申請を受理", "署名権限の承認"],
       c33: ["書類の審査", "確認済み"],

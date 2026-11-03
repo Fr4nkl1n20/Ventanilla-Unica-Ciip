@@ -392,7 +392,9 @@ const SALTOS = new Set([
   'yt_toca_banavih', 'yt_toca_inces', 'yt_toca_rnet', 'yt_toca_rupdae', 'yt_toca_ivss',
   /* Y los de hidrocarburos, pesca y energía (3-11-2026). */
   'yt_toca_sutap', 'yt_toca_pescaemb', 'yt_toca_acui', 'yt_toca_empesca',
-  'yt_toca_autog', 'yt_toca_conex', 'yt_toca_renov'
+  'yt_toca_autog', 'yt_toca_conex', 'yt_toca_renov',
+  /* Y los del recuadro presencial y las alcaldías (3-11-2026). */
+  'yt_toca_mn_presencial', 'yt_toca_chacao', 'yt_toca_baruta', 'yt_toca_libertador', 'yt_toca_sucre'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;

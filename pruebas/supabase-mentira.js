@@ -3448,6 +3448,7 @@
      vez que se corriera el contador ya vendría apagado y la prueba de
      "cuenta 3 avisos" pasaría a rojo sin que nadie hubiera tocado nada. */
   try { window.localStorage.removeItem('ciip.avisos.' + USUARIO.id); } catch(e){}
+  try { window.localStorage.removeItem('ciip.avisos.' + USUARIO.id + '.leidos'); } catch(e){}
   /* El rol de la última vez (15-10-2026). El panel lo apunta cuando llega la
      fila de perfiles y, si era del equipo, espera tras el velo la vez
      siguiente en vez de enseñar el menú del inversionista. El pase 'admin'
