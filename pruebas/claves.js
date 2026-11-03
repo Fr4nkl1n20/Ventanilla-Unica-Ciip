@@ -383,7 +383,11 @@ const SALTOS = new Set([
   'yt_toca_sigetrat', 'yt_toca_vverde', 'yt_toca_sifortrat', 'yt_toca_racda',
   'yt_toca_sialamb', 'yt_toca_renma',
   /* Y los de agricultura, igual (2-11-2026). */
-  'yt_toca_sigesai', 'yt_toca_runsai', 'yt_toca_certinsai', 'yt_toca_inti'
+  'yt_toca_sigesai', 'yt_toca_runsai', 'yt_toca_certinsai', 'yt_toca_inti',
+  /* Y los de la tarjeta fija del RUM y el RTN (3-11-2026). */
+  'yt_toca_sigdme', 'yt_toca_rtn',
+  /* Y los de los parafiscales (3-11-2026). */
+  'yt_toca_banavih', 'yt_toca_inces', 'yt_toca_rnet', 'yt_toca_rupdae', 'yt_toca_ivss'
 ]);
 
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\s*/gu;

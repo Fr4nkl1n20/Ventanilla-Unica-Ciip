@@ -4962,6 +4962,132 @@ applyLang(idiomaParaMi());
     {n: 2, t: 'yt_etapa2', d: 'yt_etapa2_d'},
     {n: 3, t: 'yt_etapa3', d: 'yt_etapa3_d'}
   ];
+  /* ── LA TARJETA DE LOS QUE TIENEN UNA SOLA PÁGINA ──
+     Franklin Reyes, 3-11-2026 (maquetas/mineria-turismo-tarjetas.html):
+     «aplícalo, pero que salga el formulario directamente, porque es una
+     sola opción». El RUM y el RTN tienen un único sistema: la tarjeta con
+     la portada de su página va ya marcada y solo informa. No es una casilla:
+     no se elige, no se valida y no guarda nada, y el formulario sale desde
+     el principio. Las frases de cada portada son las de su página. */
+  var PORTADA_SIGDME = '<div class="st-pt st-mt-sig" aria-hidden="true"><div class="h"><div class="f"><i></i><i></i><i></i><u></u></div>' +
+    '<div class="d"><div class="ban"></div><span>Ministerio del Poder Popular de</span><b>DESARROLLO MINERO ECOLÓGICO E INDUSTRIAS BÁSICAS</b>' +
+    '<em>¡Bienvenido al nuevo SIGDME!</em></div></div></div>';
+  var PORTADA_RTN = '<div class="st-pt st-mt-rtn" aria-hidden="true"><div class="izq"><b>Bienvenido</b><span>Portal Institucional de Turismo de Venezuela</span><i></i><i></i><u></u></div>' +
+    '<div class="der"><b>Experiencias Inolvidables</b><span>Sé parte del motor económico que transforma y proyecta a Venezuela hacia el futuro.</span></div></div>';
+  var UNICO_MINERO = {rotulo: 'yt_u_minero', sig: 'SIGDME', nom: 'Ministerio de Desarrollo Minero Ecológico', toca: 'yt_toca_sigdme', pt: PORTADA_SIGDME};
+  var UNICO_RTN = {rotulo: 'yt_u_rtn', sig: 'RTN Digital', nom: 'Portal Institucional de Turismo de Venezuela', toca: 'yt_toca_rtn', pt: PORTADA_RTN};
+  var TARJETA_UNICA = {registro_minero: UNICO_MINERO, minero_en_proceso: UNICO_MINERO,
+                       registro_turistico: UNICO_RTN, turistico_en_proceso: UNICO_RTN};
+  function tarjetaUnica(d, u){
+    var caja = el('div', 'st-unica');
+    caja.appendChild(el('label', null, u[d.rotulo] || ''));
+    var t = el('div', 'st-tarjeta on');
+    t.innerHTML = d.pt;
+    var cu = el('div', 'st-cu');
+    cu.appendChild(el('div', 'st-sig', d.sig));
+    cu.appendChild(el('div', 'st-nom', d.nom));
+    var toca = el('div', 'st-toca');
+    toca.appendChild(el('b', null, (u.yt_toca || '') + ' '));
+    toca.appendChild(document.createTextNode(u[d.toca] || ''));
+    cu.appendChild(toca);
+    t.appendChild(cu);
+    var m = el('span', 'st-marca');
+    m.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
+    t.appendChild(m);
+    caja.appendChild(t);
+    return caja;
+  }
+  /* ── LOS ENTES DE LOS PARAFISCALES, EN UNA FILA ──
+     Franklin Reyes, 3-11-2026 (maquetas/parafiscales-tarjetas.html): «igual
+     que en los otros permisos». Estuvieron un rato por pestañas, y el mismo
+     día: «¿podemos hacer que los 5 recuadros quepan aquí y quitamos las
+     pestañas?». Las cinco tarjetas con su portada dibujada, en una fila.
+     Por primera vez (c37) la empresa se inscribe en los cinco: la tarjeta
+     informa y el formulario sale directo. Ya inscrita (c44) se marcan los
+     entes donde ya presentó: la tarjeta marca la casilla ya_<ente> de
+     siempre, que sigue ahí escondida, y debajo salen su fecha y su motivo.
+     Guardar, validar y «al menos uno» no cambian.
+     Las portadas de BANAVIH y RNET son aproximadas: sus páginas no
+     respondieron el 2-11-2026. A quién le toca, por confirmar con el CIIP. */
+  var ENTES_EN_TARJETAS = [
+    {ya: 'ya_banavih', sig: 'BANAVIH · FAOV',
+     nom: 'Fondo de Ahorro Obligatorio para la Vivienda', toca: 'yt_toca_banavih',
+     pt: '<div class="st-pt pf pf-ban" aria-hidden="true"><div class="ban-t">BANAVIH</div><div class="ban-s">FAOV en línea · Afiliación del empleador</div>' +
+         '<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></div>'},
+    {ya: 'ya_inces', sig: 'INCES',
+     nom: 'Instituto Nacional de Capacitación y Educación Socialista', toca: 'yt_toca_inces',
+     pt: '<div class="st-pt pf pf-inc" aria-hidden="true"><div class="izq"></div><div class="logo">inces</div><div class="reg">Registro del Contribuyente</div><div class="btn"></div></div>'},
+    {ya: 'ya_rupdae', sig: 'SUNDDE · RUPDAE',
+     nom: 'Registro Único de Personas que Desarrollan Actividades Económicas', toca: 'yt_toca_rupdae',
+     pt: '<div class="st-pt pf pf-rup" aria-hidden="true"><div class="bar">Bienvenidos al sistema RUPDAE</div>' +
+         '<svg viewBox="0 0 100 100"><path d="M50 4l13 30 33 3-25 22 8 33-29-18-29 18 8-33L4 37l33-3z" fill="#F4C21F"/><path d="M50 4l13 30-13 10z" fill="#2A4FA3"/><path d="M71 59l8 33-29-18z" fill="#D8452F"/><path d="M29 59l-8 33 29-18z" fill="#2A4FA3"/></svg>' +
+         '<div class="caja"><b>Registro de usuario</b><i></i><i></i><i></i></div></div>'},
+    {ya: 'ya_ivss', sig: 'IVSS · Seguro Social',
+     nom: 'Instituto Venezolano de los Seguros Sociales', toca: 'yt_toca_ivss',
+     pt: '<div class="st-pt pf pf-ivs" aria-hidden="true"><div class="ban"></div><div class="fr"></div><div class="pro">TIUNA</div><div class="ins">Instituto Venezolano de los Seguros Sociales</div><div class="sol">Solicitud de Afiliación al I.V.S.S.</div><i style="top:76%"></i><i style="top:84%"></i></div>'},
+    {ya: 'ya_rnet', sig: 'Ministerio del Trabajo · RNET',
+     nom: 'Registro Nacional de Entidades de Trabajo', toca: 'yt_toca_rnet',
+     pt: '<div class="st-pt pf pf-rnet" aria-hidden="true"><div class="fr"></div><div class="tit">RNET</div><div class="sub">Registro Nacional de Entidades de Trabajo</div><div class="min">Ministerio del Poder Popular para el Proceso Social de Trabajo</div></div>'}
+  ];
+  function tarjetasDeEntes(rejilla, tipo, u){
+    var marcables = tipo === 'parafiscales_en_proceso';
+    var grupo = marcables ? rejilla.querySelector('[data-grupo="f_ypentes"]') : null;
+    if (marcables && !grupo) return;
+    var caja = el('div', 'st-caja st-entes' + (marcables ? '' : ' st-unica'));
+    var fila = el('div', 'st-entes-fila');
+    caja.appendChild(fila);
+    var debajo = el('div', 'st-entes-debajo');
+    ENTES_EN_TARJETAS.forEach(function(e){
+      var t = el('div', 'st-tarjeta');
+      t.innerHTML = e.pt;
+      var cu = el('div', 'st-cu');
+      cu.appendChild(el('div', 'st-sig', e.sig));
+      cu.appendChild(el('div', 'st-nom', e.nom));
+      var toca = el('div', 'st-toca');
+      toca.appendChild(el('b', null, (u.yt_toca || '') + ' '));
+      toca.appendChild(document.createTextNode(u[e.toca] || ''));
+      cu.appendChild(toca);
+      t.appendChild(cu);
+      var m = el('span', 'st-marca');
+      m.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
+      t.appendChild(m);
+      fila.appendChild(t);
+      if (!marcables){
+        t.classList.add('on');
+        return;
+      }
+      var casilla = grupo.querySelector('.sol-casilla[data-campo="' + e.ya + '"]');
+      var marca = casilla && casilla.querySelector('input[type=checkbox]');
+      var suyos = el('div', 'sol-campos st-ente-campos');
+      if (casilla) suyos.appendChild(casilla);
+      ['fecha_', 'motivo_', 'detalle_'].forEach(function(pre){
+        var c = grupo.querySelector('[data-campo="' + pre + e.ya + '"]');
+        if (c) suyos.appendChild(c);
+      });
+      debajo.appendChild(suyos);
+      if (!marca) return;
+      var pon = function(){
+        t.classList.toggle('on', marca.checked);
+        t.setAttribute('aria-checked', marca.checked ? 'true' : 'false');
+        suyos.hidden = !marca.checked;
+      };
+      t.setAttribute('role', 'checkbox');
+      t.tabIndex = 0;
+      t.classList.add('st-marcable');
+      t.addEventListener('click', function(){ marca.click(); });
+      t.addEventListener('keydown', function(ev){
+        if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); marca.click(); }
+      });
+      marca.addEventListener('change', pon);
+      pon();
+    });
+    if (marcables){
+      caja.appendChild(debajo);
+      grupo.lastChild.appendChild(caja);
+    } else {
+      rejilla.insertBefore(caja, rejilla.firstChild);
+    }
+  }
   /* Monta las tarjetas encima del desplegable sel, que se queda escondido
      en la casilla. Desde el 2-11-2026, en pestañas por etapa (Franklin
      Reyes, maquetas/sacs-sin-scroll.html, la 4, «sin el número de la
@@ -4973,7 +5099,7 @@ applyLang(idiomaParaMi());
      así que lo que cuelga del desplegable -el enlace, las casillas que
      dependen de él- no se entera de que ya no se ve. */
   function montaTarjetas(campo, sel, c, u){
-    var datos = c.tarjetas, urls = c.urls || {};
+    var datos = c.tarjetas;
     /* El SACS no las dice: son las suyas. El MINEC trae las propias
        (2-11-2026). */
     var etapas = c.etapas || ETAPAS_DEL_SACS;
@@ -5048,19 +5174,14 @@ applyLang(idiomaParaMi());
         toca.appendChild(el('b', null, (u.yt_toca || '') + ' '));
         toca.appendChild(document.createTextNode(u[d.toca] || ''));
         cu.appendChild(toca);
-        if (urls[o.value]){
-          var a = el('a', 'st-ir', (u.yt_ver || '') + ' ›');
-          a.href = urls[o.value];
-          a.target = '_blank';
-          a.rel = 'noopener';
-          cu.appendChild(a);
-        }
+        /* Sin enlace a la página del sistema (Franklin Reyes, 3-11-2026: «desde
+           las tarjetas no debería poder ir a la página»): se llega a ella
+           desde el paso 1, ya enviada la solicitud (ENLACE_DEL_PASO). */
         t.appendChild(cu);
         var m = el('span', 'st-marca');
         m.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
         t.appendChild(m);
         t.addEventListener('click', function(ev){
-          if (ev.target.closest('a')) return;
           elige(t);
         });
         t.addEventListener('keydown', function(ev){
@@ -5971,7 +6092,7 @@ applyLang(idiomaParaMi());
        en tramites.datos. */
     permiso_ambiental: [
       {n:'sistema_minec',       clave:'f_mnsistema',   opcionesClave:'o_minec_sistema', ancho:true,
-       tarjetas:TARJETAS_DEL_MINEC, etapas:ETAPAS_DEL_MINEC, portada:portadaDelMinec, urls:PORTAL_DEL_MINEC},
+       tarjetas:TARJETAS_DEL_MINEC, etapas:ETAPAS_DEL_MINEC, portada:portadaDelMinec},
       {n:'razon_social',        clave:'f_razon',       ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
       {n:'tramite_minec',       clave:'f_mntramite',   ancho:true,
@@ -6049,7 +6170,7 @@ applyLang(idiomaParaMi());
        verDistinto). Y la empresa. */
     permisos_agricolas: [
       {n:'sistema_agricola',     clave:'f_agrosistema',   opcionesClave:'o_agro_sistema', ancho:true,
-       tarjetas:TARJETAS_AGRICOLAS, etapas:ETAPAS_AGRICOLAS, portada:portadaAgricola, urls:PORTAL_AGRICOLA},
+       tarjetas:TARJETAS_AGRICOLAS, etapas:ETAPAS_AGRICOLAS, portada:portadaAgricola},
       {n:'tramite_insai',        clave:'f_insaitramite',  ancho:true,
        verSi:'sistema_agricola', verDistinto:OFICINA_DEL_INTI},
       {n:'solicitud_inti',       clave:'f_intisolicitud', opcionesClave:'o_inti_solicitud', ancho:true,
@@ -6425,7 +6546,7 @@ applyLang(idiomaParaMi());
        en c45 («Datos del representante legal», dice el documento). */
     permiso_sacs: [
       {n:'sistema_sacs',         clave:'f_yssistema',   opcionesClave:'o_sacs_sistema', ancho:true,
-       tarjetas:TARJETAS_DEL_SACS, urls:PORTAL_DEL_SACS},
+       tarjetas:TARJETAS_DEL_SACS},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
       {n:'rif_empresa',          clave:'f_rifempresa'},
       {n:'cedula_representante', clave:'f_yscedrep'},
@@ -6434,7 +6555,7 @@ applyLang(idiomaParaMi());
     ],
     sacs_en_proceso: [
       {n:'sistema_sacs',         clave:'f_yssistema',   opcionesClave:'o_sacs_sistema', ancho:true,
-       tarjetas:TARJETAS_DEL_SACS, urls:PORTAL_DEL_SACS},
+       tarjetas:TARJETAS_DEL_SACS},
       {n:'permiso_ya',           clave:'f_yspermisoya', ancho:true},
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
@@ -6453,7 +6574,7 @@ applyLang(idiomaParaMi());
        ir a solicitar. */
     ambiental_en_proceso: [
       {n:'sistema_minec',        clave:'f_mnsistema',   opcionesClave:'o_minec_sistema', ancho:true,
-       tarjetas:TARJETAS_DEL_MINEC, etapas:ETAPAS_DEL_MINEC, portada:portadaDelMinec, urls:PORTAL_DEL_MINEC},
+       tarjetas:TARJETAS_DEL_MINEC, etapas:ETAPAS_DEL_MINEC, portada:portadaDelMinec},
       {n:'tramite_minec',        clave:'f_yspermisoya', ancho:true,
        opcionesSegun:'sistema_minec', opcionesDe:TRAMITES_DEL_MINEC},
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
@@ -6465,7 +6586,7 @@ applyLang(idiomaParaMi());
     ],
     agricola_en_proceso: [
       {n:'sistema_agricola',     clave:'f_agrosistema', opcionesClave:'o_agro_sistema', ancho:true,
-       tarjetas:TARJETAS_AGRICOLAS, etapas:ETAPAS_AGRICOLAS, portada:portadaAgricola, urls:PORTAL_AGRICOLA},
+       tarjetas:TARJETAS_AGRICOLAS, etapas:ETAPAS_AGRICOLAS, portada:portadaAgricola},
       {n:'permiso_ya',           clave:'f_yspermisoya', ancho:true},
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
@@ -7701,7 +7822,7 @@ applyLang(idiomaParaMi());
       function ponCuadro(){
         col.insertBefore(cuadro, col.firstChild);
         setTimeout(function(){
-          var t = col.querySelector('.sol-campo.con-tarjetas');
+          var t = col.querySelector('.sol-campo.con-tarjetas, .st-unica');
           if (t && t.parentNode) t.parentNode.insertBefore(cuadro, t.nextSibling);
         }, 0);
       }
@@ -8511,6 +8632,8 @@ applyLang(idiomaParaMi());
       g.lastChild.appendChild(suCampo);
     });
     vigilaOrden(rejilla);
+    if (TARJETA_UNICA[tipo.codigo]) rejilla.insertBefore(tarjetaUnica(TARJETA_UNICA[tipo.codigo], u), rejilla.firstChild);
+    if (tipo.codigo === 'registros_parafiscales' || tipo.codigo === 'parafiscales_en_proceso') tarjetasDeEntes(rejilla, tipo.codigo, u);
     col.appendChild(rejilla);
 
     /* --- recaudos, EN LA COLUMNA DE AL LADO ---
@@ -27876,7 +27999,7 @@ applyLang(idiomaParaMi());
      el c55 minero y el c56 del MINTUR-, que no tienen tarjeta. */
   function esPermisoAgrupado(ref){
     if (!ref) return false;
-    if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56') return true;
+    if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' || ref === 'c37' || ref === 'c44') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
   var GRUPOS = [

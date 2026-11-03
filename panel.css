@@ -4483,13 +4483,85 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-nom{font-size:13px; font-weight:700; line-height:1.35;}
 .st-toca{font-size:12px; color:var(--gray); line-height:1.5;}
 .st-toca b{color:var(--ink); font-weight:700;}
-.st-ir{font-size:12px; font-weight:700; color:var(--navy2); text-decoration:none; justify-self:start;}
-.st-ir:hover{text-decoration:underline;}
 .st-marca{position:absolute; z-index:2; top:8px; right:8px; width:20px; height:20px; border-radius:50%; border:1.5px solid var(--gray-soft, #8A93A6); background:#fff; display:grid; place-items:center;}
 .st-marca svg{width:11px; height:11px; stroke:#fff; fill:none; stroke-width:3; display:none;}
 .st-tarjeta.on .st-marca{background:var(--navy2); border-color:var(--navy2);}
 .st-tarjeta.on .st-marca svg{display:block;}
 .sol-campo.con-tarjetas.mal > label{color:var(--rust);}
+/* Los entes de los parafiscales en una fila (3-11-2026, tarjetasDeEntes):
+   las cinco caben a lo ancho, más angostas y con la letra más pequeña; en
+   pantallas estrechas bajan a la línea siguiente. */
+.st-entes{grid-column:1 / -1;}
+.st-entes-fila{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px;}
+.st-entes-fila .st-cu{padding:9px 10px 10px; gap:3px;}
+.st-entes-fila .st-sig{font-size:10px;}
+.st-entes-fila .st-nom{font-size:11.5px; line-height:1.3;}
+.st-entes-fila .st-toca{font-size:11px; line-height:1.4;}
+.st-entes-fila .st-marca{top:6px; right:6px; width:18px; height:18px;}
+.st-entes-debajo{display:grid; gap:14px;}
+.st-entes-debajo:empty{display:none;}
+.st-ente-campos{max-width:none; grid-template-columns:minmax(300px, 1.5fr) minmax(170px, 1fr) minmax(170px, 1fr);}
+@media (max-width:800px){ .st-ente-campos{grid-template-columns:1fr;} }
+.st-ente-campos[hidden]{display:none;}
+.st-ente-campos > .sol-casilla{display:none;}
+.sol-grupo:has(.st-entes .sol-casilla.mal) > legend{color:var(--rust);}
+.st-marcable{cursor:pointer;}
+.st-entes .st-tarjeta:not(.st-marcable){cursor:default;}
+.st-entes .st-tarjeta:not(.st-marcable):hover{background:var(--activa-bg);}
+.pf-ban{background:linear-gradient(135deg, #0F3D8C, #1C5FC4);}
+.pf-ban .ban-t{position:absolute; left:8%; top:18%; color:#fff; font-weight:900; font-size:11cqw; letter-spacing:-.01em;}
+.pf-ban .ban-s{position:absolute; left:8%; top:44%; color:#FFD24A; font-weight:800; font-size:5cqw; line-height:1.15; width:54%;}
+.pf-ban svg{position:absolute; right:7%; bottom:12%; width:28cqw; height:28cqw; stroke:#fff; fill:none; stroke-width:1.4;}
+.pf-inc{background:#fff;}
+.pf-inc .izq{position:absolute; inset:0 44% 0 0; background:radial-gradient(circle at 25% 75%, #F5B92F 0 22%, transparent 23%), radial-gradient(circle at 75% 25%, #45B6BF 0 26%, transparent 27%), radial-gradient(circle at 80% 85%, #EE343A 0 24%, transparent 25%), linear-gradient(135deg, #F68B33 0 45%, #4F6B6E 45% 100%);}
+.pf-inc .logo{position:absolute; right:5%; top:22%; width:36%; text-align:center; color:#E8213A; font-weight:800; font-size:9cqw; letter-spacing:-.02em;}
+.pf-inc .reg{position:absolute; right:5%; top:50%; width:36%; text-align:center; font-size:3.2cqw; color:#333;}
+.pf-inc .btn{position:absolute; right:7%; bottom:12%; width:32%; height:7cqw; border-radius:1cqw; background:#5B7BBC;}
+.pf-rnet{background:#fff;}
+.pf-rnet .fr{position:absolute; left:0; right:0; top:0; height:9%; background:#ED2E38;}
+.pf-rnet .tit{position:absolute; left:6%; right:6%; top:18%; color:#23395B; font-weight:900; font-size:13cqw; text-align:center;}
+.pf-rnet .sub{position:absolute; left:8%; right:8%; top:52%; color:#333; font-weight:700; font-size:4.2cqw; text-align:center; line-height:1.2;}
+.pf-rnet .min{position:absolute; left:8%; right:8%; bottom:8%; color:#666; font-size:3cqw; text-align:center;}
+.pf-rup{background:#DDDDDD;}
+.pf-rup .bar{position:absolute; left:4%; right:4%; top:6%; height:13%; background:rgba(255,255,255,.9); border-radius:1.6cqw; display:flex; align-items:center; padding:0 3cqw; font-size:3.2cqw; font-weight:700; color:#23395B;}
+.pf-rup svg{position:absolute; left:7%; top:28%; width:40cqw; height:40cqw;}
+.pf-rup .caja{position:absolute; right:6%; top:30%; bottom:8%; width:40%; background:#fff; border:.5cqw solid #1E2A4A; border-radius:2cqw; padding:2.4cqw; display:grid; gap:1.6cqw; align-content:start; box-sizing:border-box;}
+.pf-rup .caja b{font-size:3.8cqw; color:#1E2A4A;}
+.pf-rup .caja i{height:4cqw; border:1px solid #CCC; border-radius:1cqw;}
+.pf-ivs{background:#fff;}
+.pf-ivs .ban{position:absolute; left:0; right:0; top:0; height:58%; background:linear-gradient(120deg, #B3DAD8, #E6F2F1 50%, #A6D3D1);}
+.pf-ivs .fr{position:absolute; left:0; right:0; top:0; height:3cqw; background:#ED2E38;}
+.pf-ivs .pro{position:absolute; left:6%; top:18%; color:#fff; font-style:italic; font-weight:800; font-size:10cqw; text-shadow:0 .4cqw 1cqw rgba(0,50,70,.5);}
+.pf-ivs .ins{position:absolute; right:4%; top:47%; background:#2F4069; color:#fff; font-style:italic; font-size:3.4cqw; padding:.8cqw 2.4cqw; border-radius:1cqw 1cqw 0 0;}
+.pf-ivs .sol{position:absolute; left:6%; top:64%; color:#10106A; font-weight:800; font-size:4.6cqw;}
+.pf-ivs i{position:absolute; left:6%; width:44%; height:3.2cqw; border:1px solid #AAA;}
+/* La tarjeta fija de los que tienen una sola página (2-11-2026, tarjetaUnica):
+   informa, no se elige. Las dos portadas, en cqw como las demás. */
+.st-unica{grid-column:1 / -1;}
+.st-unica > label{display:block; margin-bottom:6px;}
+.st-unica .st-tarjeta{max-width:330px; cursor:default;}
+.st-unica .st-tarjeta:hover{background:var(--activa-bg);}
+.st-mt-sig{background:#F4F5FB;}
+.st-mt-sig::before{content:''; position:absolute; right:-8%; top:-22%; width:34%; aspect-ratio:1; transform:rotate(45deg); background:#BCC4DE;}
+.st-mt-sig::after{content:''; position:absolute; left:-10%; bottom:-26%; width:36%; aspect-ratio:1; transform:rotate(45deg); background:#B5BACB;}
+.st-mt-sig .h{position:absolute; z-index:1; left:9%; right:9%; top:9%; bottom:9%; background:#fff; border-radius:1.4cqw; box-shadow:0 1cqw 4cqw rgba(30,40,90,.12); display:grid; grid-template-columns:1fr 1.25fr; gap:3cqw; padding:3cqw; align-items:center;}
+.st-mt-sig .f{display:grid; gap:1.8cqw;}
+.st-mt-sig .f i{height:3.6cqw; border:1px solid #DDE; border-radius:.8cqw;}
+.st-mt-sig .f u{height:4.2cqw; border-radius:.8cqw; background:#2323A6;}
+.st-mt-sig .d{text-align:left; color:#1E2450; line-height:1.05;}
+.st-mt-sig .ban{height:9cqw; border-radius:1cqw; margin-bottom:2cqw; background:linear-gradient(180deg, #F7C600 0 33%, #0A4A9C 33% 66%, #D60F3C 66%);}
+.st-mt-sig .d span{display:block; font-size:2.6cqw;}
+.st-mt-sig .d b{display:block; font-size:3.4cqw; font-weight:900; margin-top:.6cqw;}
+.st-mt-sig .d em{display:block; font-style:normal; font-size:2.8cqw; margin-top:1.4cqw; font-weight:600;}
+.st-mt-rtn{background:#DFE6EF;}
+.st-mt-rtn .izq{position:absolute; left:3%; top:5%; bottom:5%; width:33%; background:#F8FAFC; border-radius:2cqw 0 0 2cqw; padding:3cqw; box-sizing:border-box; display:grid; align-content:center; gap:1.4cqw;}
+.st-mt-rtn .izq b{font-size:4.8cqw; font-weight:800; color:#0F1E3C; line-height:1;}
+.st-mt-rtn .izq span{font-size:2.6cqw; font-weight:700; color:#0F1E3C; line-height:1.15;}
+.st-mt-rtn .izq i{height:3.6cqw; border:1px solid #CBD5E1; border-radius:.8cqw; background:#fff;}
+.st-mt-rtn .izq u{height:4cqw; border-radius:.8cqw; background:#2563EB;}
+.st-mt-rtn .der{position:absolute; left:36%; right:3%; top:5%; bottom:5%; border-radius:0 2cqw 2cqw 0; background:radial-gradient(circle at 55% 35%, #8F8D96, #3C3A44 45%, #0C0C12 80%); color:#fff; display:grid; align-content:center; padding:0 6cqw; gap:1.6cqw;}
+.st-mt-rtn .der b{font-size:8.6cqw; font-weight:800; line-height:1;}
+.st-mt-rtn .der span{font-size:3cqw; line-height:1.25;}
 /* Sin sistema elegido, las demás casillas esperan (montaTarjetas). */
 .st-sin-elegir > .sol-campo:not(.con-tarjetas), .st-sin-elegir > .sol-grupo, .st-sin-elegir > .sol-casilla, .st-sin-elegir > .pa-lee{display:none;}
 /* Y el cuadro del lector, cuando va debajo de las tarjetas, a todo lo ancho. */

@@ -13285,15 +13285,15 @@
           campos: 'sistema_agricola permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 4, gestion: 'En coordinación con el INSAI o el INTI', fin: 'Registro o permiso listo'},
     /* Franklin Reyes, 2-11-2026: «lo mismo con permisos mineros y permisos de
-       turismo». Con un único portal: sin tarjetas de sistema. */
+       turismo». Con un único portal: una sola tarjeta, fija (3-11-2026). */
     min: {madre: 'c36', ya: 'c55', p: 'yr', codigo: 'minero_en_proceso', ente: 'Ministerio de Desarrollo Minero',
           campos: 'permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           queSolicito: 'permiso_ya',
-          tarjetas: 0, gestion: 'En coordinación con el Ministerio de Desarrollo Minero', fin: 'Registro listo'},
+          tarjetas: 1, gestion: 'En coordinación con el Ministerio de Desarrollo Minero', fin: 'Registro listo'},
     tur: {madre: 'c50', ya: 'c56', p: 'yn', codigo: 'turistico_en_proceso', ente: 'MINTUR',
           campos: 'permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           queSolicito: 'permiso_ya',
-          tarjetas: 0, gestion: 'En coordinación con el MINTUR', fin: 'Registro listo'}
+          tarjetas: 1, gestion: 'En coordinación con el MINTUR', fin: 'Registro listo'}
   };
   function ypmAbre(k, sigue){
     if (PASE !== 'vacio') return sigue();
