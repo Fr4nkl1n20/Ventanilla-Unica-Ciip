@@ -251,6 +251,8 @@ const PROPIOS = new Set((
   'Balcão Investidor ' +
   /* El Servicio Nacional de Contrataciones, del RNC (c69), 4-11-2026. */
   'Contrataciones Contratações Procurement ' +
+  /* El ministerio de la visa (c70), 4-11-2026. */
+  'Foreign Affairs Relações Exteriores Affari Esteri ' +
   /* Nombres de organismos que llegaron con las inscripciones parafiscales
      y la visa (25-9-2026): «IVSS · Seguro Social», «Ministry of Labour ·
      RNET», «Ir al portal de Cancillería», en sus idiomas. */
@@ -296,7 +298,7 @@ const PROPIOS = new Set((
                 white-space:pre-wrap, así que ese aire se ve. Está igual
                 en los seis idiomas: es una decisión, no un descuido. */
 const SALTOS = new Set([
-  'yt_toca_pr', 'yt_toca_sidcai', 'yt_toca_rncl',
+  'yt_toca_pr', 'yt_toca_sidcai', 'yt_toca_rncl', 'yt_toca_canc', 'yt_toca_saime', 'yt_toca_rifp',
   'yt_toca_concesion', 'yt_toca_licagua', 'yt_toca_afectacion', 'yt_toca_cambioagua', 'yt_toca_rupdaeic',
   'yt_toca_sis', 'yt_toca_envasados', 'yt_toca_norven', 'yt_toca_inac', 'yt_toca_inea', 'yt_toca_intt',
   'tag.soon', 'asst.greet',

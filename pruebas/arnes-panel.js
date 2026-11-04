@@ -167,6 +167,10 @@
 
   function enCadena(pasos, alFinal){
     var i = 0;
+    /* La visa, la cédula y el RIF abren con la pregunta desde el 4-11-2026. Las
+       pruebas de sus formularios entran ya contestadas; las de la pregunta son
+       las ypm de abajo, que vuelven atrás para verla. */
+    ['c1', 'c2', 'c3'].forEach(function(r){ if (window.CIIP_YA_ELEGIDA) window.CIIP_YA_ELEGIDA(r); });
     (function siguiente(){
       if (i >= pasos.length) return alFinal();
       var paso = pasos[i++];
@@ -496,6 +500,10 @@
               ypmTraAbre, ypmTraMira, ypmTraYaMira, ypmTraAtrasMira,
               /* Y el RNC (c13/c69), 4-11-2026. */
               ypmRncAbre, ypmRncMira, ypmRncYaMira, ypmRncAtrasMira,
+              /* Y la visa, la cédula y el RIF (c70 a c72), 4-11-2026. */
+              ypmVisAbre, ypmVisMira, ypmVisYaMira, ypmVisAtrasMira, ypmVisGuiaMira,
+              ypmCedAbre, ypmCedMira, ypmCedYaMira, ypmCedAtrasMira,
+              ypmRifAbre, ypmRifMira, ypmRifYaMira, ypmRifAtrasMira, idvCierra,
               aitAguAbre, aitAguMira, aitIndAbre, aitIndMira, aitTraAbre, aitTraMira,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
@@ -1228,7 +1236,7 @@
                 2-11-2026. */
              /* Y 50 con hidrocarburos, pesca y energía (c57 a c62), Franklin
                 Reyes, 3-11-2026. */
-             pendS === 57, pendS + ' por iniciar de 58 ofrecidas', '57');
+             pendS === 60, pendS + ' por iniciar de 61 ofrecidas', '60');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1253,8 +1261,8 @@
              INTI (c54), Franklin Reyes, 2-11-2026.
              Y 45 con el RNC encendido (c13) y los de c55 y c56, el mismo día.
              Y 51 con hidrocarburos, pesca y energía (c57 a c62), 3-11-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 58,
-             pend + ' por iniciar de 58 ofrecidas', '58');
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 61,
+             pend + ' por iniciar de 61 ofrecidas', '61');
       }
 
       /* ── la cadena entre trámites ──
@@ -4398,10 +4406,16 @@
     }
     caja.CIIP_VE_PASO(1);
     var hoja1 = caja.querySelector('.pa-hoja[data-paso="1"]') || caja;
+    /* Desde el 4-11-2026 las casillas esperan a que se elija la tarjeta. */
+    var dondeVisa = caja.querySelector('[name="sistema_visa"]');
+    if (dondeVisa && !dondeVisa.value){
+      dondeVisa.value = dondeVisa.options[1].value;
+      dondeVisa.dispatchEvent(new Event('change', {bubbles: true}));
+    }
     var campos = [].map.call(hoja1.querySelectorAll('.sol-campo'), function(c){
       return c.getAttribute('data-campo'); });
-    igual('visa: «Tus datos» pide solo nombre y apellido, número de pasaporte y país de emisión',
-          campos.join(' '), 'nombre_completo numero_pasaporte pais_emisor');
+    igual('visa: «Tus datos» pide dónde, nombre y apellido, número de pasaporte y país de emisión',
+          campos.join(' '), 'sistema_visa nombre_completo numero_pasaporte pais_emisor tramite_presencial');
     ok('visa: sin el apartado del itinerario ni cajas de texto largo',
        !caja.querySelector('.sol-grupo') && !caja.querySelector('textarea'),
        (caja.querySelector('.sol-grupo') ? 'con apartado ' : '') + (caja.querySelector('textarea') ? 'con caja' : '') || 'sin nada',
@@ -11425,6 +11439,8 @@
     var pasosEs = ((window.CIIP_PASOS || {}).pasos || {}).es || {};
     var hallados = [], sinCasilla = [], deMas = [];
     Object.keys(pasosEs).forEach(function(ref){
+      /* El presencial del c3 (4-11-2026) sólo cambia los textos: su casilla se pide por el c3. */
+      if (/_presencial$/.test(ref)) return;
       (pasosEs[ref] || []).forEach(function(txt, i){
         if (!FIRMA_LA_PLANILLA.test(txt)) return;
         hallados.push(ref + '.' + (i + 1));
@@ -13351,6 +13367,21 @@
     pes: {madre: 'c59', ya: 'c60', p: 'ype', codigo: 'pesca_en_proceso', ente: 'INSOPESCA',
           campos: 'area_pesca permiso_pesca tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 4, gestion: 'En coordinación con INSOPESCA', fin: 'Permiso listo'},
+    vis: {madre: 'c1', ya: 'c70', p: 'yvi', codigo: 'visa_en_proceso', ente: 'MPPRE',
+          opciones: 'Ya solicité la visa | Solicitar la visa por primera vez',
+          campos: 'sistema_visa permiso_ya fecha_solicitud_ya nombre_completo numero_pasaporte pais_emisor motivo_ya detalle_ya',
+          queSolicito: 'permiso_ya', etiqueta: 'f_yavisa', docs: 'pasaporte',
+          tarjetas: 2, gestion: 'En coordinación con Cancillería', fin: 'Visa otorgada'},
+    ced: {madre: 'c2', ya: 'c71', p: 'yce', codigo: 'cedula_en_proceso', ente: 'SAIME',
+          opciones: 'Ya solicité la cédula | Solicitar la cédula por primera vez',
+          campos: 'sistema_cedula fecha_solicitud_ya nombre_completo numero_pasaporte pais_emisor motivo_ya detalle_ya',
+          sinQueSolicito: true, docs: 'pasaporte',
+          tarjetas: 2, gestion: 'En coordinación con el SAIME', fin: 'Cédula otorgada'},
+    rif: {madre: 'c3', ya: 'c72', p: 'yrf', codigo: 'rif_en_proceso', ente: 'SENIAT',
+          opciones: 'Ya solicité el RIF | Solicitar el RIF por primera vez',
+          campos: 'sistema_rif fecha_solicitud_ya nombre_completo numero_documento motivo_ya detalle_ya',
+          sinQueSolicito: true, docs: 'cedula',
+          tarjetas: 2, gestion: 'En coordinación con el SENIAT', fin: 'RIF emitido'},
     rnc: {madre: 'c13', ya: 'c69', p: 'yrc', codigo: 'rnc_en_proceso', ente: 'RNC',
           opciones: 'Ya solicité el registro | Solicitar el registro por primera vez',
           campos: 'sistema_rnc permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
@@ -13408,10 +13439,10 @@
     igual(k + ': el sistema, con las tarjetas de la ' + x.madre,
           caja ? caja.querySelectorAll('.st-tarjeta').length : '(sin formulario)', x.tarjetas);
     var lo = caja && caja.querySelector('.sol-campo[data-campo="' + (x.queSolicito || x.campos.split(' ')[1]) + '"] label');
-    igual(k + ': «¿Qué trámite o permiso solicitaste?»', lo ? lo.textContent : '(no está)', U.f_yspermisoya);
+    if (!x.sinQueSolicito) igual(k + ': «¿Qué trámite o permiso solicitaste?»', lo ? lo.textContent : '(no está)', U[x.etiqueta || 'f_yspermisoya']);
     igual(k + ': el motivo, con la lista de siempre', bienesOpciones(caja, 'motivo_ya'), (U.o_ya_motivo || []).join('|'));
     igual(k + ': y los cuatro recaudos del SACS ya solicitado', bienesDocs(caja),
-          'cedula rif_personal acta_constitutiva rif_empresa');
+          x.docs || 'cedula rif_personal acta_constitutiva rif_empresa');
     var pa = caja && caja.querySelector('.pa');
     ok(k + ': sin la barra de «Tus datos · Recaudos · Repasar», como el c49',
        !!pa && pa.classList.contains('sin-barra'), pa ? pa.className : '(sin hojas)', 'sin-barra');
@@ -13472,6 +13503,75 @@
   function ypmPesMira(sigue){ ypmMira('pes', sigue); }
   function ypmPesYaMira(sigue){ ypmYaMira('pes', sigue); }
   function ypmPesAtrasMira(sigue){ ypmAtrasMira('pes', sigue); }
+  /* Ya contestadas al arrancar: se abre la ficha y atrás vuelve a la pregunta. */
+  function idvPregunta(k, sigue){
+    if (PASE !== 'vacio') return sigue();
+    ypmAbre(k, function(){
+      var v = document.getElementById('trVolver');
+      if (v && !document.querySelector('#trVisas [data-ya-op]')) v.click();
+      setTimeout(sigue, 300);
+    });
+  }
+  function ypmVisAbre(sigue){ idvPregunta('vis', sigue); }
+  function ypmVisMira(sigue){ ypmMira('vis', sigue); }
+  function ypmVisYaMira(sigue){ ypmYaMira('vis', sigue); }
+  function ypmVisAtrasMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    var x = YPM.vis;
+    igual('vis: atrás desde la c70 vuelve a la c1', location.hash, '#tramite-c1');
+    igual('vis: y a su pregunta, con las dos opciones', yaOpciones(), x.ya + ' ' + x.madre);
+    var nueva = document.querySelector('#trVisas [data-ya-op="c1"]');
+    if (nueva) nueva.click();
+    setTimeout(sigue, 300);
+  }
+  function ypmVisGuiaMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    igual('vis: por primera vez, sigue «¿Qué visa necesitas?» con las dos',
+          [].map.call(document.querySelectorAll('#trVisas [data-visa]'), function(c){ return c.getAttribute('data-visa'); }).join(' '), 'c1 c38');
+    igual('vis: y el formulario, apartado hasta elegirla', marcaElige(), 'apartado');
+    var v = document.getElementById('trVolver');
+    if (v) v.click();
+    setTimeout(function(){
+      igual('vis: atrás, otra vez la primera pregunta', yaOpciones(), 'c70 c1');
+      location.hash = '';
+      setTimeout(sigue, 100);
+    }, 300);
+  }
+  function ypmCedAbre(sigue){ idvPregunta('ced', sigue); }
+  function ypmCedMira(sigue){ ypmMira('ced', sigue); }
+  function ypmCedYaMira(sigue){ ypmYaMira('ced', sigue); }
+  function ypmCedAtrasMira(sigue){ ypmAtrasMira('ced', sigue); }
+  function ypmRifAbre(sigue){ idvPregunta('rif', sigue); }
+  function ypmRifMira(sigue){ ypmMira('rif', sigue); }
+  function ypmRifYaMira(sigue){ ypmYaMira('rif', sigue); }
+  function ypmRifAtrasMira(sigue){
+    if (PASE !== 'vacio') return sigue();
+    igual('rif: atrás desde la c72 vuelve a la c3', location.hash, '#tramite-c3');
+    location.hash = '';
+    setTimeout(sigue, 100);
+  }
+  function idvCierra(sigue){
+    if (PASE !== 'vacio') return sigue();
+    ['c1', 'c2', 'c3'].forEach(function(r){ window.CIIP_YA_ELEGIDA(r); });
+    var PM = window.CIIP_PASO_MIO, PRES = 'Trámites presenciales';
+    if (PM){
+      igual('visa: en línea, el paso 1 lleva a Cancillería Digital',
+            (PM.enlace('c1', 1, {datos: {}}) || {}).url, 'https://cancilleriadigital.mppre.gob.ve/');
+      igual('visa TR-N: presencial, sin enlace', PM.enlace('c1', 1, {datos: {sistema_visa: PRES}}), null);
+      igual('visa TR-I: presencial, sin enlace', PM.enlace('c38', 1, {datos: {sistema_visa: PRES}}), null);
+      igual('cédula: presencial, sin enlace', PM.enlace('c2', 1, {datos: {sistema_cedula: PRES}}), null);
+    }
+    var nombres = function(codigo, ente, datos){
+      return window.CIIP_ESCALERA({estado: 'enviado', datos: datos}, codigo, ente).todos.map(function(p){ return p.nombre; }).join(' → ');
+    };
+    igual('rif: con el CIIP, sus cuatro pasos de siempre', nombres('rif_personal', 'SENIAT', {}),
+          'Solicitud recibida por el CIIP → Planilla enviada por el CIIP → Firme la planilla → RIF emitido');
+    igual('rif: presencial, el paso 1 es en la oficina', nombres('rif_personal', 'SENIAT', {sistema_rif: PRES}),
+          'Solicita tu trámite en la oficina del organismo → Planilla enviada por el CIIP → Firme la planilla → RIF emitido');
+    igual('cédula: presencial, el paso 1 es en la oficina', window.CIIP_PASOS.pasos.es.c2_presencial.join(' → '),
+          'Solicita tu trámite en la oficina del organismo → Solicitud en proceso de verificación → Cédula otorgada');
+    sigue();
+  }
   function ypmRncAbre(sigue){ ypmAbre('rnc', sigue); }
   function ypmRncMira(sigue){ ypmMira('rnc', sigue); }
   function ypmRncYaMira(sigue){ ypmYaMira('rnc', sigue); }
@@ -17512,7 +17612,7 @@
      boton que promete una pantalla y abre otra se pulsa una vez. */
   function volverAbre(){
     if (CASO !== 'vacio') return;
-    location.hash = 'tramite-c3';
+    location.hash = 'tramite-c17';
   }
 
   function volverMira(){

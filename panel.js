@@ -628,6 +628,8 @@ function applyLang(lang){
      enseña lo de abajo. Solo si sigues en esa ficha. */
   var GUIA_D = null;
   window.CIIP_VISA_ELEGIDA = function(ref){
+    /* Con la TR-N elegida, la pregunta de antes también está contestada. */
+    if (ref === 'c1') YA_ELEGIDA.c1 = true;
     if (VISA_ELEGIDA === ref) return;
     VISA_ELEGIDA = ref;
     if (trAbierto === ref && GUIA_D) pintaGuiaVisas(ref, GUIA_D);
@@ -655,7 +657,8 @@ function applyLang(lang){
     /* Y las dos del registro de marca (5-10-2026), la suya. */
     if (GUIA_MARCA.codigo[id]) return pintaGuiaMarca(id, D);
     /* Y las cuatro de «Ya lo solicité» (Ventanilla única 2.6), la suya. */
-    if (GUIA_YA_DE[id]) return pintaGuiaYa(id, D);
+    /* La c1, contestada la pregunta, sigue con la de TR-N o TR-I (4-11-2026). */
+    if (GUIA_YA_DE[id] && !(id === 'c1' && YA_ELEGIDA.c1)) return pintaGuiaYa(id, D);
     var caja = document.getElementById('trVisas');
     if (!caja) return;
     /* La misma caja la pliega «Bienes»: viniendo de allí, se despliega. */
@@ -745,6 +748,8 @@ function applyLang(lang){
             pintaGuiaVisas(id, D);
             return;
           }
+          /* Desde la TR-I a la TR-N ya no se vuelve a preguntar. */
+          if (v.ref === 'c1') YA_ELEGIDA.c1 = true;
           location.hash = 'tramite-' + v.ref;
         };
         col.addEventListener('click', vaALaSuya);
@@ -1127,7 +1132,13 @@ function applyLang(lang){
     c65: {ya:'c66', nueva:'c65', p:'yic'},
     c67: {ya:'c68', nueva:'c67', p:'ytp'},
     /* Y el RNC (Franklin Reyes, 4-11-2026, maquetas/rnc-tarjetas.html). */
-    c13: {ya:'c69', nueva:'c13', p:'yrc'}
+    c13: {ya:'c69', nueva:'c13', p:'yrc'},
+    /* Y la visa, la cédula y el RIF personal (Franklin Reyes, 4-11-2026,
+       maquetas/visa-cedula-rif.html). La c1 sigue siendo la casilla de las dos
+       visas: «por primera vez» lleva a la guía de TR-N o TR-I (pintaGuiaVisas). */
+    c1: {ya:'c70', nueva:'c1', p:'yvi'},
+    c2: {ya:'c71', nueva:'c2', p:'yce'},
+    c3: {ya:'c72', nueva:'c3', p:'yrf'}
   };
   /* De cada ref, su pareja: la de la portada y la escondida, las dos. */
   var GUIA_YA_DE = {};
@@ -1137,8 +1148,8 @@ function applyLang(lang){
   });
   /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
      escondida nace elegida, que solo se llega a ella eligiéndola. */
-  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false, c13:false,
-                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true, c69:true};
+  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false, c13:false, c1:false, c2:false, c3:false,
+                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true, c69:true, c70:true, c71:true, c72:true};
   window.CIIP_YA_ELEGIDA = function(ref){
     if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
     YA_ELEGIDA[ref] = true;
@@ -1146,6 +1157,7 @@ function applyLang(lang){
   };
 
   function pintaGuiaYa(id, D){
+    if (id === 'c1' && YA_ELEGIDA.c1) return pintaGuiaVisas(id, D);
     var caja = document.getElementById('trVisas');
     if (!caja) return;
     var g = GUIA_YA_DE[id];
@@ -2202,6 +2214,7 @@ function applyLang(lang){
     var par = trAbierto && GUIA_YA_DE[trAbierto];
     if (par && YA_ELEGIDA[trAbierto]){
       YA_ELEGIDA[par.nueva] = false;
+      if (par.nueva === 'c1') VISA_ELEGIDA = '';
       if (trAbierto !== par.nueva) location.hash = 'tramite-' + par.nueva;
       else if (GUIA_D) pintaGuiaYa(par.nueva, GUIA_D);
       window.scrollTo(0, 0);
@@ -4584,6 +4597,15 @@ applyLang(idiomaParaMi());
       {tipo:'cedula',            clave:'d_cedrep'},
       {tipo:'rif_personal',      clave:'d_rifrep'}
     ],
+    visa_en_proceso: [
+      {tipo:'pasaporte', clave:'d_solopasaporte'}
+    ],
+    cedula_en_proceso: [
+      {tipo:'pasaporte', clave:'d_solopasaporte'}
+    ],
+    rif_en_proceso: [
+      {tipo:'cedula', clave:'d_cedopas', noEncadena:true}
+    ],
     rnc_en_proceso: [
       {tipo:'acta_constitutiva', clave:'d_actaempresa'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
@@ -5289,6 +5311,16 @@ applyLang(idiomaParaMi());
      banner no se pudo ver, y por eso es un dibujo aproximado. */
   var PORTADA_RNC = '<div class="st-pt p-rnc" aria-hidden="true"><img src="logos/snc.png" alt=""><div class="t">Bienvenido al sistema web del Registro Nacional de Contratistas</div><i></i><i></i></div>';
   var TARJETAS_DEL_RNC = tarjetasEnLinea('RNC en línea · Servicio Nacional de Contrataciones', 'yt_toca_rncl', PORTADA_RNC);
+  /* La visa, la cédula y el RIF (Franklin Reyes, 4-11-2026): logo y nombre del
+     portal; sus portadas no se pudieron ver, y por eso son dibujos aproximados.
+     El RIF no va por un portal: lo gestiona el CIIP, y su pestaña lo dice. */
+  function portadaIdentidad(logo, texto){
+    return '<div class="st-pt p-idv" aria-hidden="true"><img src="logos/' + logo + '" alt=""><div class="t">' + texto + '</div><i></i></div>';
+  }
+  var TARJETAS_DE_LA_VISA = tarjetasEnLinea('Cancillería Digital · Ministerio del Poder Popular para Relaciones Exteriores', 'yt_toca_canc', portadaIdentidad('mppre.png', 'Cancillería Digital'));
+  var TARJETAS_DE_LA_CEDULA = tarjetasEnLinea('Portal del SAIME · trámites', 'yt_toca_saime', portadaIdentidad('saime.png', 'SAIME · Trámites'));
+  var TARJETAS_DEL_RIF = tarjetasEnLinea('RIF con el CIIP · SENIAT', 'yt_toca_rifp', portadaIdentidad('seniat.png', 'RIF personal'));
+  var ETAPAS_DEL_RIF = [{n: 1, t: 'yt_con_ciip', d: 'yt_con_ciip_d'}, etapaPresencial(2)];
   var TARJETAS_DEL_SIDCAI = tarjetasEnLinea('SIDCAI · FONACIT', 'yt_toca_sidcai', PORTADA_SIDCAI);
   /* ── LOS ENTES DE LOS PARAFISCALES, EN UNA FILA ──
      Franklin Reyes, 3-11-2026 (maquetas/parafiscales-tarjetas.html): «igual
@@ -6028,14 +6060,20 @@ applyLang(idiomaParaMi());
        VIGENCIA_MINIMA, que sigue sabiendo de vence_pasaporte para el día
        que otro trámite lo pregunte. */
     visa_negocios: [
+      {n:'sistema_visa', clave:'f_dondetramite', opcionesClave:'o_visa_sistema', ancho:true,
+       tarjetas:TARJETAS_DE_LA_VISA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
       {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
-      {n:'pais_emisor',      clave:'f_paisemisor', paises:true}
+      {n:'pais_emisor',      clave:'f_paisemisor', paises:true},
+      campoPresencial('sistema_visa')
     ],
     visa_inversionista: [
+      {n:'sistema_visa', clave:'f_dondetramite', opcionesClave:'o_visa_sistema', ancho:true,
+       tarjetas:TARJETAS_DE_LA_VISA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
       {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
-      {n:'pais_emisor',      clave:'f_paisemisor', paises:true}
+      {n:'pais_emisor',      clave:'f_paisemisor', paises:true},
+      campoPresencial('sistema_visa')
     ],
     /* ── la firma en el Registro de Extranjeros ──
        Los campos y sus opciones salen del portal del SAREN,
@@ -6143,9 +6181,12 @@ applyLang(idiomaParaMi());
        estado civil, la ocupación, el teléfono y la dirección- lo pregunta
        el SAIME en su portal. */
     cedula_residencia: [
+      {n:'sistema_cedula', clave:'f_dondetramite', opcionesClave:'o_cedula_sistema', ancho:true,
+       tarjetas:TARJETAS_DE_LA_CEDULA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
       {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
-      {n:'pais_emisor',      clave:'f_paisemisor', paises:true}
+      {n:'pais_emisor',      clave:'f_paisemisor', paises:true},
+      campoPresencial('sistema_cedula')
     ],
     /* ── LAS CASILLAS DEL SENIAT ──
        Franklin Reyes, 25-9-2026: «coloca los que salen en la casilla del
@@ -6194,6 +6235,9 @@ applyLang(idiomaParaMi());
        fuera a quien viene justo a sacarse su primer RIF. El instructivo
        los marca opcionales también, y el correo con ellos. */
     rif_personal: [
+      {n:'sistema_rif', clave:'f_dondetramite', opcionesClave:'o_rif_sistema', ancho:true,
+       tarjetas:TARJETAS_DEL_RIF, etapas:ETAPAS_DEL_RIF, portada:portadaDibujada},
+      campoPresencial('sistema_rif'),
       {n:'tipo_persona',     clave:'f_tipopersona', opcionesClave:'o_tipopersona'},
       {n:'numero_documento', clave:'f_numero'},
       {n:'fecha_nacimiento', clave:'f_nacimiento', tipo:'date'},
@@ -6506,6 +6550,37 @@ applyLang(idiomaParaMi());
       {n:'razon_social',        clave:'f_razon',         ancho:true},
       {n:'rif_empresa',         clave:'f_rifempresa'},
       campoPresencial('sistema_rnc')
+    ],
+    /* «Ya solicité» de la visa (c70), la cédula (c71) y el RIF (c72), 4-11-2026. */
+    visa_en_proceso: [
+      {n:'sistema_visa', clave:'f_dondetramite', opcionesClave:'o_visa_sistema', ancho:true,
+       tarjetas:TARJETAS_DE_LA_VISA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
+      {n:'permiso_ya',           clave:'f_yavisa',      opcionesClave:'o_ya_visa'},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
+      {n:'numero_pasaporte', clave:'f_pasaporte'},
+      {n:'pais_emisor',      clave:'f_paisemisor', paises:true},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    cedula_en_proceso: [
+      {n:'sistema_cedula', clave:'f_dondetramite', opcionesClave:'o_cedula_sistema', ancho:true,
+       tarjetas:TARJETAS_DE_LA_CEDULA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
+      {n:'numero_pasaporte', clave:'f_pasaporte'},
+      {n:'pais_emisor',      clave:'f_paisemisor', paises:true},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    rif_en_proceso: [
+      {n:'sistema_rif', clave:'f_dondetramite', opcionesClave:'o_rif_sistema', ancho:true,
+       tarjetas:TARJETAS_DEL_RIF, etapas:ETAPAS_DEL_RIF, portada:portadaDibujada},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'nombre_completo',      clave:'f_nombrecompleto', ancho:true},
+      {n:'numero_documento',     clave:'f_numero'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
     ],
     /* «Ya solicité» del RNC (c69), Franklin Reyes, 4-11-2026. */
     rnc_en_proceso: [
@@ -28728,7 +28803,7 @@ applyLang(idiomaParaMi());
   function esPermisoAgrupado(ref){
     if (!ref) return false;
     if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' ||
-        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c69' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
+        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c69' || ref === 'c70' || ref === 'c71' || ref === 'c72' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
         ref === 'c28' || ref === 'c29' || ref === 'c13') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
@@ -29547,6 +29622,9 @@ applyLang(idiomaParaMi());
     c66: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c68: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c69: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c70: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c71: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c72: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
        enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
        «recibida», así que la cuenta es la de siempre; están aquí porque son
@@ -29668,6 +29746,10 @@ applyLang(idiomaParaMi());
                         c57: {campo: 'sistema_hidrocarburos', valor: VALOR_PRESENCIAL, si: 'c57_presencial'},
                         c61: {campo: 'area_energia', valor: VALOR_PRESENCIAL, si: 'c61_presencial'},
                         c13: {campo: 'sistema_rnc', valor: VALOR_PRESENCIAL, si: 'c13_presencial'},
+                        c1: {campo: 'sistema_visa', valor: VALOR_PRESENCIAL, si: 'c1_presencial'},
+                        c38: {campo: 'sistema_visa', valor: VALOR_PRESENCIAL, si: 'c38_presencial'},
+                        c2: {campo: 'sistema_cedula', valor: VALOR_PRESENCIAL, si: 'c2_presencial'},
+                        c3: {campo: 'sistema_rif', valor: VALOR_PRESENCIAL, si: 'c3_presencial'},
                         c63: {campo: 'area_agua', valor: VALOR_PRESENCIAL, si: 'c63_presencial'},
                         c65: {campo: 'area_industria', valor: VALOR_PRESENCIAL, si: 'c65_presencial'},
                         c67: {campo: 'area_transporte', valor: VALOR_PRESENCIAL, si: 'c67_presencial'},
@@ -29696,9 +29778,9 @@ applyLang(idiomaParaMi());
      que el de otra alcaldía. 'clave' es el texto del enlace. Ver
      enlaceDelPaso(). */
   var ENLACE_DEL_PASO = {
-    c1:  {1: {url: 'https://cancilleriadigital.mppre.gob.ve/', clave: 'p_ircancilleria'}},
-    c38: {1: {url: 'https://cancilleriadigital.mppre.gob.ve/', clave: 'p_ircancilleria'}},
-    c2:  {1: {url: 'https://siic.saime.gob.ve/', clave: 'p_irsaime'}},
+    c1:  {1: {url: 'https://cancilleriadigital.mppre.gob.ve/', clave: 'p_ircancilleria', salvo: 'sistema_visa'}},
+    c38: {1: {url: 'https://cancilleriadigital.mppre.gob.ve/', clave: 'p_ircancilleria', salvo: 'sistema_visa'}},
+    c2:  {1: {url: 'https://siic.saime.gob.ve/', clave: 'p_irsaime', salvo: 'sistema_cedula'}},
     c10: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c28: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme', salvo: 'sistema_minero'}},

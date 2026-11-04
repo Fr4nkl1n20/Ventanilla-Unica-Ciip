@@ -246,6 +246,12 @@
        solicitudes de 'rnc' de más abajo son las de antes. */
     {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true, emite:'certificado_rnc',
      nombre:'Registro Nacional de Contratistas', fase:3, nivel:'actividad'},
+    {codigo:'visa_en_proceso', ref_panel:'c70', ente:'MPPRE', activo:true, emite:null, plazo_dias:null,
+     nombre:'Visa ya solicitada', fase:1, nivel:'actividad'},
+    {codigo:'cedula_en_proceso', ref_panel:'c71', ente:'SAIME', activo:true, emite:null, plazo_dias:null,
+     nombre:'Cédula ya solicitada', fase:1, nivel:'actividad'},
+    {codigo:'rif_en_proceso', ref_panel:'c72', ente:'SENIAT', activo:true, emite:null, plazo_dias:null,
+     nombre:'RIF ya solicitado', fase:1, nivel:'actividad'},
     {codigo:'rnc_en_proceso', ref_panel:'c69', ente:'RNC', activo:true, emite:null, plazo_dias:null,
      nombre:'RNC ya solicitado', fase:3, nivel:'actividad'},
     /* Las cinco inscripciones en una casilla. Como en la base de verdad en

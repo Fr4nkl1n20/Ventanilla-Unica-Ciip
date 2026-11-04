@@ -1979,13 +1979,14 @@ select arnes.comprueba(
      from public.tipos_tramite where nivel = 'opcional' and fase = 1));
 
 -- Y que no quede ninguno de la fase 1 sin nivel.
+-- Salvo los «ya solicité» (c70 a c72, 4-11-2026): van escondidos y no suman ni a obligatorios ni a opcionales.
 select arnes.comprueba(
   'informe: la fase 1, toda marcada',
   (select count(*) = 0 from public.tipos_tramite
-    where fase = 1 and coalesce(nivel, '') not in ('obligatorio','opcional','esencial')),
+    where fase = 1 and codigo not like '%_en_proceso' and coalesce(nivel, '') not in ('obligatorio','opcional','esencial')),
   (select coalesce(string_agg(ref_panel || '=' || coalesce(nivel, 'nulo'), ' ' order by ref_panel), '-')
      from public.tipos_tramite
-    where fase = 1 and coalesce(nivel, '') not in ('obligatorio','opcional','esencial')));
+    where fase = 1 and codigo not like '%_en_proceso' and coalesce(nivel, '') not in ('obligatorio','opcional','esencial')));
 
 select arnes.comprueba(
   'informe: y los cinco de la fase 2',
@@ -2860,6 +2861,12 @@ select arnes.comprueba(
   position('''hidrocarburos_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
   and position('''pesca_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
   and position('''energia_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0);
+-- Visa, cédula y RIF ya solicitados (c70 a c72), Franklin Reyes, 4-11-2026.
+select arnes.comprueba(
+  'visa, cédula y rif ya solicitados: encendidos, sin emite ni plazo, y sus motivos cuentan en las estadísticas',
+  (select count(*) = 3 from public.tipos_tramite
+    where codigo in ('visa_en_proceso', 'cedula_en_proceso', 'rif_en_proceso') and activo and fase = 1 and emite is null and plazo_dias is null)
+  and position('rif_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
 -- El RNC ya solicitado (c69), Franklin Reyes, 4-11-2026.
 select arnes.comprueba(
   'rnc ya solicitado: encendido, sin emite ni plazo, y su motivo cuenta en las estadísticas',

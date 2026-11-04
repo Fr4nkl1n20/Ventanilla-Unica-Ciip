@@ -362,7 +362,9 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    documentos, y confirma_paso y estadisticas_control() redefinidas; va la última. */
 'supabase-agua-industria-transporte',
 /* El RNC ya solicitado (c69), Franklin Reyes, 4-11-2026; va la última. */
-'supabase-rnc-ya-solicitado'];
+'supabase-rnc-ya-solicitado',
+/* Visa, cédula y RIF ya solicitados (c70 a c72), 4-11-2026; va la última. */
+'supabase-visa-cedula-rif'];
 
 let mal = 0;
 for (const n of orden) {
