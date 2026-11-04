@@ -2860,6 +2860,23 @@ select arnes.comprueba(
   position('''hidrocarburos_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
   and position('''pesca_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
   and position('''energia_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0);
+-- Agua, industria y comercio, y transporte (c63 a c68), Franklin Reyes, 4-11-2026.
+select arnes.comprueba(
+  'agua, industria y transporte: los seis trámites, encendidos',
+  (select count(*) = 6 from public.tipos_tramite
+    where ref_panel in ('c63', 'c64', 'c65', 'c66', 'c67', 'c68') and activo and fase = 3 and nivel = 'actividad'));
+select arnes.comprueba(
+  'agua, industria y transporte: confirma_paso conoce sus tres marcas, y conserva las anteriores',
+  position('''agua_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('''transporte_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('''energia_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0);
+select arnes.comprueba(
+  'agua, industria y transporte: y sus motivos cuentan en las estadísticas',
+  position('transporte_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
+select arnes.comprueba(
+  'agua, industria y transporte: los recaudos del panel que no se crearon aquí siguen en la base',
+  (select count(*) = 8 from public.tipos_documento
+    where codigo in ('acta_constitutiva', 'acta_asamblea', 'rif_empresa', 'cedula', 'rif_personal', 'registro_mercantil_empresa', 'poder', 'arrendamiento')));
 select arnes.comprueba(
   'hidrocarburos, pesca y energía: y sus motivos cuentan en las estadísticas',
   position('hidrocarburos_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0

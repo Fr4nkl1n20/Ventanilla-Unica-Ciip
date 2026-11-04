@@ -1120,7 +1120,12 @@ function applyLang(lang){
        ype_ e yen_. */
     c57: {ya:'c58', nueva:'c57', p:'yh'},
     c59: {ya:'c60', nueva:'c59', p:'ype'},
-    c61: {ya:'c62', nueva:'c61', p:'yen'}
+    c61: {ya:'c62', nueva:'c61', p:'yen'},
+    /* Y los permisos de agua, de industria y comercio y de transporte (Franklin
+       Reyes, 4-11-2026, maquetas/agua-industria-transporte.html). */
+    c63: {ya:'c64', nueva:'c63', p:'yag'},
+    c65: {ya:'c66', nueva:'c65', p:'yic'},
+    c67: {ya:'c68', nueva:'c67', p:'ytp'}
   };
   /* De cada ref, su pareja: la de la portada y la escondida, las dos. */
   var GUIA_YA_DE = {};
@@ -1130,8 +1135,8 @@ function applyLang(lang){
   });
   /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
      escondida nace elegida, que solo se llega a ella eligiéndola. */
-  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false,
-                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true};
+  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false,
+                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true};
   window.CIIP_YA_ELEGIDA = function(ref){
     if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
     YA_ELEGIDA[ref] = true;
@@ -3519,6 +3524,40 @@ applyLang(idiomaParaMi());
   var AREA_ENERGIA_AUTO = 'Autogeneración · Ministerio de Energía Eléctrica · 2 MW o más';
   var AREA_ENERGIA_CONEXION = 'Conexión y servicio · CORPOELEC';
   var AREA_ENERGIA_RENOV = 'Renovables y eficiencia · Ministerio de Energía Eléctrica';
+  /* Y lo mismo en agua (c63), industria y comercio (c65) y transporte (c67),
+     Franklin Reyes, 4-11-2026: el texto en español de o_*_area y o_*_permiso*
+     (pasos.js), letra por letra. Los recaudos cuelgan del PERMISO elegido. */
+  var AREA_AGUA = {conc: 'Concesión · Uso industrial, comercial o hidroeléctrico', lic: 'Licencia · Agrícola, abastecimiento o recreación', afec: 'Afectación · Recursos naturales y estudios', camb: 'Cambios · Venta o modificación del título'};
+  var AREA_INDUSTRIA = {rup: 'RUPDAE · SUNDDE', sis: 'SIS · SENCAMER', env: 'Envasados · SENCAMER', nor: 'NORVEN · SENCAMER'};
+  var AREA_TRANSPORTE = {ina: 'SITGA · INAC', ine: 'INEA · Instituto Nacional de los Espacios Acuáticos', int: 'Planilla Única · INTT'};
+  var PERMISO_AIT = {
+    conc: 'Concesión de aprovechamiento de aguas',
+    lic: 'Licencia de aprovechamiento de aguas',
+    afec: 'Autorización para la afectación de recursos naturales',
+    ocup: 'Ocupación temporal de terrenos para estudios',
+    reas: 'Reasignación por venta del inmueble',
+    modi: 'Modificación de condiciones',
+    rup: 'Inscripción en el RUPDAE',
+    promo: 'Aprobación de promociones',
+    rem: 'Registro de empresa manufacturera (REM)',
+    prod: 'Registro de productos nacionales o importados',
+    calz: 'Registro de fabricantes e importadores de calzado y prendas de vestir',
+    asc: 'Registro de ascensores, sistemas contra incendios o eficiencia energética',
+    pre: 'Preenvasados (CPE/CND)',
+    nor: 'Marca NORVEN',
+    exp: 'Certificado de explotador de servicio público (RAV 121 y 135)',
+    ido: 'Idoneidad económica',
+    set: 'Servicio especializado de transporte aéreo',
+    rav: 'Trabajos aéreos (RAV 130)',
+    cn: 'Registro de compañía naviera',
+    ag: 'Registro de agencia naviera',
+    mu: 'Registro de transporte multimodal',
+    co: 'Registro de consolidadora de carga',
+    rotc: 'Registro de operadores de transporte de carga (ROTC)',
+    cps: 'Certificación de prestación de servicio de pasajeros (CPS)',
+    dt: 'Actualización de flota DT9 o DT10',
+    med: 'Autorización de carga de medidas excepcionales'
+  };
 
   var RECAUDOS = {
     /* El SISREF pide identificarse como extranjero. Se piden el
@@ -4464,6 +4503,91 @@ applyLang(idiomaParaMi());
       {tipo:'cedula', clave:'d_cedrep', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_RENOV]},
       {tipo:'rif_personal', clave:'d_rifrep', siCasilla:'area_energia', siIgual:[AREA_ENERGIA_RENOV]}
     ],
+    /* LOS DE AGUA (c63), INDUSTRIA Y COMERCIO (c65) Y TRANSPORTE (c67), Franklin
+       Reyes, 4-11-2026: cada permiso los suyos, los que publica el ente (Reglamento
+       de la Ley de Aguas, RUPDAE, SENCAMER, INAC, INEA e INTT). Los que no publica
+       llevan los cuatro básicos, y lo dice NOTA_DE_RECAUDOS. */
+    permisos_agua: [
+      {tipo:'planilla_minaguas', clave:'d_agplanilla', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic, PERMISO_AIT.reas]},
+      {tipo:'acta_constitutiva', clave:'d_actaempresa', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic, PERMISO_AIT.afec, PERMISO_AIT.ocup, PERMISO_AIT.modi]},
+      {tipo:'acta_asamblea', clave:'d_agasamblea', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic]},
+      {tipo:'derecho_inmueble', clave:'d_agderecho', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic]},
+      {tipo:'poder', clave:'d_agpoder', opcional:true, siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic]},
+      {tipo:'constancia_hidrologica', clave:'d_aghidro', opcional:true, siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic]},
+      {tipo:'constancia_racda', clave:'d_agracda', opcional:true, siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic]},
+      {tipo:'aot_aarn_aguas', clave:'d_agaot', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic]},
+      {tipo:'estudio_impacto_aguas', clave:'d_agestudio', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic]},
+      {tipo:'estudio_tecnico_aguas', clave:'d_agtecnico', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic]},
+      {tipo:'compraventa_certificada', clave:'d_agcompra', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.reas]},
+      {tipo:'titulo_agua_vendedor', clave:'d_agvendedor', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.reas]},
+      {tipo:'rif_empresa', clave:'d_rifempresa', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.afec, PERMISO_AIT.ocup, PERMISO_AIT.modi]},
+      {tipo:'cedula', clave:'d_cedrep', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.afec, PERMISO_AIT.ocup, PERMISO_AIT.modi]},
+      {tipo:'rif_personal', clave:'d_rifrep', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.afec, PERMISO_AIT.ocup, PERMISO_AIT.modi]}
+    ],
+    permisos_industria: [
+      {tipo:'registro_mercantil_empresa', clave:'d_ieregistro', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.rup]},
+      {tipo:'acta_asamblea', clave:'d_icasamblea', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.rup]},
+      {tipo:'acta_constitutiva', clave:'d_actaempresa', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.nor, PERMISO_AIT.promo, PERMISO_AIT.rem, PERMISO_AIT.prod, PERMISO_AIT.calz, PERMISO_AIT.asc, PERMISO_AIT.pre]},
+      {tipo:'rif_empresa', clave:'d_rifempresa', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.rup, PERMISO_AIT.nor, PERMISO_AIT.promo, PERMISO_AIT.rem, PERMISO_AIT.prod, PERMISO_AIT.calz, PERMISO_AIT.asc, PERMISO_AIT.pre]},
+      {tipo:'cedula', clave:'d_cedrep', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.rup, PERMISO_AIT.nor, PERMISO_AIT.promo, PERMISO_AIT.rem, PERMISO_AIT.prod, PERMISO_AIT.calz, PERMISO_AIT.asc, PERMISO_AIT.pre]},
+      {tipo:'rif_personal', clave:'d_rifrep', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.rup, PERMISO_AIT.nor, PERMISO_AIT.promo, PERMISO_AIT.rem, PERMISO_AIT.prod, PERMISO_AIT.calz, PERMISO_AIT.asc, PERMISO_AIT.pre]},
+      {tipo:'rif_gerente_calidad', clave:'d_icgerente', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.nor]},
+      {tipo:'manual_calidad', clave:'d_icmanual', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.nor]},
+      {tipo:'plan_calidad_producto', clave:'d_icplan', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.nor]},
+      {tipo:'catalogo_producto', clave:'d_iccatalogo', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.nor]},
+      {tipo:'certificado_uso_sanitario', clave:'d_icuso', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.nor]}
+    ],
+    permisos_transporte: [
+      {tipo:'carta_solicitud_ente', clave:'d_trcarta', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.exp, PERMISO_AIT.ido, PERMISO_AIT.set, PERMISO_AIT.rav, PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co, PERMISO_AIT.dt, PERMISO_AIT.med]},
+      {tipo:'planilla_liquidacion_ente', clave:'d_trplanilla', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.exp, PERMISO_AIT.ido, PERMISO_AIT.set, PERMISO_AIT.rav, PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
+      {tipo:'idoneidad_economica', clave:'d_tridon', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.exp, PERMISO_AIT.set, PERMISO_AIT.rav]},
+      {tipo:'estudio_economico', clave:'d_trestudio', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.ido]},
+      {tipo:'dip_inac', clave:'d_trdip', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.rav]},
+      {tipo:'datos_operacion_aerea', clave:'d_troper', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.exp, PERMISO_AIT.set]},
+      {tipo:'registro_mercantil_empresa', clave:'d_ieregistro', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co, PERMISO_AIT.rotc, PERMISO_AIT.med]},
+      {tipo:'cedula', clave:'d_cedrep', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co, PERMISO_AIT.rotc, PERMISO_AIT.med]},
+      {tipo:'rif_empresa', clave:'d_rifempresa', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co, PERMISO_AIT.dt, PERMISO_AIT.med]},
+      {tipo:'patente_arrendamiento', clave:'d_trpatente', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
+      {tipo:'inspeccion_capitania', clave:'d_trcapitania', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
+      {tipo:'fianza_inea', clave:'d_trfianza', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
+      {tipo:'sistema_calidad_iso', clave:'d_triso', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
+      {tipo:'titulo_fletamento', clave:'d_trtitulo', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn]},
+      {tipo:'opinion_seguridad_maritima', clave:'d_tropinion', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn]},
+      {tipo:'numero_patronal_ivss', clave:'d_trivss', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.rotc]},
+      {tipo:'solvencia_islr', clave:'d_trislr', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.rotc]},
+      {tipo:'carta_rutas_cps', clave:'d_trcartacps', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps]},
+      {tipo:'documento_objeto_transporte', clave:'d_trobjeto', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps]},
+      {tipo:'acta_asamblea', clave:'d_tracta', opcional:true, siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps, PERMISO_AIT.dt]},
+      {tipo:'registro_sunacoop', clave:'d_trsunacoop', opcional:true, siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps]},
+      {tipo:'certificado_vehiculo', clave:'d_trvehiculo', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.rotc, PERMISO_AIT.cps, PERMISO_AIT.dt]},
+      {tipo:'poliza_rcv', clave:'d_trpoliza', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.rotc, PERMISO_AIT.cps, PERMISO_AIT.dt]},
+      {tipo:'informe_seguridad_vehiculo', clave:'d_trinforme', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps, PERMISO_AIT.dt]},
+      {tipo:'fotos_vehiculos', clave:'d_trfotos', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps]},
+      {tipo:'aval_terminal', clave:'d_traval', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps]},
+      {tipo:'ultimo_dt', clave:'d_trdt', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.dt]},
+      {tipo:'arrendamiento', clave:'d_trarriendo', opcional:true, siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.dt]},
+      {tipo:'rotc_vigente', clave:'d_trrotc', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.med]},
+      {tipo:'revision_vehiculo', clave:'d_trrevision', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.med]},
+      {tipo:'estudio_ruta', clave:'d_trruta', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.med]}
+    ],
+    agua_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    industria_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    transporte_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
     /* Y «ya solicité un permiso» ante cada uno (c58, c60 y c62), Franklin
        Reyes, 3-11-2026: los cuatro del c49. */
     hidrocarburos_en_proceso: [
@@ -4490,7 +4614,11 @@ applyLang(idiomaParaMi());
   var NOTA_DE_RECAUDOS = {
     permisos_hidrocarburos: [{clave:'d_nota_hid'}],
     permisos_pesca: [{clave:'d_nota_pes', campo:'area_pesca', valor:AREA_PESCA_BUQUES}],
-    permisos_energia: [{clave:'d_nota_ren', campo:'area_energia', valor:AREA_ENERGIA_RENOV}]
+    permisos_energia: [{clave:'d_nota_ren', campo:'area_energia', valor:AREA_ENERGIA_RENOV}],
+    permisos_agua: [{clave:'d_nota_prov', campo:'permiso_agua', valores:[PERMISO_AIT.afec, PERMISO_AIT.ocup, PERMISO_AIT.modi]}],
+    permisos_industria: [{clave:'d_nota_prov', campo:'permiso_industria',
+      valores:[PERMISO_AIT.promo, PERMISO_AIT.rem, PERMISO_AIT.prod, PERMISO_AIT.calz, PERMISO_AIT.asc, PERMISO_AIT.pre]}],
+    permisos_transporte: [{clave:'d_nota_inac', campo:'permiso_transporte', valores:[PERMISO_AIT.set, PERMISO_AIT.rav]}]
   };
 
   /* Qué trámites llevan banco asignado. Es una tabla y no un `===
@@ -4598,6 +4726,10 @@ applyLang(idiomaParaMi());
     c57: {aplica:'cond', cond:'ft_c_hidrocarburos', modo:'portal', depende:'c6'},
     c59: {aplica:'cond', cond:'ft_c_pesca', modo:'portal', depende:'c6'},
     c61: {aplica:'cond', cond:'ft_c_energia', modo:'portal', depende:'c6'},
+    /* Agua (c63), industria y comercio (c65) y transporte (c67), 4-11-2026: igual. */
+    c63: {aplica:'cond', cond:'ft_c_agua', modo:'portal', depende:'c6'},
+    c65: {aplica:'cond', cond:'ft_c_industria', modo:'portal', depende:'c6'},
+    c67: {aplica:'cond', cond:'ft_c_transporte', modo:'portal', depende:'c6'},
     /* El SIDCAI (c39): se inscribe una vez y luego se declara cada mes,
        dentro de los quince días siguientes (Providencia 015-004-2024).
        La inscripción no tiene plazo publicado, y la ficha se salta el
@@ -5491,6 +5623,67 @@ applyLang(idiomaParaMi());
   PORTAL_DE_ENERGIA[AREA_ENERGIA_AUTO] = 'https://mppee.gob.ve/?page_id=1257';
   PORTAL_DE_ENERGIA[AREA_ENERGIA_CONEXION] = 'https://corpoelec.gob.ve/tramites/';
   PORTAL_DE_ENERGIA[AREA_ENERGIA_RENOV] = 'https://mppee.gob.ve/?page_id=760';
+
+  /* ── AGUA, INDUSTRIA Y COMERCIO, Y TRANSPORTE ──
+     Franklin Reyes, 4-11-2026 (maquetas/agua-industria-transporte.html): tres
+     fichas del catálogo. El ministerio de las aguas no publica sistema en línea:
+     todo va por la Taquilla Única, y su paso 1 no lleva enlace. Del INTT sólo se
+     enlaza su sistema de trámites: su página principal trae enlaces ajenos. Las
+     portadas son dibujos propios, por lo que se ve en cada página. */
+  function portadaAguas(t){
+    return '<div class="st-pt p-agu" aria-hidden="true"><div class="ci"><em></em>Ministerio del Poder Popular de las <b>AGUAS</b></div>' +
+      '<div class="ban">' + t + '<span>Taquilla Única</span></div></div>';
+  }
+  function portadaSencamer(t){
+    return '<div class="st-pt p-sen" aria-hidden="true"><div class="bola"></div><b>SENCAMER</b><span>' + t + '</span><i></i><u></u></div>';
+  }
+  var TARJETAS_DE_AGUA = {};
+  TARJETAS_DE_AGUA[AREA_AGUA.conc] = {etapa: 1, toca: 'yt_toca_concesion', pt: portadaAguas('Concesión')};
+  TARJETAS_DE_AGUA[AREA_AGUA.lic] = {etapa: 1, toca: 'yt_toca_licagua', pt: portadaAguas('Licencia')};
+  TARJETAS_DE_AGUA[AREA_AGUA.afec] = {etapa: 2, toca: 'yt_toca_afectacion', pt: portadaAguas('Afectación')};
+  TARJETAS_DE_AGUA[AREA_AGUA.camb] = {etapa: 2, toca: 'yt_toca_cambioagua', pt: portadaAguas('Cambios')};
+  TARJETAS_DE_AGUA[VALOR_PRESENCIAL] = tarjetaPresencial(3);
+  var ETAPAS_DE_AGUA = [{n: 1, t: 'yt_ag2_e1', d: 'yt_ag2_e1_d'}, {n: 2, t: 'yt_ag2_e2', d: 'yt_ag2_e2_d'}, etapaPresencial(3)];
+  var TARJETAS_DE_INDUSTRIA = {};
+  TARJETAS_DE_INDUSTRIA[AREA_INDUSTRIA.rup] = {etapa: 1, toca: 'yt_toca_rupdaeic',
+    pt: '<div class="st-pt p-rup" aria-hidden="true"><div class="ci"></div><b>RUPDAE</b><span>Registro Único de Personas que Desarrollan Actividades Económicas</span><i></i><i></i><u></u></div>'};
+  TARJETAS_DE_INDUSTRIA[AREA_INDUSTRIA.sis] = {etapa: 2, toca: 'yt_toca_sis', pt: portadaSencamer('SIS')};
+  TARJETAS_DE_INDUSTRIA[AREA_INDUSTRIA.env] = {etapa: 2, toca: 'yt_toca_envasados', pt: portadaSencamer('Envasados')};
+  TARJETAS_DE_INDUSTRIA[AREA_INDUSTRIA.nor] = {etapa: 2, toca: 'yt_toca_norven', pt: portadaSencamer('NORVEN')};
+  TARJETAS_DE_INDUSTRIA[VALOR_PRESENCIAL] = tarjetaPresencial(3);
+  var ETAPAS_DE_INDUSTRIA = [{n: 1, t: 'yt_ic_e1', d: 'yt_ic_e1_d'}, {n: 2, t: 'yt_ic_e2', d: 'yt_ic_e2_d'}, etapaPresencial(3)];
+  var TARJETAS_DE_TRANSPORTE = {};
+  TARJETAS_DE_TRANSPORTE[AREA_TRANSPORTE.ina] = {etapa: 1, toca: 'yt_toca_inac',
+    pt: '<div class="st-pt p-ina" aria-hidden="true"><div class="ci"><em></em>Ministerio del Poder Popular para el <b>TRANSPORTE</b></div><strong>INAC</strong><span>Sistema de trámites</span></div>'};
+  TARJETAS_DE_TRANSPORTE[AREA_TRANSPORTE.ine] = {etapa: 2, toca: 'yt_toca_inea',
+    pt: '<div class="st-pt p-ine" aria-hidden="true"><div class="ond"></div><strong>INEA</strong><span>Instituto Nacional de los Espacios Acuáticos</span></div>'};
+  TARJETAS_DE_TRANSPORTE[AREA_TRANSPORTE.int] = {etapa: 3, toca: 'yt_toca_intt',
+    pt: '<div class="st-pt p-int" aria-hidden="true"><div class="log">INTT</div><span>Gestiona y paga tu trámite en línea</span></div>'};
+  TARJETAS_DE_TRANSPORTE[VALOR_PRESENCIAL] = tarjetaPresencial(4);
+  var ETAPAS_DE_TRANSPORTE = [{n: 1, t: 'yt_tr_e1', d: 'yt_tr_e1_d'}, {n: 2, t: 'yt_tr_e2', d: 'yt_tr_e2_d'}, {n: 3, t: 'yt_tr_e3', d: 'yt_tr_e3_d'}, etapaPresencial(4)];
+  var PERMISOS_DE_AGUA = {};
+  PERMISOS_DE_AGUA[AREA_AGUA.conc] = 'o_ag_permiso1';
+  PERMISOS_DE_AGUA[AREA_AGUA.lic] = 'o_ag_permiso2';
+  PERMISOS_DE_AGUA[AREA_AGUA.afec] = 'o_ag_permiso3';
+  PERMISOS_DE_AGUA[AREA_AGUA.camb] = 'o_ag_permiso4';
+  var PERMISOS_DE_INDUSTRIA = {};
+  PERMISOS_DE_INDUSTRIA[AREA_INDUSTRIA.rup] = 'o_ic_permiso1';
+  PERMISOS_DE_INDUSTRIA[AREA_INDUSTRIA.sis] = 'o_ic_permiso2';
+  PERMISOS_DE_INDUSTRIA[AREA_INDUSTRIA.env] = 'o_ic_permiso3';
+  PERMISOS_DE_INDUSTRIA[AREA_INDUSTRIA.nor] = 'o_ic_permiso4';
+  var PERMISOS_DE_TRANSPORTE = {};
+  PERMISOS_DE_TRANSPORTE[AREA_TRANSPORTE.ina] = 'o_tr_permiso1';
+  PERMISOS_DE_TRANSPORTE[AREA_TRANSPORTE.ine] = 'o_tr_permiso2';
+  PERMISOS_DE_TRANSPORTE[AREA_TRANSPORTE.int] = 'o_tr_permiso3';
+  var PORTAL_DE_INDUSTRIA = {};
+  PORTAL_DE_INDUSTRIA[AREA_INDUSTRIA.rup] = 'https://rupdae.sundde.gob.ve/login';
+  PORTAL_DE_INDUSTRIA[AREA_INDUSTRIA.sis] = 'https://sis.sencamer.gob.ve/';
+  PORTAL_DE_INDUSTRIA[AREA_INDUSTRIA.env] = 'https://envasados.sencamer.gob.ve/login.htm';
+  PORTAL_DE_INDUSTRIA[AREA_INDUSTRIA.nor] = 'https://norven.sencamer.gob.ve/login';
+  var PORTAL_DE_TRANSPORTE = {};
+  PORTAL_DE_TRANSPORTE[AREA_TRANSPORTE.ina] = 'https://aplt.inac.gob.ve/sitga/';
+  PORTAL_DE_TRANSPORTE[AREA_TRANSPORTE.ine] = 'https://inea.gob.ve/';
+  PORTAL_DE_TRANSPORTE[AREA_TRANSPORTE.int] = 'https://put.intt.gob.ve/';
 
   /* ── LOS SISTEMAS EN LÍNEA DEL MINEC ──
      Franklin Reyes, 19-10-2026, Permisos_MINEC (Valeria Ramos, CIIP): «solo
@@ -6476,6 +6669,38 @@ applyLang(idiomaParaMi());
        opcionesSegun:'area_energia', opcionesDe:PERMISOS_DE_ENERGIA, verSi:'area_energia', verDistinto:VALOR_PRESENCIAL},
       campoPresencial('area_energia')
     ],
+    /* Agua (c63), industria y comercio (c65) y transporte (c67), Franklin Reyes,
+       4-11-2026: dónde o qué, en tarjetas, la empresa y el permiso de esa tarjeta. */
+    permisos_agua: [
+      {n:'area_agua', clave:'f_aguaarea', opcionesClave:'o_agua_area', ancho:true,
+       tarjetas:TARJETAS_DE_AGUA, etapas:ETAPAS_DE_AGUA, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'permiso_agua', clave:'f_permisosol', ancho:true,
+       opcionesSegun:'area_agua', opcionesDe:PERMISOS_DE_AGUA, verSi:'area_agua', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_agua')
+    ],
+    permisos_industria: [
+      {n:'area_industria', clave:'f_dondetramite', opcionesClave:'o_industria_area', ancho:true,
+       tarjetas:TARJETAS_DE_INDUSTRIA, etapas:ETAPAS_DE_INDUSTRIA, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'permiso_industria', clave:'f_permisosol', ancho:true,
+       opcionesSegun:'area_industria', opcionesDe:PERMISOS_DE_INDUSTRIA, verSi:'area_industria', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_industria')
+    ],
+    permisos_transporte: [
+      {n:'area_transporte', clave:'f_transportearea', opcionesClave:'o_transporte_area', ancho:true,
+       tarjetas:TARJETAS_DE_TRANSPORTE, etapas:ETAPAS_DE_TRANSPORTE, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'permiso_transporte', clave:'f_permisosol', ancho:true,
+       opcionesSegun:'area_transporte', opcionesDe:PERMISOS_DE_TRANSPORTE, verSi:'area_transporte', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_transporte')
+    ],
     /* La inscripción en el SIDCAI (c39). Lo que piden las pantallas de
        «Nuevos Usuarios»: la empresa, el representante legal y el usuario
        principal, que tiene que ser del dominio de la empresa. Y los
@@ -6944,6 +7169,46 @@ applyLang(idiomaParaMi());
       {n:'permiso_pesca',        clave:'f_yspermisoya', ancho:true,
        opcionesSegun:'area_pesca', opcionesDe:PERMISOS_DE_PESCA, verSi:'area_pesca', verDistinto:VALOR_PRESENCIAL},
       campoPresencial('area_pesca'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    /* «Ya solicité» de agua (c64), industria y comercio (c66) y transporte (c68). */
+    agua_en_proceso: [
+      {n:'area_agua', clave:'f_aguaarea', opcionesClave:'o_agua_area', ancho:true,
+       tarjetas:TARJETAS_DE_AGUA, etapas:ETAPAS_DE_AGUA, portada:portadaDibujada},
+      {n:'permiso_agua', clave:'f_yspermisoya', ancho:true,
+       opcionesSegun:'area_agua', opcionesDe:PERMISOS_DE_AGUA, verSi:'area_agua', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_agua'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    industria_en_proceso: [
+      {n:'area_industria', clave:'f_dondetramite', opcionesClave:'o_industria_area', ancho:true,
+       tarjetas:TARJETAS_DE_INDUSTRIA, etapas:ETAPAS_DE_INDUSTRIA, portada:portadaDibujada},
+      {n:'permiso_industria', clave:'f_yspermisoya', ancho:true,
+       opcionesSegun:'area_industria', opcionesDe:PERMISOS_DE_INDUSTRIA, verSi:'area_industria', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_industria'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    transporte_en_proceso: [
+      {n:'area_transporte', clave:'f_transportearea', opcionesClave:'o_transporte_area', ancho:true,
+       tarjetas:TARJETAS_DE_TRANSPORTE, etapas:ETAPAS_DE_TRANSPORTE, portada:portadaDibujada},
+      {n:'permiso_transporte', clave:'f_yspermisoya', ancho:true,
+       opcionesSegun:'area_transporte', opcionesDe:PERMISOS_DE_TRANSPORTE, verSi:'area_transporte', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_transporte'),
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
       {n:'rif_empresa',          clave:'f_rifempresa'},
@@ -8929,7 +9194,13 @@ applyLang(idiomaParaMi());
         sel.value = quiero || '';
       }
       llena(datos[c.n] || (ANTES && ANTES[c.n] && ANTES[c.n].valor) || '');
-      quienes.forEach(function(o){ o.addEventListener('change', function(){ llena(''); }); });
+      /* Y avisa cuando se vacía (Franklin Reyes, 4-11-2026): los recaudos que cuelgan
+         del permiso elegido no pueden quedarse con los del permiso anterior. */
+      quienes.forEach(function(o){ o.addEventListener('change', function(){
+        var antes = sel.value;
+        llena('');
+        if (antes && sel.value !== antes) sel.dispatchEvent(new Event('change', {bubbles: true}));
+      }); });
     });
 
     /* ── UNA CASILLA QUE SOLO SALE SI HACE FALTA ──
@@ -9420,7 +9691,7 @@ applyLang(idiomaParaMi());
       lado.appendChild(nota);
       var manda = n.campo && caja.querySelector('select[name="' + n.campo + '"]');
       if (!manda) return;
-      var mira = function(){ nota.hidden = manda.value !== n.valor; };
+      var mira = function(){ nota.hidden = n.valores ? n.valores.indexOf(manda.value) < 0 : manda.value !== n.valor; };
       mira();
       manda.addEventListener('change', mira);
     });
@@ -10014,6 +10285,9 @@ applyLang(idiomaParaMi());
     MINHIDROCARBUROS: 'el Ministerio del Poder Popular de Hidrocarburos',
     INSOPESCA: 'el Instituto Socialista de la Pesca y Acuicultura',
     MPPEE: 'el Ministerio del Poder Popular para la Energía Eléctrica',
+    MINAGUAS: 'el Ministerio del Poder Popular de Atención de las Aguas',
+    MPPICN: 'el Ministerio del Poder Popular de Industrias y Comercio Nacional',
+    MPPT: 'el Ministerio del Poder Popular para el Transporte',
     'Entes varios': 'los organismos correspondientes'
   };
   function enteCompleto(ente, municipio){
@@ -28427,7 +28701,7 @@ applyLang(idiomaParaMi());
   function esPermisoAgrupado(ref){
     if (!ref) return false;
     if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' ||
-        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
+        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
         ref === 'c28' || ref === 'c29' || ref === 'c13') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
@@ -28473,7 +28747,8 @@ applyLang(idiomaParaMi());
        sectorial, y sin moverlos se leerían como suyas. */
     /* Y los permisos de hidrocarburos (c57), de pesca (c59) y de energía
        (c61), Franklin Reyes, 3-11-2026, al final. */
-    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c57', 'c59', 'c61'], antes:['c28', 'c29', 'c13'],
+    /* Y los de agua (c63), industria y comercio (c65) y transporte (c67), 4-11-2026. */
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c57', 'c59', 'c61', 'c63', 'c65', 'c67'], antes:['c28', 'c29', 'c13'],
      rotulo:function(dic){ return dic['g.sectorial']; }}
   ];
 
@@ -28948,6 +29223,9 @@ applyLang(idiomaParaMi());
     c57: {1: {clave: 'hidrocarburos_solicitado', texto: 'p_yalosolicite'}},
     c59: {1: {clave: 'pesca_solicitado',       texto: 'p_yalosolicite'}},
     c61: {1: {clave: 'energia_solicitado',     texto: 'p_yalosolicite'}},
+    c63: {1: {clave: 'agua_solicitado',        texto: 'p_yalosolicite'}},
+    c65: {1: {clave: 'industria_solicitado',   texto: 'p_yalosolicite'}},
+    c67: {1: {clave: 'transporte_solicitado',  texto: 'p_yalosolicite'}},
     /* Y el permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos), con DOS pasos del inversionista: solicitarlo en el portal
        de los bomberos de su estado («Ya la solicité») e indicar en qué sede
@@ -29184,6 +29462,9 @@ applyLang(idiomaParaMi());
     c57: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c59: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c61: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c63: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c65: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c67: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Y la inscripción en el SIDCAI (c39), igual que el minero (Franklin
        Reyes, 1-10-2026, Ventanilla Única 2.3): «Inscríbete en el FONACIT a
        través del portal → Inscripción lista». Enviada no hay nada hecho; el
@@ -29235,6 +29516,9 @@ applyLang(idiomaParaMi());
     c58: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c60: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c62: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c64: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c66: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c68: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
        enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
        «recibida», así que la cuenta es la de siempre; están aquí porque son
@@ -29355,6 +29639,9 @@ applyLang(idiomaParaMi());
                         c50: {campo: 'sistema_turistico', valor: VALOR_PRESENCIAL, si: 'c50_presencial'},
                         c57: {campo: 'sistema_hidrocarburos', valor: VALOR_PRESENCIAL, si: 'c57_presencial'},
                         c61: {campo: 'area_energia', valor: VALOR_PRESENCIAL, si: 'c61_presencial'},
+                        c63: {campo: 'area_agua', valor: VALOR_PRESENCIAL, si: 'c63_presencial'},
+                        c65: {campo: 'area_industria', valor: VALOR_PRESENCIAL, si: 'c65_presencial'},
+                        c67: {campo: 'area_transporte', valor: VALOR_PRESENCIAL, si: 'c67_presencial'},
                         /* Pesca y embarcaciones y acuicultura se presentan en la
                            oficina de Parque Central (Franklin Reyes, 3-11-2026). */
                         c59: [{campo: 'area_pesca', valores: [AREA_PESCA_BUQUES, AREA_PESCA_ACUI], si: 'c59_oficina'},
@@ -29392,6 +29679,8 @@ applyLang(idiomaParaMi());
        3-11-2026). En pesca, sólo el área que tiene sistema en línea. */
     c57: {1: {url: 'https://sutap.minhidrocarburos.gob.ve/', clave: 'p_irsutap', salvo: 'sistema_hidrocarburos'}},
     c59: {1: {campo: 'area_pesca', urls: PORTAL_DE_PESCA, clave: 'p_irinsopesca'}},
+    c65: {1: {campo: 'area_industria', urls: PORTAL_DE_INDUSTRIA, clave: 'p_irindustria'}},
+    c67: {1: {campo: 'area_transporte', urls: PORTAL_DE_TRANSPORTE, clave: 'p_irtransporte'}},
     c61: {1: {campo: 'area_energia', urls: PORTAL_DE_ENERGIA, clave: 'p_irmppee',
               claves: {'Conexión y servicio · CORPOELEC': 'p_ircorpoelec'}}},
     /* El texto del botón cambia con el ente (claves): con el INTI no se

@@ -490,6 +490,11 @@
               ypmPesAbre, ypmPesMira, ypmPesYaMira, ypmPesAtrasMira,
               ypmEneAbre, ypmEneMira, ypmEneYaMira, ypmEneAtrasMira,
               hpeCatalogoMira, hpeHidAbre, hpeHidMira, hpePesAbre, hpePesMira, hpeEneAbre, hpeEneMira,
+              /* Y agua (c63/c64), industria y comercio (c65/c66) y transporte (c67/c68), 4-11-2026. */
+              ypmAguAbre, ypmAguMira, ypmAguYaMira, ypmAguAtrasMira,
+              ypmIndAbre, ypmIndMira, ypmIndYaMira, ypmIndAtrasMira,
+              ypmTraAbre, ypmTraMira, ypmTraYaMira, ypmTraAtrasMira,
+              aitAguAbre, aitAguMira, aitIndAbre, aitIndMira, aitTraAbre, aitTraMira,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
@@ -873,7 +878,7 @@
        inscripciones con tarjeta propia. */
     /* Y CATORCE desde el 3-11-2026 (Franklin Reyes): hidrocarburos (c57), pesca
        (c59) y energía (c61). */
-    igual('camino: la fase 03 cuenta sus 14',         deEtapa(2, '.jcount'), '0 de 14 listos');
+    igual('camino: la fase 03 cuenta sus 17',         deEtapa(2, '.jcount'), '0 de 17 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -1221,7 +1226,7 @@
                 2-11-2026. */
              /* Y 50 con hidrocarburos, pesca y energía (c57 a c62), Franklin
                 Reyes, 3-11-2026. */
-             pendS === 50, pendS + ' por iniciar de 51 ofrecidas', '50');
+             pendS === 56, pendS + ' por iniciar de 57 ofrecidas', '56');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1246,8 +1251,8 @@
              INTI (c54), Franklin Reyes, 2-11-2026.
              Y 45 con el RNC encendido (c13) y los de c55 y c56, el mismo día.
              Y 51 con hidrocarburos, pesca y energía (c57 a c62), 3-11-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 51,
-             pend + ' por iniciar de 51 ofrecidas', '51');
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 57,
+             pend + ' por iniciar de 57 ofrecidas', '57');
       }
 
       /* ── la cadena entre trámites ──
@@ -13338,6 +13343,15 @@
     pes: {madre: 'c59', ya: 'c60', p: 'ype', codigo: 'pesca_en_proceso', ente: 'INSOPESCA',
           campos: 'area_pesca permiso_pesca tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 4, gestion: 'En coordinación con INSOPESCA', fin: 'Permiso listo'},
+    agu: {madre: 'c63', ya: 'c64', p: 'yag', codigo: 'agua_en_proceso', ente: 'MINAGUAS',
+          campos: 'area_agua permiso_agua tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          tarjetas: 5, gestion: 'En coordinación con el Ministerio de Atención de las Aguas', fin: 'Permiso listo'},
+    ind: {madre: 'c65', ya: 'c66', p: 'yic', codigo: 'industria_en_proceso', ente: 'MPPICN',
+          campos: 'area_industria permiso_industria tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          tarjetas: 5, gestion: 'En coordinación con SUNDDE o SENCAMER', fin: 'Permiso listo'},
+    tra: {madre: 'c67', ya: 'c68', p: 'ytp', codigo: 'transporte_en_proceso', ente: 'MPPT',
+          campos: 'area_transporte permiso_transporte tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          tarjetas: 4, gestion: 'En coordinación con el INAC, el INEA o el INTT', fin: 'Permiso listo'},
     ene: {madre: 'c61', ya: 'c62', p: 'yen', codigo: 'energia_en_proceso', ente: 'MPPEE',
           campos: 'area_energia permiso_energia tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 4, gestion: 'En coordinación con el Ministerio de Energía Eléctrica', fin: 'Permiso listo'}
@@ -13445,6 +13459,83 @@
   function ypmPesMira(sigue){ ypmMira('pes', sigue); }
   function ypmPesYaMira(sigue){ ypmYaMira('pes', sigue); }
   function ypmPesAtrasMira(sigue){ ypmAtrasMira('pes', sigue); }
+  function ypmAguAbre(sigue){ ypmAbre('agu', sigue); }
+  function ypmAguMira(sigue){ ypmMira('agu', sigue); }
+  function ypmAguYaMira(sigue){ ypmYaMira('agu', sigue); }
+  function ypmAguAtrasMira(sigue){ ypmAtrasMira('agu', sigue); }
+  function ypmIndAbre(sigue){ ypmAbre('ind', sigue); }
+  function ypmIndMira(sigue){ ypmMira('ind', sigue); }
+  function ypmIndYaMira(sigue){ ypmYaMira('ind', sigue); }
+  function ypmIndAtrasMira(sigue){ ypmAtrasMira('ind', sigue); }
+  function ypmTraAbre(sigue){ ypmAbre('tra', sigue); }
+  function ypmTraMira(sigue){ ypmMira('tra', sigue); }
+  function ypmTraYaMira(sigue){ ypmYaMira('tra', sigue); }
+  function ypmTraAtrasMira(sigue){ ypmAtrasMira('tra', sigue); }
+  /* Agua, industria y comercio, y transporte: tarjetas, pestañas, y los recaudos
+     que dependen del permiso elegido (Franklin Reyes, 4-11-2026). */
+  function aitAguAbre(sigue){ hpeAbreNueva('c63', sigue); }
+  function aitIndAbre(sigue){ hpeAbreNueva('c65', sigue); }
+  function aitTraAbre(sigue){ hpeAbreNueva('c67', sigue); }
+  function aitMira(k, x, sigue){
+    if (PASE !== 'vacio') return sigue();
+    var caja = document.getElementById('trReal');
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    igual(k + ': sus casillas', bienesCampos(caja), x.area + ' razon_social rif_empresa representante ' + x.permiso + ' tramite_presencial');
+    var ts = caja ? [].slice.call(caja.querySelectorAll('.st-rej .st-tarjeta')) : [];
+    igual(k + ': sus tarjetas', ts.length, x.tarjetas);
+    igual(k + ': sus pestañas', caja ? caja.querySelectorAll('.st-pe').length : 0, x.pestanas);
+    ok(k + ': sin enlace en las tarjetas', !!caja && !caja.querySelector('.st-tarjeta a'), 'con enlace', 'sin enlace');
+    ok(k + ': hasta elegir, las casillas esperan', !!caja && !!caja.querySelector('.st-sin-elegir'), 'a la vista', 'esperando');
+    igual(k + ': y sin ningún recaudo a la vista', hpeDocsSeVen(caja), '');
+    var sel = caja && caja.querySelector('select[name="' + x.permiso + '"]');
+    x.casos.forEach(function(c){
+      var t = ts.filter(function(e){ return e.getAttribute('data-valor') === c.area; })[0];
+      if (!t) return ok(k + ': la tarjeta ' + c.area, false, 'no está', 'está');
+      t.click();
+      igual(k + ': «' + c.area + '», ningún recaudo antes de elegir el permiso', hpeDocsSeVen(caja), '');
+      sel.value = c.valor;
+      sel.dispatchEvent(new Event('change', {bubbles: true}));
+      igual(k + ': «' + c.valor + '», sus recaudos', hpeDocsSeVen(caja), c.docs.split(' ').sort().join(' '));
+      igual(k + ': «' + c.valor + '», su nota', hpeNotas(caja), c.nota ? U[c.nota] : '');
+      var d = {}; d[x.area] = c.area;
+      igual(k + ': «' + c.area + '», su enlace', hpeEnlace(x.ref, d), c.enlace ? c.enlace + ' · ' + U[x.clave] : 'sin enlace');
+      igual(k + ': su paso 1', hpeEscalera(x.codigo, x.ente, d), x.paso);
+    });
+    var pre = ts.filter(function(e){ return e.getAttribute('data-valor') === 'Trámites presenciales'; })[0];
+    if (pre) pre.click();
+    var cT = caja && caja.querySelector('.sol-campo[data-campo="tramite_presencial"]');
+    var cP = caja && caja.querySelector('.sol-campo[data-campo="' + x.permiso + '"]');
+    ok(k + ': presenciales, sale el trámite', !!cT && !cT.hidden, 'escondido', 'a la vista');
+    ok(k + ': y no la lista de permisos', !!cP && cP.hidden, 'a la vista', 'escondida');
+    igual(k + ': y sin recaudos', hpeDocsSeVen(caja), '');
+    var dp = {}; dp[x.area] = 'Trámites presenciales';
+    igual(k + ': sin enlace', hpeEnlace(x.ref, dp), 'sin enlace');
+    igual(k + ': su paso 1 dice que es en la oficina', hpeEscalera(x.codigo, x.ente, dp), 'Solicita tu trámite en la oficina del organismo');
+    ok(k + ': sin «undefined» en el detalle', document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
+    location.hash = '';
+    setTimeout(sigue, 200);
+  }
+  function aitAguMira(sigue){
+    aitMira('agu', {ref: 'c63', codigo: 'permisos_agua', ente: 'MINAGUAS', area: 'area_agua', permiso: 'permiso_agua', tarjetas: 5, pestanas: 3,
+      paso: 'Solicita tu permiso en la Taquilla Única del ministerio', casos: [
+      {area: 'Concesión · Uso industrial, comercial o hidroeléctrico', valor: 'Concesión de aprovechamiento de aguas', docs: 'planilla_minaguas acta_constitutiva acta_asamblea derecho_inmueble poder constancia_hidrologica constancia_racda aot_aarn_aguas estudio_impacto_aguas estudio_tecnico_aguas'},
+      {area: 'Afectación · Recursos naturales y estudios', valor: 'Autorización para la afectación de recursos naturales', docs: 'acta_constitutiva rif_empresa cedula rif_personal', nota: 'd_nota_prov'},
+      {area: 'Cambios · Venta o modificación del título', valor: 'Reasignación por venta del inmueble', docs: 'planilla_minaguas compraventa_certificada titulo_agua_vendedor'}]}, sigue);
+  }
+  function aitIndMira(sigue){
+    aitMira('ind', {ref: 'c65', codigo: 'permisos_industria', ente: 'MPPICN', area: 'area_industria', permiso: 'permiso_industria', tarjetas: 5, pestanas: 3,
+      clave: 'p_irindustria', paso: 'Solicita tu permiso en el sistema que elegiste', casos: [
+      {area: 'RUPDAE · SUNDDE', valor: 'Inscripción en el RUPDAE', docs: 'registro_mercantil_empresa acta_asamblea rif_empresa cedula rif_personal', enlace: 'https://rupdae.sundde.gob.ve/login'},
+      {area: 'SIS · SENCAMER', valor: 'Registro de empresa manufacturera (REM)', docs: 'acta_constitutiva rif_empresa cedula rif_personal', nota: 'd_nota_prov', enlace: 'https://sis.sencamer.gob.ve/'},
+      {area: 'NORVEN · SENCAMER', valor: 'Marca NORVEN', docs: 'acta_constitutiva rif_empresa cedula rif_personal rif_gerente_calidad manual_calidad plan_calidad_producto catalogo_producto certificado_uso_sanitario', enlace: 'https://norven.sencamer.gob.ve/login'}]}, sigue);
+  }
+  function aitTraMira(sigue){
+    aitMira('tra', {ref: 'c67', codigo: 'permisos_transporte', ente: 'MPPT', area: 'area_transporte', permiso: 'permiso_transporte', tarjetas: 4, pestanas: 4,
+      clave: 'p_irtransporte', paso: 'Solicita tu permiso en el sistema que elegiste', casos: [
+      {area: 'SITGA · INAC', valor: 'Trabajos aéreos (RAV 130)', docs: 'carta_solicitud_ente planilla_liquidacion_ente idoneidad_economica dip_inac', nota: 'd_nota_inac', enlace: 'https://aplt.inac.gob.ve/sitga/'},
+      {area: 'INEA · Instituto Nacional de los Espacios Acuáticos', valor: 'Registro de compañía naviera', docs: 'carta_solicitud_ente planilla_liquidacion_ente registro_mercantil_empresa cedula rif_empresa patente_arrendamiento inspeccion_capitania fianza_inea sistema_calidad_iso titulo_fletamento opinion_seguridad_maritima', enlace: 'https://inea.gob.ve/'},
+      {area: 'Planilla Única · INTT', valor: 'Registro de operadores de transporte de carga (ROTC)', docs: 'registro_mercantil_empresa cedula numero_patronal_ivss solvencia_islr certificado_vehiculo poliza_rcv', enlace: 'https://put.intt.gob.ve/'}]}, sigue);
+  }
   function ypmEneAbre(sigue){ ypmAbre('ene', sigue); }
   function ypmEneMira(sigue){ ypmMira('ene', sigue); }
   function ypmEneYaMira(sigue){ ypmYaMira('ene', sigue); }
