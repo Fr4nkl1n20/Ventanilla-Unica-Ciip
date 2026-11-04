@@ -5764,77 +5764,15 @@
        preguntandote. */
     (function(){
       var guia = document.getElementById('trVisas');
-      ok('visas: la guia sale en la ficha de la visa',
-         !!guia && !guia.hidden && guia.offsetHeight > 0,
-         guia ? (guia.hidden ? 'escondida' : guia.offsetHeight + 'px') : 'no esta', 'a la vista');
-      if (!guia || guia.hidden) return;
-
-      var trn = guia.querySelector('.gv-col[data-visa="c1"]');
-      var tri = guia.querySelector('.gv-col[data-visa="c38"]');
-      igual('visas: con los dos caminos, TR-N y TR-I',
-            [].map.call(guia.querySelectorAll('.gv-col'), function(c){
-              return c.getAttribute('data-visa'); }).join(' '), 'c1 c38');
-
-      /* MIENTRAS NO ELIJAS, las dos se pulsan. La c1 es la casilla de las
-         DOS visas -se llama por las dos- y enseñar de entrada el formulario
-         de la TR-N seria contestar por ti. Asi que la de aqui no dice «estas
-         aqui»: dice «elige esta», y al pulsarla despliega el formulario sin
-         moverte de sitio. */
-      /* SALVO QUE YA LA HAYAS PEDIDO (1-10-2026). Este expediente tiene una
-         TR-N -la t4, resuelta-, y con una solicitud viva la c1 la da por
-         elegida: escondida tras la guía, quien ya la pidió no veía su
-         escalera. La guía sin elegir la miden los expedientes sin visa
-         (pistaMira, en 'vacio', la elige pulsándola). */
-      ok('visas: con una TR-N ya pedida, la de esta ficha sale como la tuya',
-         !!trn && trn.getAttribute('aria-current') === 'true' && !trn.getAttribute('role'),
-         trn ? ('aria-current=' + trn.getAttribute('aria-current') + ' role=' + (trn.getAttribute('role') || 'sin')) : 'no esta',
-         'aria-current=true role=sin');
+      /* Elegida, la guía se va (Franklin Reyes, 4-11-2026). Lo de elegir se mide
+         sin ninguna visa pedida, en ypmVisGuiaMira. */
+      ok('visas: con una TR-N ya pedida, la guía no sale',
+         !!guia && guia.hidden, guia ? (guia.hidden ? 'escondida' : guia.offsetHeight + 'px') : 'no esta', 'escondida');
       var detalle = document.getElementById('trDetalle');
       ok('visas: y lo de abajo se ve sin volver a elegir',
          !!detalle && !detalle.classList.contains('elige-visa'),
          detalle ? (detalle.className || '(sin clases)') : 'no esta',
          'sin la clase elige-visa');
-      if (trn){
-        trn.click();
-        ok('visas: al elegirla, el formulario se despliega ahi mismo',
-           !!detalle && !detalle.classList.contains('elige-visa'),
-           detalle ? (detalle.className || '(sin clases)') : 'no esta',
-           'sin la clase elige-visa');
-        var trn2 = document.querySelector('.gv-col[data-visa="c1"]');
-        ok('visas: y entonces si dice «estas aqui» y deja de pulsarse',
-           !!trn2 && trn2.getAttribute('aria-current') === 'true' &&
-             !trn2.hasAttribute('role'),
-           trn2 ? ('aria-current=' + trn2.getAttribute('aria-current') +
-                   ' role=' + (trn2.getAttribute('role') || 'sin')) : 'no esta',
-           'aria-current y sin role');
-        tri = document.querySelector('.gv-col[data-visa="c38"]');
-      }
-
-      /* Y la OTRA se pulsa ENTERA, no solo su renglon: con su papel, su
-         parada de tabulador y su nombre dicho entero. */
-      ok('visas: y la otra se pulsa entera, no solo el renglon',
-         !!tri && tri.getAttribute('role') === 'button' &&
-           tri.getAttribute('tabindex') === '0',
-         tri ? ('role=' + (tri.getAttribute('role') || 'sin') +
-                ' tabindex=' + (tri.getAttribute('tabindex') || 'sin')) : 'no esta',
-         'role=button y tabindex=0');
-      ok('visas: y dice a donde lleva, para quien no la ve',
-         !!tri && (tri.getAttribute('aria-label') || '').length > 20,
-         tri ? ('"' + (tri.getAttribute('aria-label') || '(sin)').slice(0, 45) + '…"') : 'no esta',
-         'su nombre y de que va');
-
-      /* Y lleva de verdad. Pulsarla tiene que abrir la OTRA ficha; si no,
-         la c38 no tendria puerta: esta escondida de la cuadricula. */
-      /* Y que al otro lado HAYA algo. Esto no es de adorno: la c38 nacio
-         apagada en el catalogo, y el panel SACA DEL ARBOL las tarjetas de lo
-         que esta apagado. Pulsar la caja cambiaba el hash y devolvia a la
-         portada, porque no habia ficha que abrir. La prueba de antes miraba
-         el hash y pasaba en verde mientras la pantalla hacia justo eso.
-
-         Asi que se mira lo que de verdad hace falta: que su tarjeta siga en
-         el arbol -escondida por data-tramo-de, no sacada- y que el catalogo
-         la traiga ENCENDIDA, que es lo que decide si sale el formulario o la
-         escalera de adorno. */
       var suTarjeta = document.querySelector('.tcard[data-tr="c38"]');
       ok('visas: la ficha de la TR-I sigue en el arbol, no sacada',
          !!suTarjeta,
@@ -5845,13 +5783,6 @@
          !!(suFila && suFila.activo),
          suFila ? ('activo=' + suFila.activo) : 'no esta en el catalogo',
          'activo=true');
-
-      if (tri){
-        var antes = location.hash;
-        tri.click();
-        igual('visas: y al pulsarla se abre la otra visa', location.hash, '#tramite-c38');
-        location.hash = antes || '';
-      }
     })();
   }
 
@@ -13560,12 +13491,40 @@
     igual('vis: por primera vez, sigue «¿Qué visa necesitas?» con las dos',
           [].map.call(document.querySelectorAll('#trVisas [data-visa]'), function(c){ return c.getAttribute('data-visa'); }).join(' '), 'c1 c38');
     igual('vis: y el formulario, apartado hasta elegirla', marcaElige(), 'apartado');
-    var v = document.getElementById('trVolver');
-    if (v) v.click();
+    var guia = document.getElementById('trVisas');
+    var volver = function(){ var v = document.getElementById('trVolver'); if (v) v.click(); };
+    var opcion = function(r){ return document.querySelector('#trVisas [data-visa="' + r + '"]'); };
+    var tri = opcion('c38');
+    ok('vis: las dos se pulsan enteras', !!tri && tri.getAttribute('role') === 'button' && tri.getAttribute('tabindex') === '0',
+       tri ? 'role=' + tri.getAttribute('role') : 'no está', 'role=button');
+    ok('vis: y dicen a dónde llevan, para quien no las ve', !!tri && (tri.getAttribute('aria-label') || '').length > 20,
+       tri ? tri.getAttribute('aria-label') : 'no está', 'su nombre y de qué va');
+    /* Elegida la TR-N, la guía se va y sale su formulario, sin moverse de sitio. */
+    if (opcion('c1')) opcion('c1').click();
+    ok('vis: al elegir la TR-N, la guía se va', !!guia && guia.hidden, guia && guia.hidden ? 'escondida' : 'a la vista', 'escondida');
+    igual('vis: y sale su formulario', marcaElige(), 'a la vista');
+    volver();
     setTimeout(function(){
       igual('vis: atrás, otra vez la primera pregunta', yaOpciones(), 'c70 c1');
-      location.hash = '';
-      setTimeout(sigue, 100);
+      var nueva = document.querySelector('#trVisas [data-ya-op="c1"]');
+      if (nueva) nueva.click();
+      var otra = opcion('c38');
+      if (otra) otra.click();
+      igual('vis: la TR-I abre su ficha', location.hash, '#tramite-c38');
+      setTimeout(function(){
+        ok('vis: y en la TR-I tampoco sale la guía', !!guia && guia.hidden, guia && guia.hidden ? 'escondida' : 'a la vista', 'escondida');
+        volver();
+        setTimeout(function(){
+          igual('vis: atrás desde la TR-I, a elegir visa', location.hash, '#tramite-c1');
+          ok('vis: con las dos opciones', !!opcion('c1') && !!opcion('c38'), 'sin ellas', 'las dos');
+          volver();
+          setTimeout(function(){
+            igual('vis: y atrás otra vez, la primera pregunta', yaOpciones(), 'c70 c1');
+            location.hash = '';
+            setTimeout(sigue, 100);
+          }, 300);
+        }, 800);
+      }, 800);
     }, 300);
   }
   function ypmCedAbre(sigue){ idvPregunta('ced', sigue); }

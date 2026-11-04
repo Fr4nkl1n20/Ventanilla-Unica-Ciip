@@ -676,6 +676,12 @@ function applyLang(lang){
     GUIA_D = D;
     var hayQueElegir = (id === 'c1' && VISA_ELEGIDA !== 'c1');
     tramiteALaVista(!hayQueElegir);
+    /* Elegida, la guía se va (Franklin Reyes, 4-11-2026: «no debería salir, en el
+       paso anterior ya dije qué trámite»). Para cambiar de visa, «Atrás». */
+    if (!hayQueElegir){
+      caja.hidden = true;
+      return;
+    }
 
     /* Los textos salen del diccionario que llega, igual que en
        pintaTramosDetalle: aqui no hay T(), que vive en otro modulo. */
@@ -704,12 +710,7 @@ function applyLang(lang){
 
     var cols = el('div', 'gv-cols');
     GUIA_VISAS.forEach(function(v){
-      /* «Esta» deja de significar «la de esta ficha» y pasa a significar
-         «la que YA elegiste». Mientras no elijas, la de aqui tampoco esta
-         elegida: se pulsa igual que la otra, y eso es lo que despliega el
-         formulario sin moverte de sitio. */
-      var esta = (v.ref === id) && !hayQueElegir;
-      var col = el('div', 'gv-col' + (esta ? ' aqui' : ''));
+      var col = el('div', 'gv-col');
       col.setAttribute('data-visa', v.ref);
       var et = el('span', 'gv-etapa', u[v.etapa] || '');
       et.setAttribute('data-ui', v.etapa);
@@ -720,48 +721,38 @@ function applyLang(lang){
       var de = el('div', 'gv-d', u[v.d] || '');
       de.setAttribute('data-ui', v.d);
       col.appendChild(de);
-      if (esta){
-        var aqui = el('span', 'gv-estas', u.gv_aqui || '');
-        aqui.setAttribute('data-ui', 'gv_aqui');
-        col.appendChild(aqui);
-        /* La que estas mirando no se pulsa, y se dice para el lector de
-           pantalla: aria-current es lo que distingue «esta es la tuya» de
-           «esta esta deshabilitada». */
-        col.setAttribute('aria-current', 'true');
-      } else {
-        var ir = el('span', 'gv-ir', (u.gv_ver || '') + ' ›');
-        ir.setAttribute('data-ui', 'gv_ver');
-        col.appendChild(ir);
+      var ir = el('span', 'gv-ir', (u.gv_ver || '') + ' ›');
+      ir.setAttribute('data-ui', 'gv_ver');
+      col.appendChild(ir);
 
-        /* TODA la caja. Con su papel, su parada de tabulador y su nombre
-           dicho entero, que «Ver tramite» solo no dice cual. */
-        col.setAttribute('role', 'button');
-        col.setAttribute('tabindex', '0');
-        col.setAttribute('data-ir', v.ref);
-        col.setAttribute('aria-label', (u[v.nombre] || '') + ' · ' + (u[v.d] || ''));
-        var vaALaSuya = function(){
-          if (v.ref === id){
-            /* La de esta ficha: no se navega a ningun sitio, se contesta.
-               Recordarlo es lo que hace que al volver de Mis tramites o al
-               cambiar de idioma no te vuelva a preguntar. */
-            VISA_ELEGIDA = v.ref;
-            pintaGuiaVisas(id, D);
-            return;
-          }
-          /* Desde la TR-I a la TR-N ya no se vuelve a preguntar. */
-          if (v.ref === 'c1') YA_ELEGIDA.c1 = true;
-          location.hash = 'tramite-' + v.ref;
-        };
-        col.addEventListener('click', vaALaSuya);
-        /* Con el teclado: Enter y espacio, que es lo que hace un boton de
-           verdad. El espacio ademas desplaza la pagina si no se para. */
-        col.addEventListener('keydown', function(e){
-          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
-            e.preventDefault();
-            vaALaSuya();
-          }
-        });
-      }
+      /* TODA la caja. Con su papel, su parada de tabulador y su nombre
+         dicho entero, que «Ver tramite» solo no dice cual. */
+      col.setAttribute('role', 'button');
+      col.setAttribute('tabindex', '0');
+      col.setAttribute('data-ir', v.ref);
+      col.setAttribute('aria-label', (u[v.nombre] || '') + ' · ' + (u[v.d] || ''));
+      var vaALaSuya = function(){
+        if (v.ref === id){
+          /* La de esta ficha: no se navega a ningun sitio, se contesta.
+             Recordarlo es lo que hace que al volver de Mis tramites o al
+             cambiar de idioma no te vuelva a preguntar. */
+          VISA_ELEGIDA = v.ref;
+          pintaGuiaVisas(id, D);
+          return;
+        }
+        /* Desde la TR-I a la TR-N ya no se vuelve a preguntar. */
+        if (v.ref === 'c1') YA_ELEGIDA.c1 = true;
+        location.hash = 'tramite-' + v.ref;
+      };
+      col.addEventListener('click', vaALaSuya);
+      /* Con el teclado: Enter y espacio, que es lo que hace un boton de
+         verdad. El espacio ademas desplaza la pagina si no se para. */
+      col.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+          e.preventDefault();
+          vaALaSuya();
+        }
+      });
       cols.appendChild(col);
     });
     caja.appendChild(cols);
@@ -2211,6 +2202,14 @@ function applyLang(lang){
        elegida, atrás es volver a la pregunta, no a las etapas (Franklin
        Reyes, 7-10-2026, en el SACS: «quiero que al darle atrás me devuelva
        a las preguntas»). Desde la pregunta, sí a las etapas. */
+    /* Desde la TR-I, a elegir visa: es la pregunta de antes (4-11-2026). */
+    if (trAbierto === 'c38'){
+      VISA_ELEGIDA = '';
+      YA_ELEGIDA.c1 = true;
+      location.hash = 'tramite-c1';
+      window.scrollTo(0, 0);
+      return;
+    }
     var par = trAbierto && GUIA_YA_DE[trAbierto];
     if (par && YA_ELEGIDA[trAbierto]){
       YA_ELEGIDA[par.nueva] = false;
