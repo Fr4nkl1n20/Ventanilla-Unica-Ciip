@@ -32362,7 +32362,11 @@ applyLang(idiomaParaMi());
        recaudos y formularios de sus cuatro direcciones. */
     /* Y el RNC (Franklin Reyes, 2-11-2026), que salió de los parafiscales: su
        guía se va con él. */
-    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs', 'minec', 'rnc'].forEach(function(k){
+    /* El MINEC estuvo aquí del 19-10-2026 al 4-11-2026, con los enlaces directos
+       a sus seis sistemas y a su web. Se quitó (Franklin Reyes, 4-11-2026:
+       «este apartado es solo para colocar guías»): no eran guías, y esos
+       enlaces ya los lleva el paso 1 de la ficha (PORTAL_DEL_MINEC). */
+    ['licencia', 'parafiscales', 'conformidad', 'bomberos', 'visa', 'sacs', 'rnc'].forEach(function(k){
       var kt = 'ay_rec_' + k, kl = kt + '_lista';
       var g = {kt: kt, t: u[kt] || es[kt], kl: kl, l: u[kl] || es[kl]};
       if (k === 'visa') g.descarga = {href: PLANILLA_VISA, texto: u.ay_visa_planilla || es.ay_visa_planilla,

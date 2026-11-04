@@ -9663,7 +9663,7 @@
     igual('ayuda: cuatro pestañas, una por sección',
           [].map.call(bs, function(b){ return b.getAttribute('data-p'); }).join(' '), 'faq dil rec sapi');
     var n = function(p){ var b = document.querySelector('#ayPest .ay-pe[data-p="' + p + '"] .n'); return b ? b.textContent : '?'; };
-    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec') + ' ' + n('sapi'), '7 2 8 2');
+    igual('ayuda: con lo que trae cada una (preguntas con respuesta, diligencias y trámites)', n('faq') + ' ' + n('dil') + ' ' + n('rec') + ' ' + n('sapi'), '7 2 7 2');
     var faqSec = document.querySelector('.ayuda-vista .faq-sec');
     var rec = document.querySelector('.ayuda-vista .ay-rec');
     igual('ayuda: se entra por las preguntas', !!faqSec && faqSec.offsetHeight > 0 && !!rec && rec.offsetHeight === 0, true);
@@ -9800,10 +9800,17 @@
        de .ay-sitios y la mide visaPlanilla. */
     /* Y el SACS (Franklin Reyes, 7-10-2026, Ventanilla única 2.7): los
        recaudos y formularios de sus cuatro direcciones. */
-    /* Y el MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus seis
-       sistemas en línea y la lista de sus trámites. */
-    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos, la visa, el SACS y el MINEC, con sus enlaces; el SAPI, en su pestaña',
-          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:5 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4 ay_rec_minec:7 ay_rec_rnc:1');
+    igual('recaudos: en Ayuda, la licencia, los parafiscales, la conformidad de uso, los bomberos, la visa, el SACS y el RNC, con sus enlaces; el SAPI, en su pestaña',
+          grupos, 'ay_rec_licencia:4 ay_rec_parafiscales:5 ay_rec_conformidad:3 ay_rec_bomberos:2 ay_rec_visa:0 ay_rec_sacs:4 ay_rec_rnc:1');
+    /* El MINEC salió de aquí (Franklin Reyes, 4-11-2026: «este apartado es solo
+       para colocar guías»): sus enlaces directos siguen en el paso 1 de la
+       ficha, y eso lo mide la prueba de los permisos ambientales. */
+    var ayuda = document.querySelector('.ayuda-vista');
+    igual('recaudos: en Ayuda ya no está la tarjeta del MINEC',
+          ayuda ? ayuda.querySelectorAll('[data-clave="ay_rec_minec"], [data-k="ay_rec_minec"]').length : '(no está)', 0);
+    var aMinec = ayuda ? [].filter.call(ayuda.querySelectorAll('a[href]'), function(a){
+      return /minec\.gob\.ve/i.test(a.getAttribute('href')); }).map(function(a){ return a.getAttribute('href'); }) : ['(no está)'];
+    igual('recaudos: ni ningún enlace a los portales del MINEC', aMinec.join(' '), '');
     /* Y el SAPI (8-10-2026): el Clasificador de Niza. */
     var sapi = document.querySelector('.ayuda-vista .ay-sapi');
     var niza = sapi && sapi.querySelector('details[data-clave="ay_rec_sapi"] a.ay-enlace');

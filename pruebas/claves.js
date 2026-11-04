@@ -805,6 +805,28 @@ function fichasDelMarcado() {
   }
 }
 
+/* AYUDA Y GUÍA ES PARA GUÍAS
+   Franklin Reyes, 4-11-2026: «este apartado es solo para colocar guías». Los
+   enlaces directos a los portales del MINEC estaban en Ayuda, en una tarjeta
+   de los 8 idiomas. Se quitaron de ahí y solo de ahí: el paso 1 de los
+   permisos ambientales sigue llevando a cada sistema (PORTAL_DEL_MINEC). */
+{
+  const conMinec = [];
+  for (const lang of Object.keys(UI)) {
+    for (const k of Object.keys(UI[lang])) {
+      if (/^ay_/.test(k) && (/minec/i.test(k) || /minec\.gob\.ve/i.test(String(UI[lang][k]))))
+        conMinec.push(lang + '.' + k);
+    }
+  }
+  ok('ayuda: ninguna clave lleva a los portales del MINEC', conMinec.length === 0, conMinec.join(', '));
+  ok('ayuda: y la lista de tarjetas de «Pasos y recaudos» no pide la del MINEC',
+     !/\['licencia',[^\]]*'minec'/.test(PANEL) && /\['licencia',[^\]]*'rnc'\]/.test(PANEL));
+  const portales = /var PORTAL_DEL_MINEC = \{([\s\S]*?)\};/.exec(PANEL);
+  ok('ayuda: el paso 1 de los permisos ambientales conserva los seis portales',
+     !!portales && (portales[1].match(/https:\/\/[a-z]+\.minec\.gob\.ve\//g) || []).length === 6 &&
+     /c30: \{1: \{campo: 'sistema_minec', urls: PORTAL_DEL_MINEC/.test(PANEL));
+}
+
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');
 console.log('  ' + claves.length + ' claves de interfaz y ' + clavesUI.length +
             ' de trámites, en ' + idiomas.length + ' idiomas.\n');

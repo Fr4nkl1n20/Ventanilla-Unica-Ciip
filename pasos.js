@@ -1293,15 +1293,6 @@ window.CIIP_PASOS = {
                       "Recaudos y formularios · Dirección de Regulación y Control de Drogas, Medicamentos y Cosméticos | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Recaudos y formularios · Dirección de Inocuidad de Alimentos y Bebidas | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Recaudos y formularios · Dirección de Vigilancia y Control Sanitario en Aduanas | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
-      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
-      ay_rec_minec: "Ministerio del Poder Popular para el Ecosocialismo (MINEC)",
-      ay_rec_minec_lista: "Ventanilla Verde · trámites forestales y laboratorios ambientales | https://ventanillaverde.minec.gob.ve/\n" +
-                          "SIGETRAT · ocupación del territorio, estudio de impacto ambiental y afectación de recursos naturales | https://sigetrat.minec.gob.ve/\n" +
-                          "SIFORTRAT · aprovechamiento forestal, vegetación del terreno e industria forestal | https://sifortrat.minec.gob.ve/\n" +
-                          "RACDA · sustancias, desechos y efluentes | https://racda.minec.gob.ve/\n" +
-                          "SIALAMB · laboratorios ambientales | https://sialamb.minec.gob.ve/\n" +
-                          "RENMA · reciclaje, envases de un solo uso y neumáticos | https://renma.minec.gob.ve/\n" +
-                          "Trámites y servicios del MINEC · la lista de sus trámites con su código | https://www.minec.gob.ve/",
       ay_visa_planilla: "Descargar la planilla de solicitud de visa (PDF)",
       vs_planilla_nota: "Necesitarás la planilla de solicitud de visa para registrarte en el portal de Cancillería.",
       vs_planilla_btn: "Planilla de solicitud de visa",
@@ -3893,15 +3884,6 @@ window.CIIP_PASOS = {
                       "Requirements and forms · Directorate of Regulation and Control of Drugs, Medicines and Cosmetics | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Requirements and forms · Directorate of Food and Beverage Safety | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Requirements and forms · Directorate of Health Surveillance and Control at Customs | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
-      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
-      ay_rec_minec: "Ministry of People’s Power for Ecosocialism (MINEC)",
-      ay_rec_minec_lista: "Ventanilla Verde · forestry procedures and environmental laboratories | https://ventanillaverde.minec.gob.ve/\n" +
-                          "SIGETRAT · land occupation, environmental impact study and effects on natural resources | https://sigetrat.minec.gob.ve/\n" +
-                          "SIFORTRAT · forest harvesting, land vegetation and forest industry | https://sifortrat.minec.gob.ve/\n" +
-                          "RACDA · substances, waste and effluents | https://racda.minec.gob.ve/\n" +
-                          "SIALAMB · environmental laboratories | https://sialamb.minec.gob.ve/\n" +
-                          "RENMA · recycling, single-use packaging and tyres | https://renma.minec.gob.ve/\n" +
-                          "MINEC procedures and services · the list of its procedures with their codes | https://www.minec.gob.ve/",
       ay_visa_planilla: "Download the visa application form (PDF)",
       vs_planilla_nota: "You will need the visa application form to register on the Foreign Ministry portal.",
       vs_planilla_btn: "Visa application form",
@@ -6328,15 +6310,6 @@ window.CIIP_PASOS = {
                       "Documentos e formulários · Direção de Regulação e Controlo de Drogas, Medicamentos e Cosméticos | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Documentos e formulários · Direção de Inocuidade de Alimentos e Bebidas | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Documentos e formulários · Direção de Vigilância e Controlo Sanitário nas Alfândegas | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
-      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
-      ay_rec_minec: "Ministério do Poder Popular para o Ecossocialismo (MINEC)",
-      ay_rec_minec_lista: "Ventanilla Verde · trâmites florestais e laboratórios ambientais | https://ventanillaverde.minec.gob.ve/\n" +
-                          "SIGETRAT · ocupação do território, estudo de impacto ambiental e afetação de recursos naturais | https://sigetrat.minec.gob.ve/\n" +
-                          "SIFORTRAT · aproveitamento florestal, vegetação do terreno e indústria florestal | https://sifortrat.minec.gob.ve/\n" +
-                          "RACDA · substâncias, resíduos e efluentes | https://racda.minec.gob.ve/\n" +
-                          "SIALAMB · laboratórios ambientais | https://sialamb.minec.gob.ve/\n" +
-                          "RENMA · reciclagem, embalagens de uso único e pneus | https://renma.minec.gob.ve/\n" +
-                          "Trâmites e serviços do MINEC · a lista dos seus trâmites com o respetivo código | https://www.minec.gob.ve/",
       ay_visa_planilla: "Baixar o formulário de pedido de visto (PDF)",
       vs_planilla_nota: "Você vai precisar do formulário de pedido de visto para se registrar no portal da Chancelaria.",
       vs_planilla_btn: "Formulário de pedido de visto",
@@ -8748,15 +8721,6 @@ window.CIIP_PASOS = {
                       "Documenti e moduli · Direzione di regolazione e controllo di droghe, medicinali e cosmetici | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Documenti e moduli · Direzione per la sicurezza di alimenti e bevande | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Documenti e moduli · Direzione di vigilanza e controllo sanitario nelle dogane | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
-      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
-      ay_rec_minec: "Ministero del Potere Popolare per l’Ecosocialismo (MINEC)",
-      ay_rec_minec_lista: "Ventanilla Verde · pratiche forestali e laboratori ambientali | https://ventanillaverde.minec.gob.ve/\n" +
-                          "SIGETRAT · occupazione del territorio, studio di impatto ambientale e incidenza sulle risorse naturali | https://sigetrat.minec.gob.ve/\n" +
-                          "SIFORTRAT · sfruttamento forestale, vegetazione del terreno e industria forestale | https://sifortrat.minec.gob.ve/\n" +
-                          "RACDA · sostanze, rifiuti ed effluenti | https://racda.minec.gob.ve/\n" +
-                          "SIALAMB · laboratori ambientali | https://sialamb.minec.gob.ve/\n" +
-                          "RENMA · riciclaggio, imballaggi monouso e pneumatici | https://renma.minec.gob.ve/\n" +
-                          "Pratiche e servizi del MINEC · l’elenco delle sue pratiche con il relativo codice | https://www.minec.gob.ve/",
       ay_visa_planilla: "Scarica il modulo di richiesta del visto (PDF)",
       vs_planilla_nota: "Ti servirà il modulo di richiesta del visto per registrarti sul portale della Cancelleria.",
       vs_planilla_btn: "Modulo di richiesta del visto",
@@ -11168,15 +11132,6 @@ window.CIIP_PASOS = {
                       "所需材料和表格 · 药物、药品及化妆品监管司 | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "所需材料和表格 · 食品饮料安全司 | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "所需材料和表格 · 海关卫生监督管理司 | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
-      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
-      ay_rec_minec: "人民政权生态社会主义部（MINEC）",
-      ay_rec_minec_lista: "Ventanilla Verde · 林业手续与环境实验室 | https://ventanillaverde.minec.gob.ve/\n" +
-                          "SIGETRAT · 国土占用、环境影响评价及自然资源影响 | https://sigetrat.minec.gob.ve/\n" +
-                          "SIFORTRAT · 森林采伐、地表植被及林产工业 | https://sifortrat.minec.gob.ve/\n" +
-                          "RACDA · 物质、废弃物及排放物 | https://racda.minec.gob.ve/\n" +
-                          "SIALAMB · 环境实验室 | https://sialamb.minec.gob.ve/\n" +
-                          "RENMA · 回收利用、一次性包装及轮胎 | https://renma.minec.gob.ve/\n" +
-                          "MINEC 手续与服务 · 其手续清单及编号 | https://www.minec.gob.ve/",
       ay_visa_planilla: "下载签证申请表（PDF）",
       vs_planilla_nota: "在外交部门户网站注册时，你需要签证申请表。",
       vs_planilla_btn: "签证申请表",
@@ -13588,15 +13543,6 @@ window.CIIP_PASOS = {
                       "Документы и формы · Управление регулирования и контроля лекарственных средств и косметики | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Документы и формы · Управление безопасности пищевых продуктов и напитков | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Документы и формы · Управление санитарного надзора и контроля на таможне | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
-      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
-      ay_rec_minec: "Министерство народной власти по экосоциализму (MINEC)",
-      ay_rec_minec_lista: "Ventanilla Verde · лесные процедуры и экологические лаборатории | https://ventanillaverde.minec.gob.ve/\n" +
-                          "SIGETRAT · занятие территории, оценка воздействия на окружающую среду и затрагивание природных ресурсов | https://sigetrat.minec.gob.ve/\n" +
-                          "SIFORTRAT · лесопользование, растительность участка и лесная промышленность | https://sifortrat.minec.gob.ve/\n" +
-                          "RACDA · вещества, отходы и стоки | https://racda.minec.gob.ve/\n" +
-                          "SIALAMB · экологические лаборатории | https://sialamb.minec.gob.ve/\n" +
-                          "RENMA · переработка, одноразовая упаковка и шины | https://renma.minec.gob.ve/\n" +
-                          "Процедуры и услуги MINEC · список его процедур с кодами | https://www.minec.gob.ve/",
       ay_visa_planilla: "Скачать бланк заявления на визу (PDF)",
       vs_planilla_nota: "Бланк заявления на визу понадобится для регистрации на портале МИД.",
       vs_planilla_btn: "Бланк заявления на визу",
@@ -16008,15 +15954,6 @@ window.CIIP_PASOS = {
                       "Pièces et formulaires · Direction de la réglementation et du contrôle des drogues, médicaments et cosmétiques | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "Pièces et formulaires · Direction de la sécurité sanitaire des aliments et boissons | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "Pièces et formulaires · Direction de la surveillance et du contrôle sanitaires aux douanes | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
-      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
-      ay_rec_minec: "Ministère du Pouvoir populaire pour l’Écosocialisme (MINEC)",
-      ay_rec_minec_lista: "Ventanilla Verde · démarches forestières et laboratoires environnementaux | https://ventanillaverde.minec.gob.ve/\n" +
-                          "SIGETRAT · occupation du territoire, étude d’impact environnemental et atteinte aux ressources naturelles | https://sigetrat.minec.gob.ve/\n" +
-                          "SIFORTRAT · exploitation forestière, végétation du terrain et industrie forestière | https://sifortrat.minec.gob.ve/\n" +
-                          "RACDA · substances, déchets et effluents | https://racda.minec.gob.ve/\n" +
-                          "SIALAMB · laboratoires environnementaux | https://sialamb.minec.gob.ve/\n" +
-                          "RENMA · recyclage, emballages à usage unique et pneus | https://renma.minec.gob.ve/\n" +
-                          "Démarches et services du MINEC · la liste de ses démarches avec leur code | https://www.minec.gob.ve/",
       ay_visa_planilla: "Télécharger le formulaire de demande de visa (PDF)",
       vs_planilla_nota: "Vous aurez besoin du formulaire de demande de visa pour vous inscrire sur le portail de la Cancillería.",
       vs_planilla_btn: "Formulaire de demande de visa",
@@ -18443,15 +18380,6 @@ window.CIIP_PASOS = {
                       "必要書類と様式 · 薬物・医薬品・化粧品規制管理局 | https://www.sacs.gob.ve/site/recaudos_de_cosmeticos/\n" +
                       "必要書類と様式 · 食品・飲料安全局 | https://www.sacs.gob.ve/site/recaudos-de-alimentos/\n" +
                       "必要書類と様式 · 税関衛生監視管理局 | https://www.sacs.gob.ve/site/direccion-de-aduanas/",
-      /* El MINEC (Franklin Reyes, 19-10-2026, Permisos_MINEC): sus sistemas en línea y la web de sus trámites. */
-      ay_rec_minec: "環境社会主義人民権力省（MINEC）",
-      ay_rec_minec_lista: "Ventanilla Verde · 森林関連手続きと環境試験所 | https://ventanillaverde.minec.gob.ve/\n" +
-                          "SIGETRAT · 土地の占用、環境影響評価、天然資源への影響 | https://sigetrat.minec.gob.ve/\n" +
-                          "SIFORTRAT · 森林の利用、土地の植生、林産業 | https://sifortrat.minec.gob.ve/\n" +
-                          "RACDA · 物質、廃棄物、排出物 | https://racda.minec.gob.ve/\n" +
-                          "SIALAMB · 環境試験所 | https://sialamb.minec.gob.ve/\n" +
-                          "RENMA · リサイクル、使い捨て容器、タイヤ | https://renma.minec.gob.ve/\n" +
-                          "MINECの手続きとサービス · 手続きの一覧とコード | https://www.minec.gob.ve/",
       ay_visa_planilla: "ビザ申請書をダウンロード（PDF）",
       vs_planilla_nota: "Cancilleríaのポータルで登録する際にビザ申請書が必要です。",
       vs_planilla_btn: "ビザ申請書",
