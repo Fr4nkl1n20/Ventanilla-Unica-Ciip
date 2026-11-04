@@ -4415,7 +4415,7 @@
     var campos = [].map.call(hoja1.querySelectorAll('.sol-campo'), function(c){
       return c.getAttribute('data-campo'); });
     var paV = caja.querySelector('.pa');
-    ok('visa: sin la barra de «Tus datos · Recaudos · Repasar»', !!paV && paV.classList.contains('sin-barra'), paV ? paV.className : '(sin hojas)', 'sin-barra');
+    ok('visa: con su barra de «Tus datos · Recaudos · Repasar»', !!paV && !paV.classList.contains('sin-barra'), paV ? paV.className : '(sin hojas)', 'con barra');
     var avisoV = caja.querySelector('.pa-planilla');
     igual('visa: el anuncio de la planilla, justo debajo de la tarjeta',
           avisoV && avisoV.previousElementSibling ? avisoV.previousElementSibling.getAttribute('data-campo') : '(no está)', 'sistema_visa');
@@ -18050,11 +18050,12 @@
     if (CASO !== 'vacio') return;
     var hoja = document.querySelector('#trReal .pa-hoja[data-paso="1"]');
     var av = hoja && hoja.querySelector('.pa-nota');
-    /* La visa es una sola pantalla desde el 4-11-2026: su único aviso es el que
-       cuenta tus recaudos, ya no otro del pasaporte. */
-    igual('aviso: la visa es una sola hoja', document.querySelectorAll('#trReal .pa-hoja[data-paso]').length, 1);
-    ok('aviso: con el que cuenta tus recaudos, y nada más',
-       !!hoja && hoja.querySelectorAll('.pa-nota').length === 1, hoja ? hoja.querySelectorAll('.pa-nota').length + ' avisos' : '(sin hoja)', '1 aviso');
+    ok('aviso: el paso 1 de la visa ya no lleva el aviso del pasaporte',
+       !!hoja && !av, av ? av.textContent.trim().slice(0, 40) : 'no lo lleva', 'sin aviso');
+    /* Y el del paso 2 sigue: es otro, y ese si es verdad. */
+    var pap = document.querySelector('#trReal .pa-hoja[data-paso="2"] .pa-nota');
+    ok('aviso: y el del paso 2, que cuenta tus recaudos, sigue puesto',
+       !!pap, pap ? pap.textContent.trim().slice(0, 40) : '(no esta)', 'puesto');
   }
 
   function notaRifAbre(){
