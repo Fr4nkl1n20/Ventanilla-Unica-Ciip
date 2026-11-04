@@ -4414,6 +4414,8 @@
     }
     var campos = [].map.call(hoja1.querySelectorAll('.sol-campo'), function(c){
       return c.getAttribute('data-campo'); });
+    var paV = caja.querySelector('.pa');
+    ok('visa: sin la barra de «Tus datos · Recaudos · Repasar»', !!paV && paV.classList.contains('sin-barra'), paV ? paV.className : '(sin hojas)', 'sin-barra');
     var avisoV = caja.querySelector('.pa-planilla');
     igual('visa: el anuncio de la planilla, justo debajo de la tarjeta',
           avisoV && avisoV.previousElementSibling ? avisoV.previousElementSibling.getAttribute('data-campo') : '(no está)', 'sistema_visa');
@@ -13759,10 +13761,10 @@
     igual('hid: su paso 1 dice que es en la oficina', hpeEscalera('permisos_hidrocarburos', 'MINHIDROCARBUROS', {sistema_hidrocarburos: 'Trámites presenciales'}),
           'Solicita tu trámite en la oficina del organismo');
     if (tarjH[0]) tarjH[0].click();
-    ok('hid: con el SUTAP, la lista de permisos otra vez', !!pHid && !pHid.hidden, 'escondida', 'a la vista');
+    ok('hid: con el SUTAP, el permiso que solicita otra vez', !!pHid && !pHid.hidden, 'escondido', 'a la vista');
     ok('hid: y sin el trámite', !!tHid && tHid.hidden, 'a la vista', 'escondido');
-    igual('hid: la lista de permisos', bienesOpciones(caja, 'permiso_hidrocarburos'), (U.o_hid_permiso || []).join('|'));
-    igual('hid: los nueve permisos de la maqueta', (U.o_hid_permiso || []).filter(Boolean).length, 9);
+    /* Sin lista desplegable hasta confirmar con el Ministerio (4-11-2026). */
+    ok('hid: el permiso se escribe, sin lista', !!pHid && !pHid.querySelector('select') && !!pHid.querySelector('input'), pHid && pHid.querySelector('select') ? 'con lista' : 'sin casilla', 'a mano');
     igual('hid: los cuatro recaudos provisionales', hpeDocsSeVen(caja), 'acta_constitutiva cedula rif_empresa rif_personal');
     igual('hid: y lo dice debajo', hpeNotas(caja), U.d_nota_hid);
     var pa = caja && caja.querySelector('.pa');
@@ -18048,12 +18050,11 @@
     if (CASO !== 'vacio') return;
     var hoja = document.querySelector('#trReal .pa-hoja[data-paso="1"]');
     var av = hoja && hoja.querySelector('.pa-nota');
-    ok('aviso: el paso 1 de la visa ya no lleva el aviso del pasaporte',
-       !!hoja && !av, av ? av.textContent.trim().slice(0, 40) : 'no lo lleva', 'sin aviso');
-    /* Y el del paso 2 sigue: es otro, y ese si es verdad. */
-    var pap = document.querySelector('#trReal .pa-hoja[data-paso="2"] .pa-nota');
-    ok('aviso: y el del paso 2, que cuenta tus recaudos, sigue puesto',
-       !!pap, pap ? pap.textContent.trim().slice(0, 40) : '(no esta)', 'puesto');
+    /* La visa es una sola pantalla desde el 4-11-2026: su único aviso es el que
+       cuenta tus recaudos, ya no otro del pasaporte. */
+    igual('aviso: la visa es una sola hoja', document.querySelectorAll('#trReal .pa-hoja[data-paso]').length, 1);
+    ok('aviso: con el que cuenta tus recaudos, y nada más',
+       !!hoja && hoja.querySelectorAll('.pa-nota').length === 1, hoja ? hoja.querySelectorAll('.pa-nota').length + ' avisos' : '(sin hoja)', '1 aviso');
   }
 
   function notaRifAbre(){

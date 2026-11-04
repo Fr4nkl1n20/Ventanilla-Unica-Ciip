@@ -6857,7 +6857,8 @@ applyLang(idiomaParaMi());
       {n:'razon_social',          clave:'f_razon',         ancho:true},
       {n:'rif_empresa',           clave:'f_rifempresa'},
       {n:'representante',         clave:'f_representante'},
-      {n:'permiso_hidrocarburos', clave:'f_permisosol',    opcionesClave:'o_hid_permiso', ancho:true,
+      /* Sin lista (4-11-2026): falta confirmar con el Ministerio qué se tramita por SUTAP. */
+      {n:'permiso_hidrocarburos', clave:'f_permisosol',    ancho:true,
        verSi:'sistema_hidrocarburos', verDistinto:VALOR_PRESENCIAL},
       campoPresencial('sistema_hidrocarburos')
     ],
@@ -7368,7 +7369,7 @@ applyLang(idiomaParaMi());
     hidrocarburos_en_proceso: [
       {n:'sistema_hidrocarburos', clave:'f_dondetramite', opcionesClave:'o_sutap_sistema', ancho:true,
        tarjetas:TARJETAS_DEL_SUTAP, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
-      {n:'permiso_hidrocarburos', clave:'f_yspermisoya', opcionesClave:'o_hid_permiso', ancho:true,
+      {n:'permiso_hidrocarburos', clave:'f_yspermisoya', ancho:true,
        verSi:'sistema_hidrocarburos', verDistinto:VALOR_PRESENCIAL},
       campoPresencial('sistema_hidrocarburos'),
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
@@ -8536,9 +8537,13 @@ applyLang(idiomaParaMi());
     }
     hDatos.appendChild(dos);
 
+    /* La visa, en una sola pantalla (Franklin Reyes, 4-11-2026): elegido el trámite,
+       la tarjeta, los datos y el pasaporte juntos, sin «Siguiente» ni repaso. */
+    var unaPantalla = (tipo.codigo === 'visa_negocios' || tipo.codigo === 'visa_inversionista' ||
+                       tipo.codigo === 'visa_en_proceso');
     var lado = null, notaPap = null, cajaJunta = null;
     if (hayPapeles){
-      var hPapeles = hojaNueva(u.recaudos);
+      var hPapeles = unaPantalla ? hDatos : hojaNueva(u.recaudos);
       var dosP = el('div', 'sol-dos sola');
       lado = el('aside', 'sol-lado');
       dosP.appendChild(lado);
@@ -8558,7 +8563,7 @@ applyLang(idiomaParaMi());
        mismo que con hDatos: se construye escondida, porque pintaRepaso
        escribe dentro y el envío no tiene por qué saber de esto. */
     var hRepaso;
-    if (sinDatos){
+    if (sinDatos || unaPantalla){
       hRepaso = el('div', 'pa-hoja');
       hRepaso.hidden = true;
       pa.appendChild(hRepaso);
@@ -10070,6 +10075,8 @@ applyLang(idiomaParaMi());
     });
 
     function vePaso(n, sube){
+      /* Con una sola hoja, como la visa, no hay paso 2 al que ir. */
+      n = Math.min(n, HOJAS.length);
       paso = n;
       visto[n] = true;
       avisoPaso.textContent = '';
@@ -28919,7 +28926,9 @@ applyLang(idiomaParaMi());
     if (!ref) return false;
     if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' ||
         ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c69' || ref === 'c70' || ref === 'c71' || ref === 'c72' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
-        ref === 'c28' || ref === 'c29' || ref === 'c13') return true;
+        ref === 'c28' || ref === 'c29' || ref === 'c13' ||
+        /* Las dos visas, sin la barra (Franklin Reyes, 4-11-2026). */
+        ref === 'c1' || ref === 'c38') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
   var GRUPOS = [
