@@ -9673,7 +9673,7 @@
           !!rec && rec.offsetHeight > 0 && faqSec.offsetHeight === 0, true);
     igual('ayuda: y la pestaña queda encendida', bRec && bRec.getAttribute('aria-selected'), 'true');
     var cards = rec ? rec.querySelectorAll('details.ay-card') : [];
-    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 8);
+    igual('ayuda: cada trámite es una tarjeta abierta', [].filter.call(cards, function(d){ return d.open; }).length, 7);
     var tipos = rec ? [].map.call(rec.querySelectorAll('details[data-clave="ay_rec_bomberos"] .ay-tipo'), function(x){ return x.textContent; }).join(' ') : '';
     igual('ayuda: cada enlace dice qué abre', tipos, 'Web Instagram');
     var cuenta = rec && rec.querySelector('details[data-clave="ay_rec_parafiscales"] .ay-cuenta');
@@ -13455,6 +13455,7 @@
           x.docs || 'cedula rif_personal acta_constitutiva rif_empresa');
     if (x.sinMarca && caja){
       var marcaV = caja.querySelector('.st-tarjeta .st-marca');
+      if (window.innerWidth > 640) igual(k + ': la tarjeta mide como la de RUPDAE', Math.round(caja.querySelector('.st-tarjeta').getBoundingClientRect().height), 176);
       igual(k + ': sin el círculo de marcar', marcaV ? getComputedStyle(marcaV).display : '(no está)', 'none');
       var solo = caja.querySelector('.con-tarjetas select');
       ok(k + ': la opción ya elegida', !!solo && !!solo.value, solo ? (solo.value || 'vacía') : '(no está)', 'elegida');
@@ -13581,6 +13582,13 @@
     if (PASE !== 'vacio') return sigue();
     ['c1', 'c2', 'c3'].forEach(function(r){ window.CIIP_YA_ELEGIDA(r); });
     var PM = window.CIIP_PASO_MIO, PRES = 'Trámites presenciales';
+    /* Todas como la de RUPDAE (4-11-2026): lo corto es solo de la tarjeta, y los avisos que salieron de ellas van al paso 1. */
+    var pasosEs = window.CIIP_PASOS.pasos.es;
+    ok('tarjetas: el aviso de SIACSv2, en su paso 1', pasosEs.c48_siacsv2[0].indexOf('autorizacionsiacsv2@gmail.com') >= 0, pasosEs.c48_siacsv2[0], 'con el correo');
+    ok('tarjetas: el de SIVERCOS, en el suyo', pasosEs.c48_sivercos[0].indexOf('farmacéutico patrocinante') >= 0, pasosEs.c48_sivercos[0], 'con el farmacéutico');
+    igual('tarjetas: SIACSv2 dice su paso 1 en la escalera',
+          window.CIIP_ESCALERA({estado: 'enviado', datos: {sistema_sacs: 'SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria'}}, 'permiso_sacs', 'SACS').todos[0].nombre,
+          pasosEs.c48_siacsv2[0]);
     if (PM){
       igual('visa: en línea, el paso 1 lleva a Cancillería Digital',
             (PM.enlace('c1', 1, {datos: {}}) || {}).url, 'https://cancilleriadigital.mppre.gob.ve/');

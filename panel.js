@@ -5366,8 +5366,9 @@ applyLang(idiomaParaMi());
       var t = el('div', 'st-tarjeta');
       t.innerHTML = e.pt;
       var cu = el('div', 'st-cu');
-      cu.appendChild(el('div', 'st-sig', e.sig));
-      cu.appendChild(el('div', 'st-nom', e.nom));
+      var cortaE = TARJETA_CORTA[e.sig] || {};
+      cu.appendChild(el('div', 'st-sig', u[cortaE.sig] || e.sig));
+      cu.appendChild(el('div', 'st-nom', u[cortaE.nom] || e.nom));
       var toca = el('div', 'st-toca');
       toca.appendChild(el('b', null, (u.yt_toca || '') + ' '));
       toca.appendChild(document.createTextNode(u[e.toca] || ''));
@@ -5424,6 +5425,133 @@ applyLang(idiomaParaMi());
      título de su pestaña. Marcar una tarjeta pone su valor en sel y lanza change,
      así que lo que cuelga del desplegable -el enlace, las casillas que
      dependen de él- no se entera de que ya no se ve. */
+  /* TODAS COMO LA DE RUPDAE (Franklin Reyes, 4-11-2026,
+     maquetas/tarjetas-como-rupdae.html): la tarjeta mide lo mismo siempre y el
+     nombre oficial no cabe. Lo corto es solo de la tarjeta: lo que se guarda, y
+     lo que ve quien revisa, sigue siendo el valor de la lista de siempre. */
+  var TARJETA_CORTA = {
+      "Cancillería Digital · Ministerio del Poder Popular para Relaciones Exteriores": {
+          "nom": "tc_nom_cancilleriadigital"
+      },
+      "Portal del SAIME · trámites": {
+          "nom": "tc_nom_portaldelsaime"
+      },
+      "Chacao": {
+          "nom": "tc_nom_chacao"
+      },
+      "Libertador": {
+          "nom": "tc_nom_libertador"
+      },
+      "Sucre": {
+          "nom": "tc_nom_sucre"
+      },
+      "RNC en línea · Servicio Nacional de Contrataciones": {
+          "nom": "tc_nom_rncenlinea"
+      },
+      "SIGETRAT": {
+          "nom": "tc_nom_sigetrat"
+      },
+      "Ventanilla Verde": {
+          "nom": "tc_nom_ventanillaverde"
+      },
+      "SIFORTRAT": {
+          "nom": "tc_nom_sifortrat"
+      },
+      "RACDA": {
+          "nom": "tc_nom_racda"
+      },
+      "SIALAMB": {
+          "nom": "tc_nom_sialamb"
+      },
+      "RENMA": {
+          "nom": "tc_nom_renma"
+      },
+      "SIGDME · Ministerio de Desarrollo Minero Ecológico": {
+          "nom": "tc_nom_sigdme"
+      },
+      "BANAVIH · FAOV": {
+          "nom": "tc_nom_banavihfaov"
+      },
+      "INCES": {
+          "nom": "tc_nom_inces"
+      },
+      "SUNDDE · RUPDAE": {
+          "nom": "tc_nom_sundderupdae"
+      },
+      "IVSS · Seguro Social": {
+          "nom": "tc_nom_ivsssegurosocial"
+      },
+      "Ministerio del Trabajo · RNET": {
+          "nom": "tc_nom_ministeriodeltrabajornet",
+          "sig": "tc_sig_ministeriodeltrabajornet"
+      },
+      "SIACVISA · Sistema de Información Automatizado de Control y Vigilancia Sanitaria": {
+          "nom": "tc_nom_siacvisa"
+      },
+      "Censo Nacional Automatizado · Establecimientos de Salud y Similares": {
+          "nom": "tc_nom_censonacionalautomatizado",
+          "sig": "tc_sig_censonacionalautomatizado"
+      },
+      "SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria": {
+          "nom": "tc_nom_siacsv2"
+      },
+      "SIVERCOS · Sistema Venezolano de Registro de Cosméticos": {
+          "nom": "tc_nom_sivercos"
+      },
+      "CLV · Certificados Electrónicos de Libre Venta": {
+          "nom": "tc_nom_clv"
+      },
+      "RTN Digital · Portal Institucional de Turismo de Venezuela": {
+          "nom": "tc_nom_rtndigital"
+      },
+      "SIGESAI · Sistema Integrado de Gestión para la Movilización Animal y Vegetal": {
+          "nom": "tc_nom_sigesai"
+      },
+      "RUNSAI · Registro Único Nacional de Salud Agrícola Integral": {
+          "nom": "tc_nom_runsai"
+      },
+      "Plataforma de Certificados de Importación y Exportación": {
+          "nom": "tc_nom_insai"
+      },
+      "INTI · Oficina Regional de Tierras": {
+          "nom": "tc_nom_inti"
+      },
+      "SUTAP · Sistema Único de Trámites, Autorizaciones y Permisos": {
+          "nom": "tc_nom_sutap"
+      },
+      "Pesca y embarcaciones · Oficina de atención de INSOPESCA · Parque Central": {
+          "nom": "tc_nom_pescayembarcaciones",
+          "sig": "tc_sig_pescayembarcaciones"
+      },
+      "Acuicultura · Oficina de atención de INSOPESCA · Parque Central": {
+          "nom": "tc_nom_acuicultura"
+      },
+      "Empresa y comercio · Sistema de Trámites de INSOPESCA": {
+          "nom": "tc_nom_empresaycomercio"
+      },
+      "Autogeneración · Ministerio de Energía Eléctrica · 2 MW o más": {
+          "nom": "tc_nom_autogeneracion"
+      },
+      "Renovables y eficiencia · Ministerio de Energía Eléctrica": {
+          "nom": "tc_nom_renovablesyeficiencia",
+          "sig": "tc_sig_renovablesyeficiencia"
+      },
+      "Concesión · Uso industrial, comercial o hidroeléctrico": {
+          "nom": "tc_nom_concesion"
+      },
+      "Licencia · Agrícola, abastecimiento o recreación": {
+          "nom": "tc_nom_licencia"
+      },
+      "Afectación · Recursos naturales y estudios": {
+          "nom": "tc_nom_afectacion"
+      },
+      "Cambios · Venta o modificación del título": {
+          "nom": "tc_nom_cambios"
+      },
+      "INEA · Instituto Nacional de los Espacios Acuáticos": {
+          "nom": "tc_nom_inea"
+      }
+  };
   function montaTarjetas(campo, sel, c, u){
     var datos = c.tarjetas;
     /* El SACS no las dice: son las suyas. El MINEC trae las propias
@@ -5495,13 +5623,14 @@ applyLang(idiomaParaMi());
         if (datos[o.value].ciip) nom = o.textContent;
         if (corte < 0 && datos[o.value].sig){ nom = o.textContent; sig = datos[o.value].sig; }
         if (datos[o.value].ciip) sig = 'CIIP';
+        var corta = TARJETA_CORTA[o.value] || {};
         var t = el('div', 'st-tarjeta');
         t.setAttribute('role', 'radio');
         t.setAttribute('data-valor', o.value);
         t.appendChild(d.ciip ? portadaDelCiip() : dibuja(d, sig));
         var cu = el('div', 'st-cu');
-        cu.appendChild(el('div', 'st-sig', sig));
-        if (nom) cu.appendChild(el('div', 'st-nom', nom));
+        cu.appendChild(el('div', 'st-sig', u[corta.sig] || sig));
+        if (nom || corta.nom) cu.appendChild(el('div', 'st-nom', u[corta.nom] || nom));
         var toca = el('div', 'st-toca');
         toca.appendChild(el('b', null, (u.yt_toca || '') + ' '));
         toca.appendChild(document.createTextNode(u[d.toca] || ''));
@@ -29750,7 +29879,10 @@ applyLang(idiomaParaMi());
                         c17: {campo: 'apostillado', si: 'c17_yaapostillado'},
                         c51: [{campo: 'sistema_agricola', valor: OFICINA_DEL_INTI, si: 'c51_inti'},
                               {campo: 'sistema_agricola', valor: VALOR_PRESENCIAL, si: 'c51_presencial'}],
-                        c48: {campo: 'sistema_sacs', valor: VALOR_PRESENCIAL, si: 'c48_presencial'},
+                        c48: [{campo: 'sistema_sacs', valor: VALOR_PRESENCIAL, si: 'c48_presencial'},
+                              /* Los avisos que salieron de sus tarjetas (4-11-2026). */
+                              {campo: 'sistema_sacs', valor: 'SIACSv2 · Sistema de Información Automatizado de Contraloría Sanitaria', si: 'c48_siacsv2'},
+                              {campo: 'sistema_sacs', valor: 'SIVERCOS · Sistema Venezolano de Registro de Cosméticos', si: 'c48_sivercos'}],
                         c36: {campo: 'sistema_minero', valor: VALOR_PRESENCIAL, si: 'c36_presencial'},
                         c39: {campo: 'sistema_sidcai', valor: VALOR_PRESENCIAL, si: 'c39_presencial'},
                         c50: {campo: 'sistema_turistico', valor: VALOR_PRESENCIAL, si: 'c50_presencial'},

@@ -4492,6 +4492,14 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-ag-inti .ag-inti{font-size:13cqw; font-weight:900; color:#3E5A1F; line-height:1;}
 .st-ag-inti .ag-sub{color:#5B4A2A;}
 .st-cu{flex:1 1 auto; min-width:0; display:grid; gap:3px; align-content:start; padding:8px 8px 9px; overflow-wrap:anywhere;}
+/* Todas como la de RUPDAE (4-11-2026): sigla, un renglón de nombre y hasta tres
+   de «te toca si». En el teléfono crecen con la columna, y el alto va libre. */
+@media (min-width:641px){
+  .st-tarjeta{height:176px;}
+  .st-cu{overflow:hidden;}
+  .st-sig, .st-nom{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .st-toca{display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden;}
+}
 .st-sig{font-size:10px; font-weight:800; letter-spacing:.02em; color:var(--navy2);}
 .st-nom{font-size:11.5px; font-weight:700; line-height:1.3;}
 .st-toca{font-size:11px; color:var(--gray); line-height:1.35;}
