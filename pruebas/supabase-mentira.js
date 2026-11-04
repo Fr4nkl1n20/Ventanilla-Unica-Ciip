@@ -246,6 +246,8 @@
        solicitudes de 'rnc' de más abajo son las de antes. */
     {codigo:'rnc',          ref_panel:'c13', ente:'RNC',   activo:true, emite:'certificado_rnc',
      nombre:'Registro Nacional de Contratistas', fase:3, nivel:'actividad'},
+    {codigo:'rnc_en_proceso', ref_panel:'c69', ente:'RNC', activo:true, emite:null, plazo_dias:null,
+     nombre:'RNC ya solicitado', fase:3, nivel:'actividad'},
     /* Las cinco inscripciones en una casilla. Como en la base de verdad en
        todo menos en el NIVEL: fase 3, 28 dias y SIN 'emite', que devuelve
        cinco constancias y la columna guarda una.

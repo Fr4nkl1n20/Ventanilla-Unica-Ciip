@@ -494,6 +494,8 @@
               ypmAguAbre, ypmAguMira, ypmAguYaMira, ypmAguAtrasMira,
               ypmIndAbre, ypmIndMira, ypmIndYaMira, ypmIndAtrasMira,
               ypmTraAbre, ypmTraMira, ypmTraYaMira, ypmTraAtrasMira,
+              /* Y el RNC (c13/c69), 4-11-2026. */
+              ypmRncAbre, ypmRncMira, ypmRncYaMira, ypmRncAtrasMira,
               aitAguAbre, aitAguMira, aitIndAbre, aitIndMira, aitTraAbre, aitTraMira,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
@@ -1226,7 +1228,7 @@
                 2-11-2026. */
              /* Y 50 con hidrocarburos, pesca y energía (c57 a c62), Franklin
                 Reyes, 3-11-2026. */
-             pendS === 56, pendS + ' por iniciar de 57 ofrecidas', '56');
+             pendS === 57, pendS + ' por iniciar de 58 ofrecidas', '57');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1251,8 +1253,8 @@
              INTI (c54), Franklin Reyes, 2-11-2026.
              Y 45 con el RNC encendido (c13) y los de c55 y c56, el mismo día.
              Y 51 con hidrocarburos, pesca y energía (c57 a c62), 3-11-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 57,
-             pend + ' por iniciar de 57 ofrecidas', '57');
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 58,
+             pend + ' por iniciar de 58 ofrecidas', '58');
       }
 
       /* ── la cadena entre trámites ──
@@ -1705,8 +1707,14 @@
            dos escondidos del ministerio minero (c55) y del MINTUR (c56). */
         /* Y TREINTA desde el 3-11-2026: hidrocarburos, pesca y energía, con sus
            tres escondidos. */
-        igual('grupo: la fase 03 se queda con treinta tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 30);
+        /* Y TREINTA Y SIETE desde el 4-11-2026: agua, industria y comercio, y
+           transporte, con sus tres escondidos, y el RNC ya solicitado (c69).
+           Esta cuenta siguió en treinta con las seis primeras porque a la c62
+           le faltaba su cierre: quedaron dentro de ella y no se veían. */
+        igual('grupo: la fase 03 se queda con treinta y siete tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 37);
+        igual('grupo: ninguna tarjeta queda dentro de otra',
+              document.querySelectorAll('.tcard .tcard').length, 0);
         ok('grupo: y el título no es una tarjeta',
            !t.classList.contains('tcard') && !t.hasAttribute('data-tr'),
            t.className, 'sin ser tarjeta');
@@ -13343,6 +13351,11 @@
     pes: {madre: 'c59', ya: 'c60', p: 'ype', codigo: 'pesca_en_proceso', ente: 'INSOPESCA',
           campos: 'area_pesca permiso_pesca tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 4, gestion: 'En coordinación con INSOPESCA', fin: 'Permiso listo'},
+    rnc: {madre: 'c13', ya: 'c69', p: 'yrc', codigo: 'rnc_en_proceso', ente: 'RNC',
+          opciones: 'Ya solicité el registro | Solicitar el registro por primera vez',
+          campos: 'sistema_rnc permiso_ya fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'permiso_ya',
+          tarjetas: 2, gestion: 'En coordinación con el SNC', fin: 'Registro listo'},
     agu: {madre: 'c63', ya: 'c64', p: 'yag', codigo: 'agua_en_proceso', ente: 'MINAGUAS',
           campos: 'area_agua permiso_agua tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 5, gestion: 'En coordinación con el Ministerio de Atención de las Aguas', fin: 'Permiso listo'},
@@ -13375,7 +13388,7 @@
     igual(k + ': primero «ya solicité» y después «por primera vez»', yaOpciones(), x.ya + ' ' + x.madre);
     igual(k + ': con las dos opciones del SACS',
           [].map.call(guia.querySelectorAll('[data-ya-op] .gv-nombre'), function(n){ return n.textContent; }).join(' | '),
-          'Ya solicité un permiso | Solicitar un permiso por primera vez');
+          x.opciones || 'Ya solicité un permiso | Solicitar un permiso por primera vez');
     igual(k + ': y el formulario apartado hasta elegir', marcaElige(), 'apartado');
     var ya = guia.querySelector('[data-ya-op="' + x.ya + '"]');
     if (ya) ya.click();
@@ -13459,6 +13472,10 @@
   function ypmPesMira(sigue){ ypmMira('pes', sigue); }
   function ypmPesYaMira(sigue){ ypmYaMira('pes', sigue); }
   function ypmPesAtrasMira(sigue){ ypmAtrasMira('pes', sigue); }
+  function ypmRncAbre(sigue){ ypmAbre('rnc', sigue); }
+  function ypmRncMira(sigue){ ypmMira('rnc', sigue); }
+  function ypmRncYaMira(sigue){ ypmYaMira('rnc', sigue); }
+  function ypmRncAtrasMira(sigue){ ypmAtrasMira('rnc', sigue); }
   function ypmAguAbre(sigue){ ypmAbre('agu', sigue); }
   function ypmAguMira(sigue){ ypmMira('agu', sigue); }
   function ypmAguYaMira(sigue){ ypmYaMira('agu', sigue); }
@@ -13554,8 +13571,9 @@
     var ini = hijos.findIndex(function(e){ return e.getAttribute('data-grupo') === 'g.sectorial'; });
     var ultimas = hijos.filter(function(e){
       return e.matches('.tcard[data-tr]') && !e.hasAttribute('data-tramo-de');
-    }).slice(-3).map(function(e){ return e.getAttribute('data-tr'); }).join(' ');
-    igual('hpe: las tres, al final de las licencias sectoriales', ultimas, 'c57 c59 c61');
+    }).slice(-6).map(function(e){ return e.getAttribute('data-tr'); }).join(' ');
+    /* Detrás de ellas, desde el 4-11-2026, agua, industria y comercio, y transporte. */
+    igual('hpe: las tres, y detrás agua, industria y transporte, al final de las licencias sectoriales', ultimas, 'c57 c59 c61 c63 c65 c67');
     [['c57', 'Permisos de hidrocarburos', 'Ministerio del Poder Popular de Hidrocarburos'],
      ['c59', 'Permisos de pesca', 'Instituto Socialista de la Pesca y Acuicultura'],
      ['c61', 'Permisos de energía', 'Ministerio del Poder Popular para la Energía Eléctrica']].forEach(function(x){
@@ -13767,7 +13785,16 @@
        'en ' + hijos.indexOf(c) + ', título en ' + ini, 'antes del título');
     igual('rnc: se abre su detalle', document.body.getAttribute('data-vista'), 'tramite');
     var caja = document.getElementById('trReal');
-    igual('rnc: como el RTN, razón social y RIF', bienesCampos(caja), 'razon_social rif_empresa');
+    igual('rnc: dónde, razón social y RIF, y el trámite si es presencial', bienesCampos(caja), 'sistema_rnc razon_social rif_empresa tramite_presencial');
+    var tarjN = caja ? caja.querySelectorAll('.st-tarjeta') : [];
+    igual('rnc: RNC en línea y los trámites presenciales', tarjN.length, 2);
+    igual('rnc: el recuadro de RNC en línea', tarjN[0] ? (tarjN[0].querySelector('.st-sig') || {}).textContent : '(no está)', 'RNC en línea');
+    ok('rnc: con su portada', !!tarjN[0] && !!tarjN[0].querySelector('.st-pt.p-rnc'), 'sin portada', 'p-rnc');
+    ok('rnc: hasta elegir, las casillas esperan', !!caja && !!caja.querySelector('.st-sin-elegir'), 'a la vista', 'esperando');
+    igual('rnc: los presenciales no llevan enlace', window.CIIP_PASO_MIO.enlace('c13', 1, {datos: {sistema_rnc: 'Trámites presenciales'}}), null);
+    igual('rnc: su paso 1 dice que es en la oficina',
+          window.CIIP_ESCALERA({estado: 'enviado', datos: {sistema_rnc: 'Trámites presenciales'}}, 'rnc', 'RNC').todos[0].nombre,
+          'Solicita tu trámite en la oficina del organismo');
     var pa = caja && caja.querySelector('.pa');
     ok('rnc: sin la barra de «Tus datos · Recaudos · Repasar»',
        !!pa && pa.classList.contains('sin-barra'), pa ? pa.className : '(sin hojas)', 'sin-barra');

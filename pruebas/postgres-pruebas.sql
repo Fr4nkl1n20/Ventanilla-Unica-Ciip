@@ -2860,6 +2860,12 @@ select arnes.comprueba(
   position('''hidrocarburos_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
   and position('''pesca_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
   and position('''energia_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0);
+-- El RNC ya solicitado (c69), Franklin Reyes, 4-11-2026.
+select arnes.comprueba(
+  'rnc ya solicitado: encendido, sin emite ni plazo, y su motivo cuenta en las estadísticas',
+  (select count(*) = 1 from public.tipos_tramite
+    where codigo = 'rnc_en_proceso' and ref_panel = 'c69' and ente = 'RNC' and activo and emite is null and plazo_dias is null)
+  and position('rnc_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
 -- Agua, industria y comercio, y transporte (c63 a c68), Franklin Reyes, 4-11-2026.
 select arnes.comprueba(
   'agua, industria y transporte: los seis trámites, encendidos',

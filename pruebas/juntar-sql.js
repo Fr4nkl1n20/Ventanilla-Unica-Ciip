@@ -360,7 +360,9 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* Los permisos de agua (c63/c64), de industria y comercio (c65/c66) y de
    transporte (c67/c68), Franklin Reyes, 4-11-2026: los seis trámites, sus
    documentos, y confirma_paso y estadisticas_control() redefinidas; va la última. */
-'supabase-agua-industria-transporte'];
+'supabase-agua-industria-transporte',
+/* El RNC ya solicitado (c69), Franklin Reyes, 4-11-2026; va la última. */
+'supabase-rnc-ya-solicitado'];
 
 let mal = 0;
 for (const n of orden) {

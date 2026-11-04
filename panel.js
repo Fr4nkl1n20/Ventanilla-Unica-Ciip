@@ -1125,7 +1125,9 @@ function applyLang(lang){
        Reyes, 4-11-2026, maquetas/agua-industria-transporte.html). */
     c63: {ya:'c64', nueva:'c63', p:'yag'},
     c65: {ya:'c66', nueva:'c65', p:'yic'},
-    c67: {ya:'c68', nueva:'c67', p:'ytp'}
+    c67: {ya:'c68', nueva:'c67', p:'ytp'},
+    /* Y el RNC (Franklin Reyes, 4-11-2026, maquetas/rnc-tarjetas.html). */
+    c13: {ya:'c69', nueva:'c13', p:'yrc'}
   };
   /* De cada ref, su pareja: la de la portada y la escondida, las dos. */
   var GUIA_YA_DE = {};
@@ -1135,8 +1137,8 @@ function applyLang(lang){
   });
   /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
      escondida nace elegida, que solo se llega a ella eligiéndola. */
-  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false,
-                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true};
+  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false, c13:false,
+                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true, c69:true};
   window.CIIP_YA_ELEGIDA = function(ref){
     if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
     YA_ELEGIDA[ref] = true;
@@ -4582,6 +4584,12 @@ applyLang(idiomaParaMi());
       {tipo:'cedula',            clave:'d_cedrep'},
       {tipo:'rif_personal',      clave:'d_rifrep'}
     ],
+    rnc_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
     transporte_en_proceso: [
       {tipo:'acta_constitutiva', clave:'d_actaempresa'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
@@ -5277,6 +5285,10 @@ applyLang(idiomaParaMi());
   var TARJETAS_DEL_MINERO = tarjetasEnLinea('SIGDME · Ministerio de Desarrollo Minero Ecológico', 'yt_toca_sigdme', PORTADA_SIGDME);
   var TARJETAS_DEL_RTN = tarjetasEnLinea('RTN Digital · Portal Institucional de Turismo de Venezuela', 'yt_toca_rtn', PORTADA_RTN);
   var TARJETAS_DEL_SUTAP = tarjetasEnLinea('SUTAP · Sistema Único de Trámites, Autorizaciones y Permisos', 'yt_toca_sutap', PORTADA_SUTAP);
+  /* El RNC (Franklin Reyes, 4-11-2026): logo del SNC y textos de su página; su
+     banner no se pudo ver, y por eso es un dibujo aproximado. */
+  var PORTADA_RNC = '<div class="st-pt p-rnc" aria-hidden="true"><img src="logos/snc.png" alt=""><div class="t">Bienvenido al sistema web del Registro Nacional de Contratistas</div><i></i><i></i></div>';
+  var TARJETAS_DEL_RNC = tarjetasEnLinea('RNC en línea · Servicio Nacional de Contrataciones', 'yt_toca_rncl', PORTADA_RNC);
   var TARJETAS_DEL_SIDCAI = tarjetasEnLinea('SIDCAI · FONACIT', 'yt_toca_sidcai', PORTADA_SIDCAI);
   /* ── LOS ENTES DE LOS PARAFISCALES, EN UNA FILA ──
      Franklin Reyes, 3-11-2026 (maquetas/parafiscales-tarjetas.html): «igual
@@ -6489,8 +6501,23 @@ applyLang(idiomaParaMi());
        (c50), razón social y RIF. Lo demás lo pregunta RNC en línea. Lo que
        preguntaba antes se sigue leyendo: ver CAMPOS_DE_ANTES. */
     rnc: [
+      {n:'sistema_rnc', clave:'f_dondetramite', opcionesClave:'o_rnc_sistema', ancho:true,
+       tarjetas:TARJETAS_DEL_RNC, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
       {n:'razon_social',        clave:'f_razon',         ancho:true},
-      {n:'rif_empresa',         clave:'f_rifempresa'}
+      {n:'rif_empresa',         clave:'f_rifempresa'},
+      campoPresencial('sistema_rnc')
+    ],
+    /* «Ya solicité» del RNC (c69), Franklin Reyes, 4-11-2026. */
+    rnc_en_proceso: [
+      {n:'sistema_rnc', clave:'f_dondetramite', opcionesClave:'o_rnc_sistema', ancho:true,
+       tarjetas:TARJETAS_DEL_RNC, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
+      {n:'permiso_ya',           clave:'f_yspermisoya', ancho:true},
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
     ],
     rnet: [
       {n:'razon_social',        clave:'f_razon',       ancho:true},
@@ -28701,7 +28728,7 @@ applyLang(idiomaParaMi());
   function esPermisoAgrupado(ref){
     if (!ref) return false;
     if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' ||
-        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
+        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c69' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
         ref === 'c28' || ref === 'c29' || ref === 'c13') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
@@ -29519,6 +29546,7 @@ applyLang(idiomaParaMi());
     c64: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c66: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c68: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c69: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Los dos RIF (Franklin Reyes, 30-9-2026): «Solicitud recibida → Planilla
        enviada por el CIIP → Firme la planilla → RIF emitido». Empiezan por
        «recibida», así que la cuenta es la de siempre; están aquí porque son
@@ -29639,6 +29667,7 @@ applyLang(idiomaParaMi());
                         c50: {campo: 'sistema_turistico', valor: VALOR_PRESENCIAL, si: 'c50_presencial'},
                         c57: {campo: 'sistema_hidrocarburos', valor: VALOR_PRESENCIAL, si: 'c57_presencial'},
                         c61: {campo: 'area_energia', valor: VALOR_PRESENCIAL, si: 'c61_presencial'},
+                        c13: {campo: 'sistema_rnc', valor: VALOR_PRESENCIAL, si: 'c13_presencial'},
                         c63: {campo: 'area_agua', valor: VALOR_PRESENCIAL, si: 'c63_presencial'},
                         c65: {campo: 'area_industria', valor: VALOR_PRESENCIAL, si: 'c65_presencial'},
                         c67: {campo: 'area_transporte', valor: VALOR_PRESENCIAL, si: 'c67_presencial'},
@@ -29674,7 +29703,7 @@ applyLang(idiomaParaMi());
     c28: {1: {campo: 'municipio', urls: PORTAL_DE_LA_ALCALDIA, clave: 'p_iralcaldia'}},
     c36: {1: {url: 'https://sigdme2-0.desarrollominero.gob.ve/', clave: 'p_irsigdme', salvo: 'sistema_minero'}},
     c50: {1: {url: 'https://turismonac.mintur.gob.ve/', clave: 'p_irmintur', salvo: 'sistema_turistico'}},
-    c13: {1: {url: 'https://rncenlinea.snc.gob.ve/', clave: 'p_irrnc'}},
+    c13: {1: {url: 'https://rncenlinea.snc.gob.ve/', clave: 'p_irrnc', salvo: 'sistema_rnc'}},
     /* Los permisos de hidrocarburos, de pesca y de energía (Franklin Reyes,
        3-11-2026). En pesca, sólo el área que tiene sistema en línea. */
     c57: {1: {url: 'https://sutap.minhidrocarburos.gob.ve/', clave: 'p_irsutap', salvo: 'sistema_hidrocarburos'}},
