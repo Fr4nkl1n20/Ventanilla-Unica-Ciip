@@ -13369,16 +13369,19 @@
           tarjetas: 4, gestion: 'En coordinación con INSOPESCA', fin: 'Permiso listo'},
     vis: {madre: 'c1', ya: 'c70', p: 'yvi', codigo: 'visa_en_proceso', ente: 'MPPRE',
           opciones: 'Ya solicité la visa | Solicitar la visa por primera vez',
+          sinMarca: true,
           campos: 'sistema_visa permiso_ya fecha_solicitud_ya nombre_completo numero_pasaporte pais_emisor motivo_ya detalle_ya',
           queSolicito: 'permiso_ya', etiqueta: 'f_yavisa', docs: 'pasaporte',
           tarjetas: 2, gestion: 'En coordinación con Cancillería', fin: 'Visa otorgada'},
     ced: {madre: 'c2', ya: 'c71', p: 'yce', codigo: 'cedula_en_proceso', ente: 'SAIME',
           opciones: 'Ya solicité la cédula | Solicitar la cédula por primera vez',
+          sinMarca: true,
           campos: 'sistema_cedula fecha_solicitud_ya nombre_completo numero_pasaporte pais_emisor motivo_ya detalle_ya',
           sinQueSolicito: true, docs: 'pasaporte',
           tarjetas: 2, gestion: 'En coordinación con el SAIME', fin: 'Cédula otorgada'},
     rif: {madre: 'c3', ya: 'c72', p: 'yrf', codigo: 'rif_en_proceso', ente: 'SENIAT',
           opciones: 'Ya solicité el RIF | Solicitar el RIF por primera vez',
+          sinMarca: true,
           campos: 'sistema_rif fecha_solicitud_ya nombre_completo numero_documento motivo_ya detalle_ya',
           sinQueSolicito: true, docs: 'cedula',
           tarjetas: 2, gestion: 'En coordinación con el SENIAT', fin: 'RIF emitido'},
@@ -13443,6 +13446,23 @@
     igual(k + ': el motivo, con la lista de siempre', bienesOpciones(caja, 'motivo_ya'), (U.o_ya_motivo || []).join('|'));
     igual(k + ': y los cuatro recaudos del SACS ya solicitado', bienesDocs(caja),
           x.docs || 'cedula rif_personal acta_constitutiva rif_empresa');
+    if (x.sinMarca && caja){
+      var marcaV = caja.querySelector('.st-tarjeta .st-marca');
+      igual(k + ': sin el círculo de marcar', marcaV ? getComputedStyle(marcaV).display : '(no está)', 'none');
+      var solo = caja.querySelector('.con-tarjetas select');
+      ok(k + ': la opción ya elegida', !!solo && !!solo.value, solo ? (solo.value || 'vacía') : '(no está)', 'elegida');
+      var nombreV = caja.querySelector('.sol-campo[data-campo="nombre_completo"]');
+      ok(k + ': y los datos a la vista, sin pulsar nada', !!nombreV && nombreV.offsetHeight > 0,
+         nombreV ? nombreV.offsetHeight + 'px' : '(no está)', 'a la vista');
+      var pesV = caja.querySelectorAll('.st-pe');
+      if (pesV[1] && solo){
+        var enLinea = solo.value;
+        pesV[1].click();
+        igual(k + ': la pestaña de presenciales elige su opción', solo.value, 'Trámites presenciales');
+        pesV[0].click();
+        igual(k + ': y la primera vuelve a la suya', solo.value, enLinea);
+      }
+    }
     var pa = caja && caja.querySelector('.pa');
     ok(k + ': sin la barra de «Tus datos · Recaudos · Repasar», como el c49',
        !!pa && pa.classList.contains('sin-barra'), pa ? pa.className : '(sin hojas)', 'sin-barra');

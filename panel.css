@@ -4534,6 +4534,8 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .st-ente-campos[hidden]{display:none;}
 .st-ente-campos > .sol-casilla{display:none;}
 .sol-grupo:has(.st-entes .sol-casilla.mal) > legend{color:var(--rust);}
+.st-sin-marca .st-marca{display:none;}
+.st-sin-marca .st-tarjeta, .st-sin-marca .st-tarjeta:hover, .st-sin-marca .st-tarjeta.on{background:var(--bg); cursor:default;}
 .st-marcable{cursor:pointer;}
 .st-entes .st-tarjeta:not(.st-marcable){cursor:default;}
 .st-entes .st-tarjeta:not(.st-marcable):hover{background:var(--bg);}

@@ -5478,7 +5478,11 @@ applyLang(idiomaParaMi());
       b.type = 'button';
       b.setAttribute('role', 'tab');
       b.title = u[e.d] || '';
-      b.addEventListener('click', function(){ abre(e.n); });
+      /* Sin marca, cada pestaña es una sola opción: abrirla ya la elige. */
+      b.addEventListener('click', function(){
+        if (c.sinMarca && rej.firstChild) elige(rej.firstChild);
+        else abre(e.n);
+      });
       pes.appendChild(b);
       paneles.push({n: e.n, panel: bloque, boton: b});
       var rej = el('div', 'st-rej');
@@ -5535,6 +5539,13 @@ applyLang(idiomaParaMi());
     else if (paneles[0]) paneles[0].panel.removeAttribute('role');
     /* Lo que hay que saber antes de elegir: el aviso de energía (3-11-2026). */
     if (c.aviso) caja.appendChild(el('div', 'st-aviso', u[c.aviso] || ''));
+    /* La visa, la cédula y el RIF (Franklin Reyes, 4-11-2026: «quiero que estén
+       desplegados los datos porque son una sola opción, y quitar el check»):
+       nacen elegidos, sin el círculo de marcar. */
+    if (c.sinMarca){
+      caja.classList.add('st-sin-marca');
+      if (!sel.value && todas[0]) sel.value = todas[0].getAttribute('data-valor');
+    }
     var ya = sel.value && datos[sel.value];
     abre(ya ? ya.etapa : (paneles[0] || {}).n);
     sel.style.display = 'none';
@@ -6061,7 +6072,7 @@ applyLang(idiomaParaMi());
        que otro trámite lo pregunte. */
     visa_negocios: [
       {n:'sistema_visa', clave:'f_dondetramite', opcionesClave:'o_visa_sistema', ancho:true,
-       tarjetas:TARJETAS_DE_LA_VISA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
+       tarjetas:TARJETAS_DE_LA_VISA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada, sinMarca:true},
       {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
       {n:'pais_emisor',      clave:'f_paisemisor', paises:true},
@@ -6069,7 +6080,7 @@ applyLang(idiomaParaMi());
     ],
     visa_inversionista: [
       {n:'sistema_visa', clave:'f_dondetramite', opcionesClave:'o_visa_sistema', ancho:true,
-       tarjetas:TARJETAS_DE_LA_VISA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
+       tarjetas:TARJETAS_DE_LA_VISA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada, sinMarca:true},
       {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
       {n:'pais_emisor',      clave:'f_paisemisor', paises:true},
@@ -6182,7 +6193,7 @@ applyLang(idiomaParaMi());
        el SAIME en su portal. */
     cedula_residencia: [
       {n:'sistema_cedula', clave:'f_dondetramite', opcionesClave:'o_cedula_sistema', ancho:true,
-       tarjetas:TARJETAS_DE_LA_CEDULA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
+       tarjetas:TARJETAS_DE_LA_CEDULA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada, sinMarca:true},
       {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
       {n:'pais_emisor',      clave:'f_paisemisor', paises:true},
@@ -6236,7 +6247,7 @@ applyLang(idiomaParaMi());
        los marca opcionales también, y el correo con ellos. */
     rif_personal: [
       {n:'sistema_rif', clave:'f_dondetramite', opcionesClave:'o_rif_sistema', ancho:true,
-       tarjetas:TARJETAS_DEL_RIF, etapas:ETAPAS_DEL_RIF, portada:portadaDibujada},
+       tarjetas:TARJETAS_DEL_RIF, etapas:ETAPAS_DEL_RIF, portada:portadaDibujada, sinMarca:true},
       campoPresencial('sistema_rif'),
       {n:'tipo_persona',     clave:'f_tipopersona', opcionesClave:'o_tipopersona'},
       {n:'numero_documento', clave:'f_numero'},
@@ -6554,7 +6565,7 @@ applyLang(idiomaParaMi());
     /* «Ya solicité» de la visa (c70), la cédula (c71) y el RIF (c72), 4-11-2026. */
     visa_en_proceso: [
       {n:'sistema_visa', clave:'f_dondetramite', opcionesClave:'o_visa_sistema', ancho:true,
-       tarjetas:TARJETAS_DE_LA_VISA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
+       tarjetas:TARJETAS_DE_LA_VISA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada, sinMarca:true},
       {n:'permiso_ya',           clave:'f_yavisa',      opcionesClave:'o_ya_visa'},
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
@@ -6565,7 +6576,7 @@ applyLang(idiomaParaMi());
     ],
     cedula_en_proceso: [
       {n:'sistema_cedula', clave:'f_dondetramite', opcionesClave:'o_cedula_sistema', ancho:true,
-       tarjetas:TARJETAS_DE_LA_CEDULA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada},
+       tarjetas:TARJETAS_DE_LA_CEDULA, etapas:ETAPAS_EN_LINEA, portada:portadaDibujada, sinMarca:true},
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'nombre_completo',  clave:'f_nombrecompleto', ancho:true},
       {n:'numero_pasaporte', clave:'f_pasaporte'},
@@ -6575,7 +6586,7 @@ applyLang(idiomaParaMi());
     ],
     rif_en_proceso: [
       {n:'sistema_rif', clave:'f_dondetramite', opcionesClave:'o_rif_sistema', ancho:true,
-       tarjetas:TARJETAS_DEL_RIF, etapas:ETAPAS_DEL_RIF, portada:portadaDibujada},
+       tarjetas:TARJETAS_DEL_RIF, etapas:ETAPAS_DEL_RIF, portada:portadaDibujada, sinMarca:true},
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'nombre_completo',      clave:'f_nombrecompleto', ancho:true},
       {n:'numero_documento',     clave:'f_numero'},
