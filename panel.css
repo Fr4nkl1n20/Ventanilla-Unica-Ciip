@@ -4184,6 +4184,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
   margin-bottom:14px; padding:12px 14px; background:var(--activa-bg); border:1px solid var(--line); border-radius:var(--r);}
 .pa-planilla-t{flex:1; min-width:200px; font-size:var(--fs-parrafo); line-height:1.5; color:var(--ink);}
 .pa-planilla-b{white-space:nowrap;}
+.sol-campos > .pa-planilla{grid-column:1 / -1; margin:0;}
 /* En la tarjeta de cada ente, los pasos en horizontal y mas apretados: el
    punto de 20 y el hilo a su altura. */
 .pe-pasos .tr-paso{gap:7px; min-width:120px; padding-right:12px;}

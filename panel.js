@@ -8532,7 +8532,8 @@ applyLang(idiomaParaMi());
         else location.hash = 'ayuda';
       });
       fPv.appendChild(bPv);
-      hDatos.appendChild(fPv);
+      /* Debajo de la tarjeta de Cancillería Digital (Franklin Reyes, 4-11-2026):
+         se coloca al montar esa casilla, en la rejilla del formulario. */
     }
     hDatos.appendChild(dos);
 
@@ -9330,6 +9331,7 @@ applyLang(idiomaParaMi());
         campo.appendChild(entrada);
       }
       rejilla.appendChild(campo);
+      if (c.n === 'sistema_visa' && fPv) rejilla.appendChild(fPv);
     /* Las casillas que dependen de otra. Van DESPUES de montar todas: la de
        origen tiene que existir, y el valor guardado solo se puede poner
        cuando la lista ya tiene sus opciones -puesto antes, un select vacio

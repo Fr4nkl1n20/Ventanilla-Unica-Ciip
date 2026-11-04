@@ -4414,6 +4414,9 @@
     }
     var campos = [].map.call(hoja1.querySelectorAll('.sol-campo'), function(c){
       return c.getAttribute('data-campo'); });
+    var avisoV = caja.querySelector('.pa-planilla');
+    igual('visa: el anuncio de la planilla, justo debajo de la tarjeta',
+          avisoV && avisoV.previousElementSibling ? avisoV.previousElementSibling.getAttribute('data-campo') : '(no está)', 'sistema_visa');
     igual('visa: «Tus datos» pide dónde, nombre y apellido, número de pasaporte y país de emisión',
           campos.join(' '), 'sistema_visa nombre_completo numero_pasaporte pais_emisor tramite_presencial');
     ok('visa: sin el apartado del itinerario ni cajas de texto largo',
