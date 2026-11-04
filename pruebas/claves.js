@@ -299,8 +299,8 @@ const PROPIOS = new Set((
                 en los seis idiomas: es una decisión, no un descuido. */
 const SALTOS = new Set([
   'yt_toca_pr', 'yt_toca_sidcai', 'yt_toca_rncl', 'yt_toca_canc', 'yt_toca_saime', 'yt_toca_rifp',
-  'yt_toca_concesion', 'yt_toca_licagua', 'yt_toca_afectacion', 'yt_toca_cambioagua', 'yt_toca_rupdaeic',
-  'yt_toca_sis', 'yt_toca_envasados', 'yt_toca_norven', 'yt_toca_inac', 'yt_toca_inea', 'yt_toca_intt',
+  'yt_toca_concesion', 'yt_toca_licagua', 'yt_toca_afectacion', 'yt_toca_cambioagua', 'yt_toca_senlinea',
+  'yt_toca_sis', 'yt_toca_envasados', 'yt_toca_norven', 'yt_toca_inea', 'yt_toca_intt',
   'tag.soon', 'asst.greet',
   /* Y estos dos no son rótulos: son TROZOS que se pegan detrás de otra
      cosa —«pasaporte.pdf · ya estaba en tu expediente», «resuelta el 4 de

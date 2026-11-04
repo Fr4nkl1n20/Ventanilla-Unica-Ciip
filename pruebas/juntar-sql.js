@@ -364,7 +364,9 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* El RNC ya solicitado (c69), Franklin Reyes, 4-11-2026; va la última. */
 'supabase-rnc-ya-solicitado',
 /* Visa, cédula y RIF ya solicitados (c70 a c72), 4-11-2026; va la última. */
-'supabase-visa-cedula-rif'];
+'supabase-visa-cedula-rif',
+/* Revisión de la etapa 3: c35 fuera de la base, 4-11-2026. */
+'supabase-borrar-c35'];
 
 let mal = 0;
 for (const n of orden) {

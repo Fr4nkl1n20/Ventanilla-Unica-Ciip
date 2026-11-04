@@ -13405,7 +13405,7 @@
           tarjetas: 5, gestion: 'En coordinación con SUNDDE o SENCAMER', fin: 'Permiso listo'},
     tra: {madre: 'c67', ya: 'c68', p: 'ytp', codigo: 'transporte_en_proceso', ente: 'MPPT',
           campos: 'area_transporte permiso_transporte tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
-          tarjetas: 4, gestion: 'En coordinación con el INAC, el INEA o el INTT', fin: 'Permiso listo'},
+          tarjetas: 3, gestion: 'En coordinación con el INAC, el INEA o el INTT', fin: 'Permiso listo'},
     ene: {madre: 'c61', ya: 'c62', p: 'yen', codigo: 'energia_en_proceso', ente: 'MPPEE',
           campos: 'area_energia permiso_energia tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 4, gestion: 'En coordinación con el Ministerio de Energía Eléctrica', fin: 'Permiso listo'}
@@ -13657,9 +13657,28 @@
     if (pre) pre.click();
     var cT = caja && caja.querySelector('.sol-campo[data-campo="tramite_presencial"]');
     var cP = caja && caja.querySelector('.sol-campo[data-campo="' + x.permiso + '"]');
+    /* Revisión de la etapa 3 (Valeria Ramos, 4-11-2026): industria y transporte
+       llevan lista en los presenciales, y «Otro trámite» abre el campo libre. */
+    if (x.presencial){
+      var pr = x.presencial;
+      ok(k + ': presenciales, con su lista', !!cP && !cP.hidden, 'escondida', 'a la vista');
+      igual(k + ': la lista', sel ? [].map.call(sel.options, function(o){ return o.value; }).filter(Boolean).join('|') : '(no está)', pr.lista);
+      ok(k + ': el campo libre espera', !!cT && cT.hidden, 'a la vista', 'escondido');
+      sel.value = pr.valor;
+      sel.dispatchEvent(new Event('change', {bubbles: true}));
+      igual(k + ': «' + pr.valor + '», sus recaudos', hpeDocsSeVen(caja), pr.docs.split(' ').sort().join(' '));
+      ok(k + ': y su nota dice dónde', hpeNotas(caja).indexOf(U[pr.nota]) >= 0, hpeNotas(caja), U[pr.nota]);
+      var dl = {}; dl[x.area] = 'Trámites presenciales'; dl[x.permiso] = pr.valor;
+      igual(k + ': sin botón a ningún sistema', hpeEnlace(x.ref, dl), 'sin enlace');
+      igual(k + ': su paso 1 dice dónde', hpeEscalera(x.codigo, x.ente, dl), pr.paso);
+      sel.value = 'Otro trámite';
+      sel.dispatchEvent(new Event('change', {bubbles: true}));
+      ok(k + ': con «Otro trámite», el campo libre', !!cT && !cT.hidden, 'escondido', 'a la vista');
+    } else {
     ok(k + ': presenciales, sale el trámite', !!cT && !cT.hidden, 'escondido', 'a la vista');
     ok(k + ': y no la lista de permisos', !!cP && cP.hidden, 'a la vista', 'escondida');
     igual(k + ': y sin recaudos', hpeDocsSeVen(caja), '');
+    }
     var dp = {}; dp[x.area] = 'Trámites presenciales';
     igual(k + ': sin enlace', hpeEnlace(x.ref, dp), 'sin enlace');
     igual(k + ': su paso 1 dice que es en la oficina', hpeEscalera(x.codigo, x.ente, dp), 'Solicita tu trámite en la oficina del organismo');
@@ -13675,16 +13694,21 @@
       {area: 'Cambios · Venta o modificación del título', valor: 'Reasignación por venta del inmueble', docs: 'planilla_minaguas compraventa_certificada titulo_agua_vendedor'}]}, sigue);
   }
   function aitIndMira(sigue){
-    aitMira('ind', {ref: 'c65', codigo: 'permisos_industria', ente: 'MPPICN', area: 'area_industria', permiso: 'permiso_industria', tarjetas: 5, pestanas: 3,
+    aitMira('ind', {ref: 'c65', codigo: 'permisos_industria', ente: 'MPPICN', area: 'area_industria', permiso: 'permiso_industria', tarjetas: 5, pestanas: 2,
+      presencial: {lista: 'Aprobación de promociones|Otro trámite', valor: 'Aprobación de promociones', nota: 'd_nota_promo',
+                   docs: 'acta_constitutiva cedula rif_empresa rif_personal', paso: 'Envía tu solicitud a sundde.promocion@gmail.com'},
       clave: 'p_irindustria', paso: 'Solicita tu permiso en el sistema que elegiste', casos: [
-      {area: 'RUPDAE · SUNDDE', valor: 'Inscripción en el RUPDAE', docs: 'registro_mercantil_empresa acta_asamblea rif_empresa cedula rif_personal', enlace: 'https://rupdae.sundde.gob.ve/login'},
+      {area: 'Sistema en línea · SENCAMER', valor: 'Registro de productos nacionales o importados', docs: 'acta_constitutiva rif_empresa cedula rif_personal', nota: 'd_nota_prov', enlace: 'https://enlinea.sencamer.gob.ve/'},
       {area: 'SIS · SENCAMER', valor: 'Registro de empresa manufacturera (REM)', docs: 'acta_constitutiva rif_empresa cedula rif_personal', nota: 'd_nota_prov', enlace: 'https://sis.sencamer.gob.ve/'},
       {area: 'NORVEN · SENCAMER', valor: 'Marca NORVEN', docs: 'acta_constitutiva rif_empresa cedula rif_personal rif_gerente_calidad manual_calidad plan_calidad_producto catalogo_producto certificado_uso_sanitario', enlace: 'https://norven.sencamer.gob.ve/login'}]}, sigue);
   }
   function aitTraMira(sigue){
-    aitMira('tra', {ref: 'c67', codigo: 'permisos_transporte', ente: 'MPPT', area: 'area_transporte', permiso: 'permiso_transporte', tarjetas: 4, pestanas: 4,
+    aitMira('tra', {ref: 'c67', codigo: 'permisos_transporte', ente: 'MPPT', area: 'area_transporte', permiso: 'permiso_transporte', tarjetas: 3, pestanas: 3,
+      presencial: {lista: 'Certificado de explotador de servicio público (RAV 121 y 135)|Idoneidad económica|Servicio especializado de transporte aéreo|Trabajos aéreos (RAV 130)|Otro trámite',
+                   valor: 'Trabajos aéreos (RAV 130)', nota: 'd_nota_inacpres',
+                   docs: 'carta_solicitud_ente planilla_liquidacion_ente idoneidad_economica dip_inac',
+                   paso: 'Presenta tu solicitud en la Gerencia General de Transporte Aéreo del INAC, en Altamira'},
       clave: 'p_irtransporte', paso: 'Solicita tu permiso en el sistema que elegiste', casos: [
-      {area: 'SITGA · INAC', valor: 'Trabajos aéreos (RAV 130)', docs: 'carta_solicitud_ente planilla_liquidacion_ente idoneidad_economica dip_inac', nota: 'd_nota_inac', enlace: 'https://aplt.inac.gob.ve/sitga/'},
       {area: 'INEA · Instituto Nacional de los Espacios Acuáticos', valor: 'Registro de compañía naviera', docs: 'carta_solicitud_ente planilla_liquidacion_ente registro_mercantil_empresa cedula rif_empresa patente_arrendamiento inspeccion_capitania fianza_inea sistema_calidad_iso titulo_fletamento opinion_seguridad_maritima', enlace: 'https://inea.gob.ve/'},
       {area: 'Planilla Única · INTT', valor: 'Registro de operadores de transporte de carga (ROTC)', docs: 'registro_mercantil_empresa cedula numero_patronal_ivss solvencia_islr certificado_vehiculo poliza_rcv', enlace: 'https://put.intt.gob.ve/'}]}, sigue);
   }
@@ -13797,8 +13821,11 @@
           campo + ' razon_social rif_empresa representante ' + permiso + ' tramite_presencial');
     var tarjetas = caja ? [].slice.call(caja.querySelectorAll('.st-rej .st-tarjeta')) : [];
     igual(k + ': tres áreas y los trámites presenciales', tarjetas.length, 4);
-    igual(k + ': en dos bloques', caja ? caja.querySelectorAll('.st-rej').length : 0, 2);
-    igual(k + ': con dos pestañas', caja ? caja.querySelectorAll('.st-pe').length : -1, 2);
+    /* Energía, desde la revisión de la etapa 3: todo en «Trámites presenciales». */
+    igual(k + ': en sus bloques', caja ? caja.querySelectorAll('.st-rej').length : 0, k === 'ene' ? 1 : 2);
+    igual(k + ': con sus pestañas', caja ? caja.querySelectorAll('.st-pe').length : -1, k === 'ene' ? 1 : 2);
+    if (k === 'ene') igual('ene: la pestaña dice «Trámites presenciales»',
+                           caja ? caja.querySelector('.st-pe').textContent : '', '1 · Trámites presenciales');
     ok(k + ': sin enlace en las tarjetas', !!caja && !caja.querySelector('.st-tarjeta a'), 'con enlace', 'sin enlace');
     var campoA = caja && caja.querySelector('.sol-campo[data-campo="' + campo + '"]');
     ok(k + ': hasta elegir, las casillas esperan',
@@ -13875,9 +13902,11 @@
   function hpeEneMira(sigue){
     if (PASE !== 'vacio') return sigue();
     var U = window.CIIP_PASOS.ui[curLang] || {};
-    var paso = 'Solicita tu permiso en la página de lo que vas a tramitar';
+    /* Revisión de la etapa 3: las tres áreas se presentan en persona. */
+    var paso = 'Presenta tu solicitud en persona ante el organismo';
     var uno = function(valor, lista, docs, nota, enlace){
-      return {valor: valor, lista: lista, docs: docs, nota: nota, enlace: enlace, paso: paso, ref: 'c61',
+      return {valor: valor, lista: lista, docs: docs, nota: nota, enlace: enlace,
+              paso: valor === 'Conexión y servicio · CORPOELEC' ? 'Presenta tu solicitud en un Centro Integral de Atención al Usuario (CIAU) de CORPOELEC' : paso, ref: 'c61',
               codigo: 'permisos_energia', ente: 'MPPEE', datos: {area_energia: valor}};
     };
     var caja = hpeAreas('ene', 'area_energia', 'permiso_energia', [

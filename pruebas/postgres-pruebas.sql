@@ -2755,11 +2755,10 @@ select arnes.comprueba(
 -- `emite`- porque las solicitudes que ya existen la referencian y porque el
 -- admin puede volver a encenderlo desde el panel.
 select arnes.comprueba(
-  'rupdae y rum: estan en la fase 3, y solo el RUM encendido',
-  (select count(*) = 2 from public.tipos_tramite
-    where (codigo, ref_panel) in (('rupdae', 'c35'), ('registro_minero', 'c36'))
-      and fase = 3
-      and activo = (codigo = 'registro_minero')),
+  'rum: en la fase 3 y encendido, y el RUPDAE (c35) borrado el 4-11-2026',
+  (select count(*) = 1 from public.tipos_tramite
+    where codigo = 'registro_minero' and ref_panel = 'c36' and fase = 3 and activo)
+  and not exists (select 1 from public.tipos_tramite where codigo = 'rupdae'),
   (select string_agg(codigo || ' activo=' || activo::text, ', ' order by codigo)
      from public.tipos_tramite where codigo in ('rupdae', 'registro_minero')));
 
@@ -2767,9 +2766,8 @@ select arnes.comprueba(
 -- pero no suma a los diez obligatorios del informe: 'esencial'. El RUM
 -- solo a la mineria: 'actividad'.
 select arnes.comprueba(
-  'rupdae y rum: el RUPDAE es esencial y el RUM depende de la actividad',
-  (select bool_and(case codigo when 'rupdae' then nivel = 'esencial'
-                               else nivel = 'actividad' end)
+  'rum: depende de la actividad',
+  (select bool_and(nivel = 'actividad')
      from public.tipos_tramite where codigo in ('rupdae', 'registro_minero')),
   (select string_agg(codigo || ' ' || nivel, ', ') from public.tipos_tramite
     where codigo in ('rupdae', 'registro_minero')));
@@ -2777,17 +2775,15 @@ select arnes.comprueba(
 -- La SUNDDE da de cinco a diez dias habiles. La Resolucion 0010 del RUM no
 -- da ninguno: un numero ahi marcaria como tardia una solicitud sin hora.
 select arnes.comprueba(
-  'rupdae y rum: catorce dias el RUPDAE, y el RUM sin plazo',
-  (select plazo_dias = 14 from public.tipos_tramite where codigo = 'rupdae')
-  and (select plazo_dias is null from public.tipos_tramite where codigo = 'registro_minero'));
+  'rum: sin plazo',
+  (select plazo_dias is null from public.tipos_tramite where codigo = 'registro_minero'));
 
 -- El certificado del RUM dura tres anos; el del RUPDAE ya no vence.
 select arnes.comprueba(
-  'rupdae y rum: emiten su certificado, y solo el del RUM caduca',
-  (select count(*) = 2 from public.tipos_tramite t
+  'rum: emite su certificado, que caduca',
+  (select count(*) = 1 from public.tipos_tramite t
      join public.tipos_documento d on d.codigo = t.emite
-    where (t.codigo = 'rupdae' and d.codigo = 'certificado_rupdae' and not d.vence)
-       or (t.codigo = 'registro_minero' and d.codigo = 'certificado_rum' and d.vence)));
+    where t.codigo = 'registro_minero' and d.codigo = 'certificado_rum' and d.vence));
 
 -- La inscripcion en el SIDCAI (c39), del encargo del 23 de septiembre de
 -- 2026: fase 3, encendida, 'actividad' -solo si se pasa del umbral de
@@ -2908,9 +2904,9 @@ select arnes.comprueba(
 -- Pero NO borrados: sus filas siguen, que es lo que da nombre a las
 -- solicitudes que ya existen de esos cinco tipos.
 select arnes.comprueba(
-  'parafiscales: apagar no borro ninguna de las cinco filas, tampoco la del RNC',
-  (select count(*) = 5 from public.tipos_tramite
-    where codigo in ('faov_banavih', 'inces', 'rnet', 'rnc', 'rupdae')));
+  'parafiscales: apagar no borro ninguna de las filas, tampoco la del RNC (la del RUPDAE se borro aparte, el 4-11-2026)',
+  (select count(*) = 4 from public.tipos_tramite
+    where codigo in ('faov_banavih', 'inces', 'rnet', 'rnc')));
 
 -- El IVSS (c9) ya no esta: el 20-9-2026 se quedo fuera de esta casilla con
 -- ficha propia, y el 22-9-2026 el CIIP quito la ficha del catalogo.

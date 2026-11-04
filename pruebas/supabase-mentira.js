@@ -372,9 +372,6 @@
        El RUPDAE va APAGADO desde el 20-9-2026: se hace dentro del c37.
        Conserva su 'emite' y su plazo para que, si el CIIP vuelve a
        encenderlo desde el panel del admin, no se encienda descalzo. */
-    {codigo:'rupdae', ref_panel:'c35', ente:'SUNDDE',
-     activo:false, emite:'certificado_rupdae', plazo_dias:14,
-     nombre:'Inscripción en el RUPDAE', fase:3, nivel:'esencial'},
     {codigo:'registro_minero', ref_panel:'c36', ente:'Ministerio de Desarrollo Minero',
      activo:true, emite:'certificado_rum', plazo_dias:null,
      nombre:'Registro Único Minero', fase:3, nivel:'actividad'},
