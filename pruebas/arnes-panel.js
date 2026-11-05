@@ -19242,6 +19242,13 @@
     if (cab) cab.click();
     filaOtra = document.querySelector('#rv .rv-fila');
     if (filaOtra) filaOtra.click();
+    /* Observar no rechaza: su botón tiene que decirlo (5-11-2026). */
+    var botonObs = [].filter.call(document.querySelectorAll('#rv .rv-pie button'), function(x){ return x.textContent === U.rv_observar; })[0];
+    if (botonObs) botonObs.click();
+    igual('revisar: al observar, el botón dice que envía la observación',
+          (document.querySelector('#rv .rv-pie .rv-acc .rv-btn.prim') || {}).textContent, U.rv_confirmar_obs);
+    var cancelaObs = document.querySelector('#rv .rv-pie .rv-acc .rv-btn:not(.prim)');
+    if (cancelaObs) cancelaObs.click();
     ok('revisar: el primero se abre con «Validar» y «Rechazar»',
        !!document.querySelector('#rv .rv-btn.ok') && !!document.querySelector('#rv .rv-btn.no'),
        document.querySelector('#rv .rv-visor') ? 'visor abierto' : 'sin visor', 'los dos botones');

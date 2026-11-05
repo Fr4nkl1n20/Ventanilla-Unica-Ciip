@@ -25202,7 +25202,7 @@ applyLang(idiomaParaMi());
       var cancela = el('button', 'rv-btn', u.pf_cancelar || '');
       cancela.type = 'button';
       cancela.addEventListener('click', function(){ rvRechazando = false; rvPinta(); });
-      var confirma = el('button', 'rv-btn prim', u.rv_confirmar || '');
+      var confirma = el('button', 'rv-btn prim', (observando ? u.rv_confirmar_obs : u.rv_confirmar) || '');
       confirma.type = 'button';
       confirma.addEventListener('click', function(){
         var texto = (nota.value || '').trim();
