@@ -14581,7 +14581,9 @@
     var rv = document.getElementById('rv');
     if (rv) rv.textContent = '';
     location.hash = 'revisar';
-    esperaFilas('#rv .rv-pie .rv-btn.no', 1, function(){
+    esperaFilas('#rv .rv-fila', 1, function(){
+      /* El documento se abre en una ventana al pulsarlo (5-11-2026). */
+      document.querySelector('#rv .rv-fila').click();
       var no = document.querySelector('#rv .rv-pie .rv-btn.no');
       if (!no){
         ok('repaso de revisar: hay un papel con «Rechazar»', false, 'no está', 'está');
@@ -19172,6 +19174,46 @@
        '', 'sin nombre suelto');
     ok('revisar: con su buscador por inversionista', !!document.getElementById('rvBusca'),
        document.getElementById('rvBusca') ? 'está' : 'no está', 'un buscador');
+    /* Por inversionista, con sus dos cuadros y el documento en una ventana (5-11-2026). */
+    var cuadros = document.querySelectorAll('#rv .rv-cuadros');
+    ok('revisar: el primer inversionista sale abierto con sus cuadros', cuadros.length === 1, cuadros.length + ' abiertos', 'uno');
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    igual('revisar: los dos cuadros, bien identificados',
+          [].map.call(document.querySelectorAll('#rv .rv-cuadro-t > span:first-child'), function(t){ return t.textContent; }).join(' | '),
+          U.rv_cat_coinciden + ' | ' + U.rv_cat_especificos);
+    ok('revisar: cada documento va en uno solo',
+       document.querySelectorAll('#rv .rv-cuadros .rv-fila').length === document.querySelectorAll('#rv .rv-fila').length, 'fuera de los cuadros', 'dentro');
+    var nombres = [].map.call(gente, function(p){ return p.querySelector('.nom').textContent; });
+    igual('revisar: los inversionistas, por nombre', nombres.join(' | '), nombres.slice().sort(function(a, b){ return a.localeCompare(b, 'es'); }).join(' | '));
+    ok('revisar: cada inversionista dice desde cuándo espera', gente.length > 0 && /\d/.test((gente[0].querySelector('.cu') || {}).textContent.split('·')[1] || ''),
+       gente[0] ? gente[0].querySelector('.cu').textContent : '(sin gente)', 'con su fecha');
+    /* Lo que pasó en verde con la lista en 230 px: se mide el ancho de verdad. */
+    var uno = document.querySelector('#rv .rv-cuadro');
+    if (window.innerWidth > 900) ok('revisar: los cuadros tienen ancho para leerse', !!uno && uno.getBoundingClientRect().width > 250,
+       uno ? Math.round(uno.getBoundingClientRect().width) + ' px' : '(sin cuadro)', 'más de 250 px');
+    var filaAncha = document.querySelector('#rv .rv-cuadro .rv-fila');
+    ok('revisar: y las filas lo ocupan entero', !!uno && !!filaAncha && Math.abs(filaAncha.getBoundingClientRect().width - uno.getBoundingClientRect().width) < 2,
+       filaAncha ? Math.round(filaAncha.getBoundingClientRect().width) + ' px' : '(sin fila)', 'el ancho del cuadro');
+    ok('revisar: sin elegir, ninguna ventana', !document.querySelector('#rv .rv-fondo'), 'abierta', 'cerrada');
+    if (filas[0]) filas[0].click();
+    ok('revisar: al pulsar un recaudo se abre su ventana', !!document.querySelector('#rv .rv-fondo [role="dialog"]'), 'sin ventana', 'abierta');
+    var ven = document.querySelector('#rv .rv-fondo .rv-visor');
+    igual('revisar: la ventana se desplaza si no cabe', ven ? getComputedStyle(ven).overflowY : '(sin ventana)', 'auto');
+    ok('revisar: y el foco queda dentro', !!ven && ven.contains(document.activeElement), document.activeElement ? document.activeElement.tagName : '', 'en la ventana');
+    document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}));
+    ok('revisar: Escape la cierra', !document.querySelector('#rv .rv-fondo'), 'abierta', 'cerrada');
+    var filaOtra = document.querySelector('#rv .rv-fila');
+    if (filaOtra) filaOtra.click();
+    var cierra = document.querySelector('#rv .rv-cerrar');
+    if (cierra) cierra.click();
+    ok('revisar: y también «Cerrar»', !!cierra && !document.querySelector('#rv .rv-fondo'), 'abierta', 'cerrada');
+    var cab = document.querySelector('#rv .cb-persona');
+    if (cab) cab.click();
+    ok('revisar: pulsar el nombre lo pliega', !document.querySelector('#rv .rv-cuadros'), 'abierto', 'plegado');
+    cab = document.querySelector('#rv .cb-persona');
+    if (cab) cab.click();
+    filaOtra = document.querySelector('#rv .rv-fila');
+    if (filaOtra) filaOtra.click();
     ok('revisar: el primero se abre con «Validar» y «Rechazar»',
        !!document.querySelector('#rv .rv-btn.ok') && !!document.querySelector('#rv .rv-btn.no'),
        document.querySelector('#rv .rv-visor') ? 'visor abierto' : 'sin visor', 'los dos botones');
@@ -19201,7 +19243,9 @@
     var rv = document.getElementById('rv');
     if (rv) rv.textContent = '';
     location.hash = 'revisar';
-    esperaFilas('#rv .rv-pie .rv-btn.no', 1, function(){
+    esperaFilas('#rv .rv-fila', 1, function(){
+      /* El documento se abre en una ventana al pulsarlo (5-11-2026). */
+      document.querySelector('#rv .rv-fila').click();
       var no = document.querySelector('#rv .rv-pie .rv-btn.no');
       ok('revisar sin red: hay un papel pendiente con «Rechazar»', !!no, no ? 'está' : 'no está', 'está');
       if (!no) return sigue();

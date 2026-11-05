@@ -9,6 +9,7 @@
 
 /* ============ TOKENS (matched to Atlas / css/app.css) ============ */
 :root{
+  --velo-ventana:rgba(16,24,40,.45); --sobre-navy:#fff;
     /* EL GRIS DE ATLAS (11 de septiembre de 2026). Vuelve el gris: se trae
        el lenguaje de Atlas entero -colores, cabecera, menu- y su jerarquia se
        apoya en la tinta, no solo en el peso. Tambien el fondo azulado y los
@@ -3049,6 +3050,27 @@ body[data-vista="citas"] .fase-bar{display:none;}
 .ct-chip.no{background:var(--rust-bg); color:var(--rust);}
 /* ── Documentos por revisar: la bandeja del equipo ── */
 .rv{display:grid; grid-template-columns:minmax(0,.95fr) minmax(0,1.25fr); gap:14px; align-items:start;}
+/* Por inversionista, con sus dos cuadros y el documento en una ventana (5-11-2026). */
+/* Con #rv: las reglas de sus tres columnas, más abajo, también lo llevan. */
+#rv.rv-cats{grid-template-columns:minmax(0,1fr);}
+#rv.rv-cats > .rv-lista{max-height:none; min-height:0; overflow:visible;}
+#rv .rv-aviso{text-align:left; scroll-margin-top:70px;}
+.cb-persona[aria-expanded="true"]{background:var(--activa-bg);}
+.rv-chev{flex:none; font-size:15px; color:var(--gray);}
+.rv-cuadros{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; align-items:start; padding:12px 13px 14px;}
+.rv-cuadro{border-radius:calc(var(--r) - 2px); overflow:hidden; background:var(--block); min-width:0;}
+.rv-cuadro-t{display:flex; justify-content:space-between; gap:10px; padding:10px 13px; font-size:var(--fs-rotulo); font-weight:700;}
+.rv-cuadro.uno .rv-cuadro-t{background:var(--navy); color:var(--sobre-navy);}
+.rv-cuadro .rv-fila{width:100%; box-sizing:border-box;}
+.rv-cuadro.dos .rv-cuadro-t{background:var(--activa-bg); color:var(--navy-texto);}
+.rv-cuadro-t .n{font-variant-numeric:tabular-nums;}
+.rv-cuadro-tr{padding:9px 13px 3px; font-size:var(--fs-nota); font-weight:700; color:var(--gray);}
+.rv-cuadro-vacio{padding:11px 13px; font-size:var(--fs-nota); color:var(--gray);}
+.rv-fondo{position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:20px; background:var(--velo-ventana);}
+#rv .rv-fondo .rv-visor{width:min(720px, 100%); min-height:0; max-height:calc(100vh - 40px); max-height:calc(100dvh - 40px); overflow:auto; background:var(--bg);}
+.rv-pdf{width:100%; height:min(60vh, 560px); border:0; border-radius:8px; background:var(--block);}
+.rv-cerrar{margin-left:auto;}
+@media (max-width:760px){.rv-cuadros{grid-template-columns:minmax(0,1fr);}}
 .rv-filtros{grid-column:1 / -1; display:flex; gap:6px; flex-wrap:wrap;}
 .rv-filtro{font:inherit; font-size:var(--fs-boton); font-weight:700; border:1px solid var(--line); background:var(--bg);
   color:var(--gray); border-radius:999px; padding:6px 12px; cursor:pointer;}

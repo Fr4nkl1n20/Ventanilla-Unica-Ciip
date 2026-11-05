@@ -24712,7 +24712,8 @@ applyLang(idiomaParaMi());
      aún no la tiene se guarda sin ella. */
   var rvDocs = null, rvNombres = {}, rvUsos = {}, rvFiltro = 'cargado',
       rvElegido = null, rvRechazando = false, rvCargando = null,
-      rvPersona = null, rvBusca = '', rvNotaDe = null;
+      rvAbiertas = {}, rvBusca = '', rvNotaDe = null,
+      rvVentanaAbierta = false, rvVolverA = null;
 
   /* Lo que emitió el organismo no se revisa: se entrega. Y el documento
      para pagar la reserva tampoco: lo deja el propio equipo. Aparte desde
@@ -24828,6 +24829,31 @@ applyLang(idiomaParaMi());
     });
   }
 
+  /* ── LAS DOS CATEGORÍAS ──
+     Franklin Reyes, 5-11-2026 (maquetas/documentos-por-inversionista.html): por
+     inversionista, en dos cuadros. «Coinciden» son los recaudos que pide más de
+     un trámite; es provisional, hasta que llegue la lista de Valeria Ramos. */
+  var rvTramitesDeTipo = null;
+  function rvTramitesDe(tipo){
+    if (!rvTramitesDeTipo){
+      rvTramitesDeTipo = {};
+      Object.keys(RECAUDOS).forEach(function(codigo){
+        RECAUDOS[codigo].forEach(function(r){
+          var l = rvTramitesDeTipo[r.tipo] || (rvTramitesDeTipo[r.tipo] = []);
+          if (l.indexOf(codigo) < 0) l.push(codigo);
+        });
+      });
+    }
+    return rvTramitesDeTipo[tipo] || [];
+  }
+  function rvCoincide(d){ return rvTramitesDe(d.tipo).length > 1; }
+  function rvTramiteDe(d){
+    var usos = rvUsos[d.id] || [];
+    if (usos.length) return usos[0];
+    var l = rvTramitesDe(d.tipo);
+    return l.length ? nombreDeTipo(l[0]) : (T().rv_suelto || '');
+  }
+
   function rvPinta(){
     pintaConmutaDocs('revisar');
     var caja = document.getElementById('rv');
@@ -24835,7 +24861,11 @@ applyLang(idiomaParaMi());
     var u = T();
     /* Sin título arriba, como todas las pantallas: dónde estás lo dice la
        migaja. */
-    caja.textContent = '';
+    var enNota = document.activeElement && document.activeElement.id === 'rvNota';
+    var fondoVivo = caja.querySelector(':scope > .rv-fondo');
+    if (fondoVivo && fondoVivo.getAttribute('data-doc') !== String(rvElegido)) fondoVivo = null;
+    [].slice.call(caja.children).forEach(function(n){ if (n !== fondoVivo) n.remove(); });
+    caja.classList.add('rv-cats');
     var docs = rvDocs || [];
 
     /* Los tres montones, con su cuenta. */
@@ -24848,21 +24878,13 @@ applyLang(idiomaParaMi());
       b.setAttribute('aria-pressed', rvFiltro === f[0] ? 'true' : 'false');
       var cuantos = docs.filter(function(d){ return d.estado === f[0]; }).length;
       b.appendChild(el('span', 'n', String(cuantos)));
-      b.addEventListener('click', function(){ rvFiltro = f[0]; rvElegido = null; rvRechazando = false; rvPinta(); });
+      b.addEventListener('click', function(){ rvFiltro = f[0]; rvAbiertas = {}; rvElegido = null; rvRechazando = false; rvPinta(); });
       filtros.appendChild(b);
     });
     caja.appendChild(filtros);
 
-    /* CON LA FORMA DE LA BÓVEDA (Franklin Reyes, 24-9-2026: «quiero que el
-       formato de documentos por revisar sea como el de la bóveda de
-       comprobantes»). Tres columnas: quién, qué subió y el papel abierto,
-       con el buscador por nombre encima. El nombre sale una vez y no en
-       cada renglón, y los papeles de una persona -que casi siempre sube
-       tres o cuatro juntos para el mismo trámite- se revisan seguidos.
-
-       Lo que NO cambia es el criterio de la bandeja: lo pendiente, del más
-       antiguo al más nuevo, así que la persona que va primero es la que
-       lleva más tiempo esperando. Lo ya revisado, al revés. */
+    /* El buscador por nombre, como en la bóveda. Dentro de cada inversionista, sus
+       papeles pendientes van del más antiguo al más nuevo; lo ya revisado, al revés. */
     var escribiendo = document.activeElement && document.activeElement.id === 'rvBusca';
     var busca = el('div', 'cb-busca');
     var campo = el('input');
@@ -24875,6 +24897,10 @@ applyLang(idiomaParaMi());
     campo.addEventListener('input', function(){ rvBusca = campo.value; rvPinta(); });
     busca.appendChild(campo);
     caja.appendChild(busca);
+    /* Decidido un documento se cierra su ventana: el aviso se dice aquí. */
+    var avisoG = el('div', 'rv-msg rv-aviso');
+    avisoG.setAttribute('role', 'status');
+    caja.appendChild(avisoG);
 
     var pend = (rvFiltro === 'cargado');
     function orden(a, b){
@@ -24890,25 +24916,62 @@ applyLang(idiomaParaMi());
       por[k].docs.push(d);
     });
     gente.forEach(function(p){ p.docs.sort(orden); });
-    gente.sort(function(a, b){ return orden(a.docs[0], b.docs[0]); });
+    /* Por nombre, para encontrar a cada inversionista siempre en su sitio. */
+    gente.sort(function(a, b){ return a.nombre.localeCompare(b.nombre, 'es'); });
     var q = rvBusca.trim().toLowerCase();
     if (q) gente = gente.filter(function(p){ return p.nombre.toLowerCase().indexOf(q) >= 0; });
 
-    var yo = gente.filter(function(p){ return p.id === rvPersona; })[0] || gente[0] || null;
-    rvPersona = yo ? yo.id : null;
-    if (!yo || !yo.docs.some(function(d){ return d.id === rvElegido; })) rvElegido = yo ? yo.docs[0].id : null;
-
-    /* Primera columna: quién. */
+    var elegido = null;
     var col1 = el('div', 'rv-lista cb-gente');
     col1.appendChild(el('div', 'cb-sub', (u.cb_gente || '') + ' · ' + gente.length));
     if (!gente.length){
       col1.appendChild(el('div', 'rv-vacio', q ? (u.cb_vacio || '')
         : pend ? (u.rv_vacio_pend || '') : (u.rv_vacio || '')));
     }
+    /* Cada renglón dice qué papel es; de quién lo dice el inversionista. */
+    function fila(d){
+      if (d.id === rvElegido) elegido = d;
+      var b = el('button', 'rv-fila');
+      b.type = 'button';
+      b.setAttribute('data-doc', d.id);
+      b.setAttribute('aria-current', d.id === rvElegido ? 'true' : 'false');
+      /* Con el nombre entero en el title: la fila lo recorta a dos lineas
+         para que todas midan igual, y los cuatro mas largos del catalogo
+         se cortan por la mitad. */
+      var nom = el('span', 't', nombreDeTipo_doc(d.tipo) + (d.titular ? ' · ' + d.titular : ''));
+      nom.title = nom.textContent;
+      b.appendChild(nom);
+      b.appendChild(el('span', 'h', d.creado_en ? fecha(d.creado_en) : ''));
+      var usos = rvUsos[d.id] || [];
+      /* Sin usos, el específico ya lo dice el título de su trámite. */
+      if (usos.length || rvCoincide(d) || !rvTramitesDe(d.tipo).length){
+        var de = el('span', 'de');
+        de.appendChild(usos.length ? el('span', 'rv-chip', usos[0] + (usos.length > 1 ? ' +' + (usos.length - 1) : ''))
+                                   : el('span', 'rv-chip suelto', u.rv_suelto || ''));
+        b.appendChild(de);
+      }
+      b.addEventListener('click', function(){ rvElegido = d.id; rvVolverA = d.id; rvRechazando = false; rvPinta(); });
+      return b;
+    }
+    function cuadro(clase, titulo, l, cuerpo){
+      var c = el('section', 'rv-cuadro ' + clase);
+      var t = el('div', 'rv-cuadro-t');
+      t.appendChild(el('span', null, titulo));
+      t.appendChild(el('span', 'n', String(l.length)));
+      c.appendChild(t);
+      if (!l.length) c.appendChild(el('div', 'rv-cuadro-vacio', u.rv_cat_vacio || ''));
+      cuerpo(c);
+      return c;
+    }
+    /* Al entrar o al cambiar de filtro se abre el primero; desde ahí se recuerda,
+       para que no se pliegue nada si luego llega alguien que va antes. */
+    if (gente[0] && !Object.keys(rvAbiertas).length) rvAbiertas[gente[0].id] = true;
     gente.forEach(function(p){
+      /* Con su documento abierto, sigue abierto. */
+      var abierta = !!rvAbiertas[p.id] || !!q || p.docs.some(function(d){ return d.id === rvElegido; });
       var b = el('button', 'cb-persona');
       b.type = 'button';
-      b.setAttribute('aria-current', p.id === rvPersona ? 'true' : 'false');
+      b.setAttribute('aria-expanded', abierta ? 'true' : 'false');
       b.appendChild(el('span', 'cb-ini', cbIniciales(p.nombre)));
       var tx = el('span', 'cb-quien');
       tx.appendChild(el('span', 'nom', p.nombre));
@@ -24919,44 +24982,73 @@ applyLang(idiomaParaMi());
       /* El número en ámbar solo en los pendientes: es lo que queda por
          hacer. En validados o rechazados ya no hay nada que hacer. */
       if (pend) b.appendChild(el('span', 'cb-pm', String(p.docs.length)));
-      b.addEventListener('click', function(){ rvPersona = p.id; rvElegido = null; rvRechazando = false; rvPinta(); });
+      b.appendChild(el('span', 'rv-chev', abierta ? '⌄' : '›'));
+      b.addEventListener('click', function(){ rvAbiertas[p.id] = !abierta; rvRechazando = false; rvPinta(); });
       col1.appendChild(b);
+      if (!abierta) return;
+      var comunes = p.docs.filter(rvCoincide);
+      var propios = p.docs.filter(function(d){ return !rvCoincide(d); });
+      var cuadros = el('div', 'rv-cuadros');
+      cuadros.appendChild(cuadro('uno', u.rv_cat_coinciden || '', comunes, function(c){
+        comunes.forEach(function(d){ c.appendChild(fila(d)); });
+      }));
+      cuadros.appendChild(cuadro('dos', u.rv_cat_especificos || '', propios, function(c){
+        var tramites = [];
+        propios.forEach(function(d){
+          var t = rvTramiteDe(d);
+          if (tramites.indexOf(t) < 0) tramites.push(t);
+        });
+        tramites.sort(function(x, y){ return x.localeCompare(y, 'es'); });
+        tramites.forEach(function(t){
+          c.appendChild(el('div', 'rv-cuadro-tr', t));
+          propios.forEach(function(d){ if (rvTramiteDe(d) === t) c.appendChild(fila(d)); });
+        });
+      }));
+      col1.appendChild(cuadros);
     });
     caja.appendChild(col1);
 
-    /* Segunda: qué subió. Cada renglón dice qué papel es, no de quién. */
-    var elegido = null;
-    if (yo){
-      var lista = el('div', 'rv-lista');
-      lista.appendChild(el('div', 'cb-sub', String(u.rv_de || '').replace('{nombre}', yo.nombre)));
-      yo.docs.forEach(function(d){
-        if (d.id === rvElegido) elegido = d;
-        var b = el('button', 'rv-fila');
-        b.type = 'button';
-        b.setAttribute('data-doc', d.id);
-        b.setAttribute('aria-current', d.id === rvElegido ? 'true' : 'false');
-        /* Con el nombre entero en el title: la fila lo recorta a dos lineas
-           para que todas midan igual, y los cuatro mas largos del catalogo
-           se cortan por la mitad. */
-        var nom = el('span', 't', nombreDeTipo_doc(d.tipo) + (d.titular ? ' · ' + d.titular : ''));
-        nom.title = nom.textContent;
-        b.appendChild(nom);
-        b.appendChild(el('span', 'h', d.creado_en ? fecha(d.creado_en) : ''));
-        var de = el('span', 'de');
-        var usos = rvUsos[d.id] || [];
-        de.appendChild(usos.length ? el('span', 'rv-chip', usos[0] + (usos.length > 1 ? ' +' + (usos.length - 1) : ''))
-                                   : el('span', 'rv-chip suelto', u.rv_suelto || ''));
-        b.appendChild(de);
-        b.addEventListener('click', function(){ rvElegido = d.id; rvRechazando = false; rvPinta(); });
-        lista.appendChild(b);
-      });
-      caja.appendChild(lista);
+    /* El documento se abre en una ventana al pulsarlo. */
+    if (!elegido) rvElegido = null;
+    if (elegido){
+      var cerrar = el('button', 'rv-btn rv-cerrar', u.eq_cerrar || '');
+      cerrar.type = 'button';
+      cerrar.addEventListener('click', rvCierra);
+      if (fondoVivo){
+        /* Misma ventana: se cambian la cabecera y el pie; el documento se queda. */
+        var visorV = fondoVivo.querySelector('.rv-visor'), nuevoV = el('div');
+        rvVisor(nuevoV, elegido, true);
+        var cuerpoV = visorV.querySelector('.rv-cuerpo');
+        [].slice.call(visorV.children).forEach(function(n){ if (n !== cuerpoV) n.remove(); });
+        var cabN = nuevoV.querySelector('.rv-cab'), resto = [].slice.call(nuevoV.children).filter(function(n){ return n !== cabN && !n.classList.contains('rv-cuerpo'); });
+        if (cabN){ cabN.appendChild(cerrar); visorV.insertBefore(cabN, cuerpoV); }
+        resto.forEach(function(n){ visorV.appendChild(n); });
+      } else {
+        var fondo = el('div', 'rv-fondo');
+        fondo.setAttribute('data-doc', String(elegido.id));
+        fondo.addEventListener('click', function(ev){ if (ev.target === fondo) rvCierra(); });
+        var visor = el('div', 'rv-visor');
+        visor.setAttribute('role', 'dialog');
+        visor.setAttribute('aria-modal', 'true');
+        visor.setAttribute('aria-label', nombreDeTipo_doc(elegido.tipo));
+        fondo.appendChild(visor);
+        rvVisor(visor, elegido);
+        var cabV = visor.querySelector('.rv-cab');
+        if (cabV) cabV.appendChild(cerrar);
+        caja.appendChild(fondo);
+      }
+      var notaV = document.getElementById('rvNota');
+      if (!rvVentanaAbierta) cerrar.focus();
+      else if (enNota && notaV) notaV.focus();
+      /* Con el motivo a la vista, el pie entero: confirmar no queda por debajo. */
+      var pieV = notaV && notaV.closest('.rv-pie');
+      if (pieV) pieV.scrollIntoView({block: 'end'});
+      rvVentanaAbierta = true;
+    } else if (rvVentanaAbierta){
+      rvVentanaAbierta = false;
+      var vuelve = rvVolverA && caja.querySelector('.rv-fila[data-doc="' + rvVolverA + '"]');
+      if (vuelve) vuelve.focus();
     }
-
-    var visor = el('div', 'rv-visor');
-    visor.setAttribute('aria-live', 'polite');
-    caja.appendChild(visor);
-    rvVisor(visor, elegido);
     rvCuenta();
 
     if (escribiendo){
@@ -24965,7 +25057,26 @@ applyLang(idiomaParaMi());
     }
   }
 
-  function rvVisor(visor, d){
+  function rvCierra(){
+    rvElegido = null;
+    rvRechazando = false;
+    rvPinta();
+  }
+  document.addEventListener('keydown', function(ev){
+    var fondo = document.querySelector('#rv .rv-fondo');
+    if (!fondo || !fondo.getClientRects().length) return;
+    if (ev.key === 'Escape'){ rvCierra(); return; }
+    if (ev.key !== 'Tab') return;
+    /* El tabulador se queda dentro de la ventana. */
+    var hay = fondo.querySelectorAll('button:not([disabled]), textarea, input, a[href], iframe');
+    if (!hay.length) return;
+    var pri = hay[0], ult = hay[hay.length - 1];
+    if (ev.shiftKey && document.activeElement === pri){ ev.preventDefault(); ult.focus(); }
+    else if (!ev.shiftKey && document.activeElement === ult){ ev.preventDefault(); pri.focus(); }
+    else if (!fondo.contains(document.activeElement)){ ev.preventDefault(); pri.focus(); }
+  });
+
+  function rvVisor(visor, d, sinPapel){
     var u = T();
     if (!d){ visor.appendChild(el('div', 'rv-vacio', u.rv_elige || '')); return; }
 
@@ -24989,7 +25100,15 @@ applyLang(idiomaParaMi());
         .then(function(r){ return r && r.data && r.data.signedUrl; });
     }
     abrir.addEventListener('click', function(){ abreFirmado(d.archivo, abrir, 'revisar, abrir', 300); });
-    if (esImagen && d.archivo){
+    /* El PDF también se ve en la ventana, y «Abrir» sigue por si no carga. */
+    if (/\.pdf$/i.test(d.archivo || d.nombre_original || '') && d.archivo && !sinPapel){
+      var pdf = document.createElement('iframe');
+      pdf.className = 'rv-pdf';
+      pdf.title = d.nombre_original || nombreDeTipo_doc(d.tipo);
+      firmada().then(function(url){ if (url) pdf.src = url; else pdf.remove(); }, function(){ pdf.remove(); });
+      cuerpo.appendChild(pdf);
+    }
+    if (esImagen && d.archivo && !sinPapel){
       var img = document.createElement('img');
       img.alt = d.nombre_original || nombreDeTipo_doc(d.tipo);
       firmada().then(function(url){ if (url) img.src = url; else img.remove(); }, function(){ img.remove(); });
@@ -25138,20 +25257,29 @@ applyLang(idiomaParaMi());
     }).then(function(r){
       if (r && r.error) throw r.error;
       if (r && Array.isArray(r.data) && !r.data.length) throw new Error('la base no lo dejó cambiar');
-      if (estado) d.estado = estado;
-      d.nota_revision = nota || '';
-      d.revisado_por = YO;
-      d.revisado_en = ahora;
-      rvElegido = null;
-      rvRechazando = false;
-      rvNotaDe = null;
+      /* El repaso pudo traer otra copia de la lista: se marca también en la de hoy. */
+      [d].concat((rvDocs || []).filter(function(x){ return x.id === d.id; })).forEach(function(x){
+        if (estado) x.estado = estado;
+        x.nota_revision = nota || '';
+        x.revisado_por = YO;
+        x.revisado_en = ahora;
+      });
+      /* Despachado todo lo de este inversionista, se abre el siguiente. */
+      if (!(rvDocs || []).some(function(x){ return x.inversionista === d.inversionista && x.estado === rvFiltro; })) rvAbiertas = {};
+      /* Si ya abrió otro documento, ése se queda abierto. */
+      if (rvElegido === d.id){
+        rvElegido = null;
+        rvRechazando = false;
+        rvNotaDe = null;
+      }
       rvPinta();
-      var aviso = document.querySelector('#rv .rv-visor .rv-msg');
+      var aviso = document.querySelector('#rv .rv-aviso');
       if (aviso){
         aviso.classList.add('bien');
         aviso.textContent = (!estado ? u.rv_observado
                              : estado === 'validado' ? u.rv_validado
                              : u.rv_rechazado) || '';
+        aviso.scrollIntoView({block: 'nearest'});
       }
     }).catch(function(e){
       console.warn('[CIIP] revisar documento:', e && (e.message || e));
@@ -25168,8 +25296,12 @@ applyLang(idiomaParaMi());
       rvPinta();
       var nueva = document.getElementById('rvNota');
       if (nueva && texto) nueva.value = texto;
-      var aviso = document.querySelector('#rv .rv-visor .rv-msg') || msg;
-      if (aviso) aviso.textContent = u.co_error || '';
+      var aviso = rvElegido === d.id ? document.querySelector('#rv .rv-visor .rv-msg') : document.querySelector('#rv .rv-aviso');
+      aviso = aviso || msg;
+      if (aviso){
+        aviso.textContent = u.co_error || '';
+        if (aviso.scrollIntoView) aviso.scrollIntoView({block: 'nearest'});
+      }
     });
   }
 
