@@ -3543,7 +3543,7 @@ applyLang(idiomaParaMi());
      (pasos.js), letra por letra. Los recaudos cuelgan del PERMISO elegido. */
   var AREA_AGUA = {conc: 'Concesión · Uso industrial, comercial o hidroeléctrico', lic: 'Licencia · Agrícola, abastecimiento o recreación', afec: 'Afectación · Recursos naturales y estudios', camb: 'Cambios · Venta o modificación del título'};
   var AREA_INDUSTRIA = {sis: 'SIS · SENCAMER', lin: 'Sistema en línea · SENCAMER', env: 'Envasados · SENCAMER', nor: 'NORVEN · SENCAMER'};
-  var AREA_TRANSPORTE = {ine: 'INEA · Instituto Nacional de los Espacios Acuáticos', int: 'Planilla Única · INTT'};
+  var AREA_TRANSPORTE = {ine: 'INEA · Instituto Nacional de los Espacios Acuáticos'};
   var PERMISO_AIT = {
     conc: 'Concesión de aprovechamiento de aguas',
     lic: 'Licencia de aprovechamiento de aguas',
@@ -3565,11 +3565,7 @@ applyLang(idiomaParaMi());
     cn: 'Registro de compañía naviera',
     ag: 'Registro de agencia naviera',
     mu: 'Registro de transporte multimodal',
-    co: 'Registro de consolidadora de carga',
-    rotc: 'Registro de operadores de transporte de carga (ROTC)',
-    cps: 'Certificación de prestación de servicio de pasajeros (CPS)',
-    dt: 'Actualización de flota DT9 o DT10',
-    med: 'Autorización de carga de medidas excepcionales'
+    co: 'Registro de consolidadora de carga'
   };
 
   var RECAUDOS = {
@@ -4500,7 +4496,7 @@ applyLang(idiomaParaMi());
     ],
     /* LOS DE AGUA (c63), INDUSTRIA Y COMERCIO (c65) Y TRANSPORTE (c67), Franklin
        Reyes, 4-11-2026: cada permiso los suyos, los que publica el ente (Reglamento
-       de la Ley de Aguas, RUPDAE, SENCAMER, INAC, INEA e INTT). Los que no publica
+       de la Ley de Aguas, RUPDAE, SENCAMER, INAC e INEA). Los que no publica
        llevan los cuatro básicos, y lo dice NOTA_DE_RECAUDOS. */
     permisos_agua: [
       {tipo:'planilla_minaguas', clave:'d_agplanilla', siCasilla:'permiso_agua', siIgual:[PERMISO_AIT.conc, PERMISO_AIT.lic, PERMISO_AIT.reas]},
@@ -4531,37 +4527,21 @@ applyLang(idiomaParaMi());
       {tipo:'certificado_uso_sanitario', clave:'d_icuso', siCasilla:'permiso_industria', siIgual:[PERMISO_AIT.nor]}
     ],
     permisos_transporte: [
-      {tipo:'carta_solicitud_ente', clave:'d_trcarta', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.exp, PERMISO_AIT.ido, PERMISO_AIT.set, PERMISO_AIT.rav, PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co, PERMISO_AIT.dt, PERMISO_AIT.med]},
+      {tipo:'carta_solicitud_ente', clave:'d_trcarta', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.exp, PERMISO_AIT.ido, PERMISO_AIT.set, PERMISO_AIT.rav, PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
       {tipo:'planilla_liquidacion_ente', clave:'d_trplanilla', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.exp, PERMISO_AIT.ido, PERMISO_AIT.set, PERMISO_AIT.rav, PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
       {tipo:'idoneidad_economica', clave:'d_tridon', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.exp, PERMISO_AIT.set, PERMISO_AIT.rav]},
       {tipo:'estudio_economico', clave:'d_trestudio', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.ido]},
       {tipo:'dip_inac', clave:'d_trdip', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.rav]},
       {tipo:'datos_operacion_aerea', clave:'d_troper', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.exp, PERMISO_AIT.set]},
-      {tipo:'registro_mercantil_empresa', clave:'d_ieregistro', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co, PERMISO_AIT.rotc, PERMISO_AIT.med]},
-      {tipo:'cedula', clave:'d_cedrep', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co, PERMISO_AIT.rotc, PERMISO_AIT.med]},
-      {tipo:'rif_empresa', clave:'d_rifempresa', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co, PERMISO_AIT.dt, PERMISO_AIT.med]},
+      {tipo:'registro_mercantil_empresa', clave:'d_ieregistro', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
+      {tipo:'cedula', clave:'d_cedrep', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
+      {tipo:'rif_empresa', clave:'d_rifempresa', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
       {tipo:'patente_arrendamiento', clave:'d_trpatente', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
       {tipo:'inspeccion_capitania', clave:'d_trcapitania', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
       {tipo:'fianza_inea', clave:'d_trfianza', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
       {tipo:'sistema_calidad_iso', clave:'d_triso', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn, PERMISO_AIT.ag, PERMISO_AIT.mu, PERMISO_AIT.co]},
       {tipo:'titulo_fletamento', clave:'d_trtitulo', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn]},
-      {tipo:'opinion_seguridad_maritima', clave:'d_tropinion', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn]},
-      {tipo:'numero_patronal_ivss', clave:'d_trivss', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.rotc]},
-      {tipo:'solvencia_islr', clave:'d_trislr', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.rotc]},
-      {tipo:'carta_rutas_cps', clave:'d_trcartacps', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps]},
-      {tipo:'documento_objeto_transporte', clave:'d_trobjeto', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps]},
-      {tipo:'acta_asamblea', clave:'d_tracta', opcional:true, siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps, PERMISO_AIT.dt]},
-      {tipo:'registro_sunacoop', clave:'d_trsunacoop', opcional:true, siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps]},
-      {tipo:'certificado_vehiculo', clave:'d_trvehiculo', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.rotc, PERMISO_AIT.cps, PERMISO_AIT.dt]},
-      {tipo:'poliza_rcv', clave:'d_trpoliza', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.rotc, PERMISO_AIT.cps, PERMISO_AIT.dt]},
-      {tipo:'informe_seguridad_vehiculo', clave:'d_trinforme', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps, PERMISO_AIT.dt]},
-      {tipo:'fotos_vehiculos', clave:'d_trfotos', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps]},
-      {tipo:'aval_terminal', clave:'d_traval', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cps]},
-      {tipo:'ultimo_dt', clave:'d_trdt', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.dt]},
-      {tipo:'arrendamiento', clave:'d_trarriendo', opcional:true, siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.dt]},
-      {tipo:'rotc_vigente', clave:'d_trrotc', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.med]},
-      {tipo:'revision_vehiculo', clave:'d_trrevision', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.med]},
-      {tipo:'estudio_ruta', clave:'d_trruta', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.med]}
+      {tipo:'opinion_seguridad_maritima', clave:'d_tropinion', siCasilla:'permiso_transporte', siIgual:[PERMISO_AIT.cn]}
     ],
     agua_en_proceso: [
       {tipo:'acta_constitutiva', clave:'d_actaempresa'},
@@ -5791,9 +5771,8 @@ applyLang(idiomaParaMi());
   /* ── AGUA, INDUSTRIA Y COMERCIO, Y TRANSPORTE ──
      Franklin Reyes, 4-11-2026 (maquetas/agua-industria-transporte.html): tres
      fichas del catálogo. El ministerio de las aguas no publica sistema en línea:
-     todo va por la Taquilla Única, y su paso 1 no lleva enlace. Del INTT sólo se
-     enlaza su sistema de trámites: su página principal trae enlaces ajenos. Las
-     portadas son dibujos propios, por lo que se ve en cada página. */
+     todo va por la Taquilla Única, y su paso 1 no lleva enlace. Las portadas son
+     dibujos propios, por lo que se ve en cada página. */
   function portadaAguas(t){
     return '<div class="st-pt p-agu" aria-hidden="true"><div class="ci"><em></em>Ministerio del Poder Popular de las <b>AGUAS</b></div>' +
       '<div class="ban">' + t + '<span>Taquilla Única</span></div></div>';
@@ -5818,14 +5797,15 @@ applyLang(idiomaParaMi());
   TARJETAS_DE_INDUSTRIA[VALOR_PRESENCIAL] = tarjetaPresencial(2);
   var ETAPAS_DE_INDUSTRIA = [{n: 1, t: 'yt_ic_e2', d: 'yt_ic_e2_d'}, etapaPresencial(2)];
   var TARJETAS_DE_TRANSPORTE = {};
+  /* Sin el INTT desde el 5-11-2026 (Franklin Reyes: «INTT ya no va en transporte,
+     porque pasó al Ministerio de Interiores, Justicia y Paz»): se fueron su
+     tarjeta, sus cuatro permisos y sus recaudos. Dónde va, lo decide él. */
   /* Revisión de la etapa 3: los permisos del INAC se presentan en persona, y SITGA
      solo sirve para pagar: se fue su tarjeta y van en «Trámites presenciales». */
   TARJETAS_DE_TRANSPORTE[AREA_TRANSPORTE.ine] = {etapa: 1, toca: 'yt_toca_inea',
     pt: '<div class="st-pt p-ine" aria-hidden="true"><div class="ond"></div><strong>INEA</strong><span>Instituto Nacional de los Espacios Acuáticos</span></div>'};
-  TARJETAS_DE_TRANSPORTE[AREA_TRANSPORTE.int] = {etapa: 2, toca: 'yt_toca_intt',
-    pt: '<div class="st-pt p-int" aria-hidden="true"><div class="log">INTT</div><span>Gestiona y paga tu trámite en línea</span></div>'};
-  TARJETAS_DE_TRANSPORTE[VALOR_PRESENCIAL] = tarjetaPresencial(3);
-  var ETAPAS_DE_TRANSPORTE = [{n: 1, t: 'yt_tr_e2', d: 'yt_tr_e2_d'}, {n: 2, t: 'yt_tr_e3', d: 'yt_tr_e3_d'}, etapaPresencial(3)];
+  TARJETAS_DE_TRANSPORTE[VALOR_PRESENCIAL] = tarjetaPresencial(2);
+  var ETAPAS_DE_TRANSPORTE = [{n: 1, t: 'yt_tr_e2', d: 'yt_tr_e2_d'}, etapaPresencial(2)];
   var PERMISOS_DE_AGUA = {};
   PERMISOS_DE_AGUA[AREA_AGUA.conc] = 'o_ag_permiso1';
   PERMISOS_DE_AGUA[AREA_AGUA.lic] = 'o_ag_permiso2';
@@ -5845,7 +5825,6 @@ applyLang(idiomaParaMi());
   var PERMISOS_DE_TRANSPORTE = {};
   PERMISOS_DE_TRANSPORTE[VALOR_PRESENCIAL] = 'o_tr_permiso1';
   PERMISOS_DE_TRANSPORTE[AREA_TRANSPORTE.ine] = 'o_tr_permiso2';
-  PERMISOS_DE_TRANSPORTE[AREA_TRANSPORTE.int] = 'o_tr_permiso3';
   var PORTAL_DE_INDUSTRIA = {};
   PORTAL_DE_INDUSTRIA[AREA_INDUSTRIA.sis] = 'https://sis.sencamer.gob.ve/';
   PORTAL_DE_INDUSTRIA[AREA_INDUSTRIA.lin] = 'https://enlinea.sencamer.gob.ve/';
@@ -5853,7 +5832,6 @@ applyLang(idiomaParaMi());
   PORTAL_DE_INDUSTRIA[AREA_INDUSTRIA.nor] = 'https://norven.sencamer.gob.ve/login';
   var PORTAL_DE_TRANSPORTE = {};
   PORTAL_DE_TRANSPORTE[AREA_TRANSPORTE.ine] = 'https://inea.gob.ve/';
-  PORTAL_DE_TRANSPORTE[AREA_TRANSPORTE.int] = 'https://put.intt.gob.ve/';
 
   /* ── LOS SISTEMAS EN LÍNEA DEL MINEC ──
      Franklin Reyes, 19-10-2026, Permisos_MINEC (Valeria Ramos, CIIP): «solo
@@ -32843,7 +32821,17 @@ applyLang(idiomaParaMi());
        /* Y el estudio de impacto ambiental, que solo pedía el permiso
           ambiental hasta el 19-10-2026 (Franklin Reyes, Permisos_MINEC: lo
           pide el sistema del MINEC). */
-       ['impacto_ambiental', 'd_ambiental']
+       ['impacto_ambiental', 'd_ambiental'],
+       /* Y los que solo pedían los permisos del INTT en la ficha de transporte
+          hasta el 5-11-2026 (Franklin Reyes): se fueron de la ficha, y el que
+          los subió los sigue teniendo en la bóveda. */
+       ['numero_patronal_ivss', 'd_trivss'], ['solvencia_islr', 'd_trislr'],
+       ['carta_rutas_cps', 'd_trcartacps'], ['documento_objeto_transporte', 'd_trobjeto'],
+       ['registro_sunacoop', 'd_trsunacoop'], ['certificado_vehiculo', 'd_trvehiculo'],
+       ['poliza_rcv', 'd_trpoliza'], ['informe_seguridad_vehiculo', 'd_trinforme'],
+       ['fotos_vehiculos', 'd_trfotos'], ['aval_terminal', 'd_traval'],
+       ['ultimo_dt', 'd_trdt'], ['rotc_vigente', 'd_trrotc'],
+       ['revision_vehiculo', 'd_trrevision'], ['estudio_ruta', 'd_trruta']
       ].forEach(function(p){
         if (!CLAVE_DE_TIPO[p[0]]) CLAVE_DE_TIPO[p[0]] = p[1];
         if (CLAVE_DE_TIPO[p[0]] === p[1]) SOLO_NOMBRE[p[0]] = true;

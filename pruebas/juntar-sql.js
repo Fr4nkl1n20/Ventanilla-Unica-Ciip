@@ -366,7 +366,10 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 /* Visa, cédula y RIF ya solicitados (c70 a c72), 4-11-2026; va la última. */
 'supabase-visa-cedula-rif',
 /* Revisión de la etapa 3: c35 fuera de la base, 4-11-2026. */
-'supabase-borrar-c35'];
+'supabase-borrar-c35',
+/* El INTT fuera del nombre del permiso de transporte, 5-11-2026; va después
+   de supabase-agua-industria-transporte, que lo escribe. */
+'supabase-transporte-sin-intt'];
 
 let mal = 0;
 for (const n of orden) {

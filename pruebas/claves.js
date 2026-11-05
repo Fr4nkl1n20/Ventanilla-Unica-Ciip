@@ -300,7 +300,7 @@ const PROPIOS = new Set((
 const SALTOS = new Set([
   'yt_toca_pr', 'yt_toca_sidcai', 'yt_toca_rncl', 'yt_toca_canc', 'yt_toca_saime', 'yt_toca_rifp',
   'yt_toca_concesion', 'yt_toca_licagua', 'yt_toca_afectacion', 'yt_toca_cambioagua', 'yt_toca_senlinea',
-  'yt_toca_sis', 'yt_toca_envasados', 'yt_toca_norven', 'yt_toca_inea', 'yt_toca_intt',
+  'yt_toca_sis', 'yt_toca_envasados', 'yt_toca_norven', 'yt_toca_inea',
   'tag.soon', 'asst.greet',
   /* Y estos dos no son rótulos: son TROZOS que se pegan detrás de otra
      cosa —«pasaporte.pdf · ya estaba en tu expediente», «resuelta el 4 de
@@ -825,6 +825,51 @@ function fichasDelMarcado() {
   ok('ayuda: el paso 1 de los permisos ambientales conserva los seis portales',
      !!portales && (portales[1].match(/https:\/\/[a-z]+\.minec\.gob\.ve\//g) || []).length === 6 &&
      /c30: \{1: \{campo: 'sistema_minec', urls: PORTAL_DEL_MINEC/.test(PANEL));
+}
+
+/* EL INTT YA NO VA EN TRANSPORTE
+   Franklin Reyes, 5-11-2026: «INTT ya no va en transporte, porque pasó al
+   Ministerio de Interiores, Justicia y Paz, hay que quitarlo de ahí». Se quitó
+   de la ficha c67 y de su «ya solicité» c68, y solo de ahí: la homologación de
+   la licencia de conducir (c4) sigue yendo ante el INTT. */
+{
+  const conIntt = [];
+  for (const lang of Object.keys(UI)) {
+    const u = UI[lang];
+    ['o_transporte_area', 'o_tr_permiso1', 'o_tr_permiso2', 'ytp_ya_d', 'ytp_nueva_d', 'ft_c_transporte', 'yt_tr_e2_d'].forEach(k => {
+      if (/INTT|Planilla Única/.test(JSON.stringify(u[k]))) conIntt.push(lang + '.' + k);
+    });
+    ['o_tr_permiso3', 'yt_tr_e3', 'yt_tr_e3_d', 'yt_toca_intt', 'd_tracta', 'd_trarriendo'].forEach(k => {
+      if (k in u) conIntt.push(lang + '.' + k + ' sigue definida');
+    });
+    if ((u.o_transporte_area || []).length !== 3) conIntt.push(lang + '.o_transporte_area no trae tres');
+  }
+  ok('transporte: ningún texto de la ficha ofrece el INTT, en los 8 idiomas', conIntt.length === 0, conIntt.join(', '));
+  const enLaFicha = idiomas.filter(l => /INTT/.test((I18N[l]['c67.desc'] || '') + (I18N[l]['c68.desc'] || '')));
+  ok('transporte: ni las descripciones c67 y c68', enLaFicha.length === 0, enLaFicha.join(', '));
+  const pasosC68 = PASOS.split('\n').filter(l => /^\s*c68:/.test(l) && /INTT/.test(l));
+  ok('transporte: ni los pasos de la c68', pasosC68.length === 0, pasosC68.length + ' renglones');
+  ok('transporte: ni el panel, ni su tarjeta, ni su portal, ni su portada',
+     !/AREA_TRANSPORTE\.int|yt_toca_intt|o_tr_permiso3|put\.intt\.gob\.ve|\.p-int\b|p-int"/.test(PANEL));
+  const aitPermisos = /var PERMISO_AIT = \{([\s\S]*?)\};/.exec(PANEL);
+  ok('transporte: PERMISO_AIT se quedó sin los cuatro del INTT',
+     !!aitPermisos && !/\b(rotc|cps|dt|med):/.test(aitPermisos[1]) && !/PERMISO_AIT\.(rotc|cps|dt|med)\b/.test(PANEL));
+  ok('transporte: la licencia de conducir sigue yendo ante el INTT',
+     /Solicitud de homologación ante el INTT/.test(PASOS));
+  /* Los papeles que ya se subieron siguen en la bóveda: sin nombre saldrían con
+     el código pelado (ver SOLO_NOMBRE en panel.js). */
+  const sueltos = [['numero_patronal_ivss', 'd_trivss'], ['solvencia_islr', 'd_trislr'], ['carta_rutas_cps', 'd_trcartacps'],
+    ['documento_objeto_transporte', 'd_trobjeto'], ['registro_sunacoop', 'd_trsunacoop'], ['certificado_vehiculo', 'd_trvehiculo'],
+    ['poliza_rcv', 'd_trpoliza'], ['informe_seguridad_vehiculo', 'd_trinforme'], ['fotos_vehiculos', 'd_trfotos'],
+    ['aval_terminal', 'd_traval'], ['ultimo_dt', 'd_trdt'], ['rotc_vigente', 'd_trrotc'],
+    ['revision_vehiculo', 'd_trrevision'], ['estudio_ruta', 'd_trruta']];
+  const sinNombre = [];
+  sueltos.forEach(([tipo, clave]) => {
+    if (PANEL.indexOf("['" + tipo + "', '" + clave + "']") < 0) sinNombre.push(tipo + ' en SOLO_NOMBRE');
+    if (PANEL.indexOf("tipo:'" + tipo + "'") >= 0) sinNombre.push(tipo + ' sigue de recaudo');
+    Object.keys(UI).forEach(l => { if (!UI[l][clave]) sinNombre.push(l + '.' + clave); });
+  });
+  ok('transporte: sus papeles se siguen nombrando en la bóveda, sin pedirse', sinNombre.length === 0, sinNombre.join(', '));
 }
 
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');

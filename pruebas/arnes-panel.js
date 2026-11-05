@@ -13341,7 +13341,7 @@
           tarjetas: 5, gestion: 'En coordinación con SUNDDE o SENCAMER', fin: 'Permiso listo'},
     tra: {madre: 'c67', ya: 'c68', p: 'ytp', codigo: 'transporte_en_proceso', ente: 'MPPT',
           campos: 'area_transporte permiso_transporte tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
-          tarjetas: 3, gestion: 'En coordinación con el INAC, el INEA o el INTT', fin: 'Permiso listo'},
+          tarjetas: 2, gestion: 'En coordinación con el INAC o el INEA', fin: 'Permiso listo'},
     ene: {madre: 'c61', ya: 'c62', p: 'yen', codigo: 'energia_en_proceso', ente: 'MPPEE',
           campos: 'area_energia permiso_energia tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 4, gestion: 'En coordinación con el Ministerio de Energía Eléctrica', fin: 'Permiso listo'}
@@ -13667,14 +13667,26 @@
       {area: 'NORVEN · SENCAMER', valor: 'Marca NORVEN', docs: 'acta_constitutiva rif_empresa cedula rif_personal rif_gerente_calidad manual_calidad plan_calidad_producto catalogo_producto certificado_uso_sanitario', enlace: 'https://norven.sencamer.gob.ve/login'}]}, sigue);
   }
   function aitTraMira(sigue){
-    aitMira('tra', {ref: 'c67', codigo: 'permisos_transporte', ente: 'MPPT', area: 'area_transporte', permiso: 'permiso_transporte', tarjetas: 3, pestanas: 3,
+    /* Sin el INTT desde el 5-11-2026 (Franklin Reyes: «INTT ya no va en transporte»):
+       ni tarjeta, ni pestaña, ni opción, ni permiso. */
+    if (PASE === 'vacio'){
+      var cajaT = document.getElementById('trReal');
+      igual('tra: las pestañas, marítimo y presenciales',
+            cajaT ? [].map.call(cajaT.querySelectorAll('.st-pe'), function(b){ return b.textContent; }).join(' | ') : '(no está)',
+            '1 · ' + window.CIIP_PASOS.ui[curLang].yt_tr_e2 + ' | 2 · ' + window.CIIP_PASOS.ui[curLang].yt_mn_etapa4);
+      igual('tra: las opciones del área',
+            cajaT ? [].map.call(cajaT.querySelectorAll('select[name="area_transporte"] option'), function(o){ return o.value; }).filter(Boolean).join(' | ') : '(no está)',
+            'INEA · Instituto Nacional de los Espacios Acuáticos | Trámites presenciales');
+      ok('tra: la ficha ya no ofrece el INTT', !!cajaT && !/INTT|Planilla Única/.test(cajaT.textContent), 'lo ofrece', 'no lo ofrece');
+      ok('tra: ni dibuja su portada', !!cajaT && !cajaT.querySelector('.p-int'), 'la dibuja', 'no la dibuja');
+    }
+    aitMira('tra', {ref: 'c67', codigo: 'permisos_transporte', ente: 'MPPT', area: 'area_transporte', permiso: 'permiso_transporte', tarjetas: 2, pestanas: 2,
       presencial: {lista: 'Certificado de explotador de servicio público (RAV 121 y 135)|Idoneidad económica|Servicio especializado de transporte aéreo|Trabajos aéreos (RAV 130)|Otro trámite',
                    valor: 'Trabajos aéreos (RAV 130)', nota: 'd_nota_inacpres',
                    docs: 'carta_solicitud_ente planilla_liquidacion_ente idoneidad_economica dip_inac',
                    paso: 'Presenta tu solicitud en la Gerencia General de Transporte Aéreo del INAC, en Altamira'},
       clave: 'p_irtransporte', paso: 'Solicita tu permiso en el sistema que elegiste', casos: [
-      {area: 'INEA · Instituto Nacional de los Espacios Acuáticos', valor: 'Registro de compañía naviera', docs: 'carta_solicitud_ente planilla_liquidacion_ente registro_mercantil_empresa cedula rif_empresa patente_arrendamiento inspeccion_capitania fianza_inea sistema_calidad_iso titulo_fletamento opinion_seguridad_maritima', enlace: 'https://inea.gob.ve/'},
-      {area: 'Planilla Única · INTT', valor: 'Registro de operadores de transporte de carga (ROTC)', docs: 'registro_mercantil_empresa cedula numero_patronal_ivss solvencia_islr certificado_vehiculo poliza_rcv', enlace: 'https://put.intt.gob.ve/'}]}, sigue);
+      {area: 'INEA · Instituto Nacional de los Espacios Acuáticos', valor: 'Registro de compañía naviera', docs: 'carta_solicitud_ente planilla_liquidacion_ente registro_mercantil_empresa cedula rif_empresa patente_arrendamiento inspeccion_capitania fianza_inea sistema_calidad_iso titulo_fletamento opinion_seguridad_maritima', enlace: 'https://inea.gob.ve/'}]}, sigue);
   }
   function ypmEneAbre(sigue){ ypmAbre('ene', sigue); }
   function ypmEneMira(sigue){ ypmMira('ene', sigue); }
