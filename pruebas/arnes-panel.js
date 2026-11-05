@@ -19204,6 +19204,22 @@
     ok('revisar: Escape la cierra', !document.querySelector('#rv .rv-fondo'), 'abierta', 'cerrada');
     var filaOtra = document.querySelector('#rv .rv-fila');
     if (filaOtra) filaOtra.click();
+    /* Si otro gestor lo decide mientras está abierto, la ventana se va: Validar pisaría su decisión. */
+    var abiertoId = filaOtra && filaOtra.getAttribute('data-doc');
+    var repinta = window.CIIP_REPINTA_REVISAR;
+    if (abiertoId && repinta && window.CIIP_RV_DOCS_PRUEBA){
+      var ajeno = window.CIIP_RV_DOCS_PRUEBA().filter(function(x){ return String(x.id) === abiertoId; })[0];
+      if (ajeno){
+        var antesAjeno = ajeno.estado;
+        ajeno.estado = 'rechazado';
+        repinta();
+        ok('revisar: si otro gestor lo decide, su ventana se cierra', !document.querySelector('#rv .rv-fondo'), 'sigue abierta', 'cerrada');
+        ajeno.estado = antesAjeno;
+        repinta();
+        filaOtra = document.querySelector('#rv .rv-fila[data-doc="' + abiertoId + '"]');
+        if (filaOtra) filaOtra.click();
+      }
+    }
     var cierra = document.querySelector('#rv .rv-cerrar');
     if (cierra) cierra.click();
     ok('revisar: y también «Cerrar»', !!cierra && !document.querySelector('#rv .rv-fondo'), 'abierta', 'cerrada');

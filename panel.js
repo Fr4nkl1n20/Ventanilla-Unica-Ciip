@@ -24863,7 +24863,9 @@ applyLang(idiomaParaMi());
        migaja. */
     var enNota = document.activeElement && document.activeElement.id === 'rvNota';
     var fondoVivo = caja.querySelector(':scope > .rv-fondo');
-    if (fondoVivo && fondoVivo.getAttribute('data-doc') !== String(rvElegido)) fondoVivo = null;
+    var docVivo = fondoVivo && (rvDocs || []).filter(function(x){ return x.id === rvElegido; })[0];
+    if (fondoVivo && (fondoVivo.getAttribute('data-doc') !== String(rvElegido) ||
+                      (docVivo && fondoVivo.getAttribute('data-archivo') !== String(docVivo.archivo || '')))) fondoVivo = null;
     [].slice.call(caja.children).forEach(function(n){ if (n !== fondoVivo) n.remove(); });
     caja.classList.add('rv-cats');
     var docs = rvDocs || [];
@@ -24894,7 +24896,7 @@ applyLang(idiomaParaMi());
     campo.placeholder = u.cb_busca || '';
     campo.setAttribute('aria-label', u.cb_busca || '');
     campo.value = rvBusca;
-    campo.addEventListener('input', function(){ rvBusca = campo.value; rvPinta(); });
+    campo.addEventListener('input', function(){ rvBusca = campo.value; rvAbiertas = {}; rvPinta(); });
     busca.appendChild(campo);
     caja.appendChild(busca);
     /* Decidido un documento se cierra su ventana: el aviso se dice aquí. */
@@ -24968,7 +24970,7 @@ applyLang(idiomaParaMi());
     if (gente[0] && !Object.keys(rvAbiertas).length) rvAbiertas[gente[0].id] = true;
     gente.forEach(function(p){
       /* Con su documento abierto, sigue abierto. */
-      var abierta = !!rvAbiertas[p.id] || !!q || p.docs.some(function(d){ return d.id === rvElegido; });
+      var abierta = !!rvAbiertas[p.id] || (!!q && rvAbiertas[p.id] !== false) || p.docs.some(function(d){ return d.id === rvElegido; });
       var b = el('button', 'cb-persona');
       b.type = 'button';
       b.setAttribute('aria-expanded', abierta ? 'true' : 'false');
@@ -25008,24 +25010,32 @@ applyLang(idiomaParaMi());
     });
     caja.appendChild(col1);
 
-    /* El documento se abre en una ventana al pulsarlo. */
-    if (!elegido) rvElegido = null;
+    /* El documento se abre en una ventana al pulsarlo. Si ya no está en este filtro
+       -lo decidió otro gestor-, la ventana se va: Validar pisaría esa decisión. */
+    if (!elegido){
+      rvElegido = null;
+      if (fondoVivo){ fondoVivo.remove(); fondoVivo = null; }
+    }
     if (elegido){
       var cerrar = el('button', 'rv-btn rv-cerrar', u.eq_cerrar || '');
       cerrar.type = 'button';
       cerrar.addEventListener('click', rvCierra);
       if (fondoVivo){
-        /* Misma ventana: se cambian la cabecera y el pie; el documento se queda. */
+        /* Misma ventana: se rehace todo menos la imagen o el PDF, que se quedan. */
         var visorV = fondoVivo.querySelector('.rv-visor'), nuevoV = el('div');
         rvVisor(nuevoV, elegido, true);
         var cuerpoV = visorV.querySelector('.rv-cuerpo');
         [].slice.call(visorV.children).forEach(function(n){ if (n !== cuerpoV) n.remove(); });
-        var cabN = nuevoV.querySelector('.rv-cab'), resto = [].slice.call(nuevoV.children).filter(function(n){ return n !== cabN && !n.classList.contains('rv-cuerpo'); });
+        var cuerpoN = nuevoV.querySelector('.rv-cuerpo');
+        [].slice.call(cuerpoV.children).forEach(function(n){ if (n.tagName !== 'IMG' && n.tagName !== 'IFRAME') n.remove(); });
+        if (cuerpoN) [].slice.call(cuerpoN.children).forEach(function(n){ cuerpoV.appendChild(n); });
+        var cabN = nuevoV.querySelector('.rv-cab'), resto = [].slice.call(nuevoV.children).filter(function(n){ return n !== cabN && n !== cuerpoN; });
         if (cabN){ cabN.appendChild(cerrar); visorV.insertBefore(cabN, cuerpoV); }
         resto.forEach(function(n){ visorV.appendChild(n); });
       } else {
         var fondo = el('div', 'rv-fondo');
         fondo.setAttribute('data-doc', String(elegido.id));
+        fondo.setAttribute('data-archivo', String(elegido.archivo || ''));
         fondo.addEventListener('click', function(ev){ if (ev.target === fondo) rvCierra(); });
         var visor = el('div', 'rv-visor');
         visor.setAttribute('role', 'dialog');
@@ -25265,7 +25275,12 @@ applyLang(idiomaParaMi());
         x.revisado_en = ahora;
       });
       /* Despachado todo lo de este inversionista, se abre el siguiente. */
-      if (!(rvDocs || []).some(function(x){ return x.inversionista === d.inversionista && x.estado === rvFiltro; })) rvAbiertas = {};
+      if (!(rvDocs || []).some(function(x){ return x.inversionista === d.inversionista && x.estado === rvFiltro; })){
+        var quedan = (rvDocs || []).filter(function(x){ return x.estado === rvFiltro; }).sort(function(a, b){ return rvDueno(a).localeCompare(rvDueno(b), 'es'); });
+        var sigue = quedan.filter(function(x){ return rvDueno(x).localeCompare(rvDueno(d), 'es') > 0; })[0] || quedan[0];
+        delete rvAbiertas[d.inversionista];
+        if (sigue) rvAbiertas[sigue.inversionista] = true;
+      }
       /* Si ya abrió otro documento, ése se queda abierto. */
       if (rvElegido === d.id){
         rvElegido = null;
@@ -25273,7 +25288,7 @@ applyLang(idiomaParaMi());
         rvNotaDe = null;
       }
       rvPinta();
-      var aviso = document.querySelector('#rv .rv-aviso');
+      var aviso = document.querySelector('#rv > .rv-aviso');
       if (aviso){
         aviso.classList.add('bien');
         aviso.textContent = (!estado ? u.rv_observado
@@ -25296,7 +25311,7 @@ applyLang(idiomaParaMi());
       rvPinta();
       var nueva = document.getElementById('rvNota');
       if (nueva && texto) nueva.value = texto;
-      var aviso = rvElegido === d.id ? document.querySelector('#rv .rv-visor .rv-msg') : document.querySelector('#rv .rv-aviso');
+      var aviso = rvElegido === d.id ? document.querySelector('#rv .rv-visor .rv-msg') : document.querySelector('#rv > .rv-aviso');
       aviso = aviso || msg;
       if (aviso){
         aviso.textContent = u.co_error || '';
@@ -25499,6 +25514,8 @@ applyLang(idiomaParaMi());
     });
   };
   window.CIIP_REPINTA_REVISAR = function(){ if (rvDocs) rvPinta(); };
+  /* Para las pruebas: la lista viva, para simular la decisión de otro gestor. */
+  window.CIIP_RV_DOCS_PRUEBA = function(){ return rvDocs || []; };
   /* La cuenta del menú, en cuanto se sabe que eres del equipo.
 
      CON UNA CONSULTA, Y NO CON LA BANDEJA ENTERA (15-10-2026). Esto pedía
