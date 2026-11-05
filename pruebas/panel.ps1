@@ -237,9 +237,9 @@ foreach ($c in $casos) {
   #   awk '/enCadena\(\[/,/\], volcar\)/' pruebas/arnes-panel.js |
   #     perl -0pe 's{/\*.*?\*/}{}gs' | grep -oE '[a-zA-Z0-9_]+,' | wc -l
   #
-  # 330000 deja el doble del margen que hace falta hoy. Cuando la cadena
-  # vuelva a crecer, la cuenta esta aqui arriba.
-  '--enable-logging=stderr','--virtual-time-budget=330000',
+  # 330000 se quedo corto el 5-11-2026, con la cadena ya en mas de 700 pasos:
+  # 420000 deja margen. Cuando vuelva a crecer, la cuenta esta aqui arriba.
+  '--enable-logging=stderr','--virtual-time-budget=420000',
             "--window-size=$ancho",
             "--user-data-dir=$trabajo\perfil-$caso", $url)
   $p = Start-Process $navegador -ArgumentList $args -RedirectStandardOutput $salida `

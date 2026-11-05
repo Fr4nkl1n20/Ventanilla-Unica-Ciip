@@ -1122,6 +1122,8 @@ function applyLang(lang){
     c63: {ya:'c64', nueva:'c63', p:'yag'},
     c65: {ya:'c66', nueva:'c65', p:'yic'},
     c67: {ya:'c68', nueva:'c67', p:'ytp'},
+    /* Y los de interior, justicia y paz, con el INTT (Franklin Reyes, 5-11-2026). */
+    c73: {ya:'c74', nueva:'c73', p:'yij'},
     /* Y el RNC (Franklin Reyes, 4-11-2026, maquetas/rnc-tarjetas.html). */
     c13: {ya:'c69', nueva:'c13', p:'yrc'},
     /* Y la visa, la cédula y el RIF personal (Franklin Reyes, 4-11-2026,
@@ -1139,8 +1141,8 @@ function applyLang(lang){
   });
   /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
      escondida nace elegida, que solo se llega a ella eligiéndola. */
-  var YA_ELEGIDA = {c37:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false, c13:false, c1:false, c2:false, c3:false,
-                    c44:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true, c69:true, c70:true, c71:true, c72:true};
+  var YA_ELEGIDA = {c37:false, c73:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false, c13:false, c1:false, c2:false, c3:false,
+                    c44:true, c74:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true, c69:true, c70:true, c71:true, c72:true};
   window.CIIP_YA_ELEGIDA = function(ref){
     if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
     YA_ELEGIDA[ref] = true;
@@ -3544,6 +3546,13 @@ applyLang(idiomaParaMi());
   var AREA_AGUA = {conc: 'Concesión · Uso industrial, comercial o hidroeléctrico', lic: 'Licencia · Agrícola, abastecimiento o recreación', afec: 'Afectación · Recursos naturales y estudios', camb: 'Cambios · Venta o modificación del título'};
   var AREA_INDUSTRIA = {sis: 'SIS · SENCAMER', lin: 'Sistema en línea · SENCAMER', env: 'Envasados · SENCAMER', nor: 'NORVEN · SENCAMER'};
   var AREA_TRANSPORTE = {ine: 'INEA · Instituto Nacional de los Espacios Acuáticos'};
+  var AREA_INTERIOR = 'Planilla Única · INTT';
+  var PERMISO_IJ = {
+    rotc: 'Registro de operadores de transporte de carga (ROTC)',
+    cps: 'Certificación de prestación de servicio de pasajeros (CPS)',
+    dt: 'Actualización de flota DT9 o DT10',
+    med: 'Autorización de carga de medidas excepcionales'
+  };
   var PERMISO_AIT = {
     conc: 'Concesión de aprovechamiento de aguas',
     lic: 'Licencia de aprovechamiento de aguas',
@@ -4570,6 +4579,36 @@ applyLang(idiomaParaMi());
       {tipo:'cedula',            clave:'d_cedrep'},
       {tipo:'rif_personal',      clave:'d_rifrep'}
     ],
+    /* Interior, justicia y paz (c73), con los permisos que el INTT tenía en
+       transporte (Franklin Reyes, 5-11-2026, maquetas/permisos-interior-justicia-paz.html). */
+    permisos_interior: [
+      {tipo:'carta_solicitud_ente', clave:'d_trcarta', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.dt, PERMISO_IJ.med]},
+      {tipo:'registro_mercantil_empresa', clave:'d_ieregistro', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.rotc, PERMISO_IJ.med]},
+      {tipo:'cedula', clave:'d_cedrep', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.rotc, PERMISO_IJ.med]},
+      {tipo:'rif_empresa', clave:'d_rifempresa', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.dt, PERMISO_IJ.med]},
+      {tipo:'numero_patronal_ivss', clave:'d_trivss', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.rotc]},
+      {tipo:'solvencia_islr', clave:'d_trislr', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.rotc]},
+      {tipo:'carta_rutas_cps', clave:'d_trcartacps', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.cps]},
+      {tipo:'documento_objeto_transporte', clave:'d_trobjeto', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.cps]},
+      {tipo:'acta_asamblea', clave:'d_tracta', opcional:true, siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.cps, PERMISO_IJ.dt]},
+      {tipo:'registro_sunacoop', clave:'d_trsunacoop', opcional:true, siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.cps]},
+      {tipo:'certificado_vehiculo', clave:'d_trvehiculo', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.rotc, PERMISO_IJ.cps, PERMISO_IJ.dt]},
+      {tipo:'poliza_rcv', clave:'d_trpoliza', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.rotc, PERMISO_IJ.cps, PERMISO_IJ.dt]},
+      {tipo:'informe_seguridad_vehiculo', clave:'d_trinforme', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.cps, PERMISO_IJ.dt]},
+      {tipo:'fotos_vehiculos', clave:'d_trfotos', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.cps]},
+      {tipo:'aval_terminal', clave:'d_traval', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.cps]},
+      {tipo:'ultimo_dt', clave:'d_trdt', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.dt]},
+      {tipo:'arrendamiento', clave:'d_trarriendo', opcional:true, siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.dt]},
+      {tipo:'rotc_vigente', clave:'d_trrotc', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.med]},
+      {tipo:'revision_vehiculo', clave:'d_trrevision', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.med]},
+      {tipo:'estudio_ruta', clave:'d_trruta', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.med]}
+    ],
+    interior_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
     transporte_en_proceso: [
       {tipo:'acta_constitutiva', clave:'d_actaempresa'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
@@ -4716,6 +4755,7 @@ applyLang(idiomaParaMi());
     c63: {aplica:'cond', cond:'ft_c_agua', modo:'portal', depende:'c6'},
     c65: {aplica:'cond', cond:'ft_c_industria', modo:'portal', depende:'c6'},
     c67: {aplica:'cond', cond:'ft_c_transporte', modo:'portal', depende:'c6'},
+    c73: {aplica:'cond', cond:'ft_c_interior', modo:'portal', depende:'c6'},
     /* El SIDCAI (c39): se inscribe una vez y luego se declara cada mes,
        dentro de los quince días siguientes (Providencia 015-004-2024).
        La inscripción no tiene plazo publicado, y la ficha se salta el
@@ -5796,6 +5836,15 @@ applyLang(idiomaParaMi());
   TARJETAS_DE_INDUSTRIA[AREA_INDUSTRIA.nor] = {etapa: 1, toca: 'yt_toca_norven', pt: portadaSencamer('NORVEN')};
   TARJETAS_DE_INDUSTRIA[VALOR_PRESENCIAL] = tarjetaPresencial(2);
   var ETAPAS_DE_INDUSTRIA = [{n: 1, t: 'yt_ic_e2', d: 'yt_ic_e2_d'}, etapaPresencial(2)];
+  var TARJETAS_DE_INTERIOR = {};
+  TARJETAS_DE_INTERIOR[AREA_INTERIOR] = {etapa: 1, toca: 'yt_toca_intt',
+    pt: '<div class="st-pt p-int" aria-hidden="true"><div class="log">INTT</div><span>Gestiona y paga tu trámite en línea</span></div>'};
+  TARJETAS_DE_INTERIOR[VALOR_PRESENCIAL] = tarjetaPresencial(2);
+  var ETAPAS_DE_INTERIOR = [{n: 1, t: 'yt_ij_e1', d: 'yt_ij_e1_d'}, etapaPresencial(2)];
+  var PERMISOS_DE_INTERIOR = {};
+  PERMISOS_DE_INTERIOR[AREA_INTERIOR] = 'o_ij_permiso';
+  var PORTAL_DE_INTERIOR = {};
+  PORTAL_DE_INTERIOR[AREA_INTERIOR] = 'https://put.intt.gob.ve/';
   var TARJETAS_DE_TRANSPORTE = {};
   /* Sin el INTT desde el 5-11-2026 (Franklin Reyes: «INTT ya no va en transporte,
      porque pasó al Ministerio de Interiores, Justicia y Paz»): se fueron su
@@ -6885,6 +6934,16 @@ applyLang(idiomaParaMi());
        opcionesSegun:'area_industria', opcionesDe:PERMISOS_DE_INDUSTRIA, verSi:'area_industria'},
       campoOtroTramite('permiso_industria')
     ],
+    permisos_interior: [
+      {n:'area_interior', clave:'f_transportearea', opcionesClave:'o_interior_area', ancho:true,
+       tarjetas:TARJETAS_DE_INTERIOR, etapas:ETAPAS_DE_INTERIOR, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'permiso_interior', clave:'f_permisosol', ancho:true,
+       opcionesSegun:'area_interior', opcionesDe:PERMISOS_DE_INTERIOR, verSi:'area_interior', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_interior')
+    ],
     permisos_transporte: [
       {n:'area_transporte', clave:'f_transportearea', opcionesClave:'o_transporte_area', ancho:true,
        tarjetas:TARJETAS_DE_TRANSPORTE, etapas:ETAPAS_DE_TRANSPORTE, portada:portadaDibujada},
@@ -7390,6 +7449,19 @@ applyLang(idiomaParaMi());
       {n:'permiso_industria', clave:'f_yspermisoya', ancho:true,
        opcionesSegun:'area_industria', opcionesDe:PERMISOS_DE_INDUSTRIA, verSi:'area_industria'},
       campoOtroTramite('permiso_industria'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    interior_en_proceso: [
+      {n:'area_interior', clave:'f_transportearea', opcionesClave:'o_interior_area', ancho:true,
+       tarjetas:TARJETAS_DE_INTERIOR, etapas:ETAPAS_DE_INTERIOR, portada:portadaDibujada},
+      {n:'permiso_interior', clave:'f_yspermisoya', ancho:true,
+       opcionesSegun:'area_interior', opcionesDe:PERMISOS_DE_INTERIOR, verSi:'area_interior', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_interior'),
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
       {n:'rif_empresa',          clave:'f_rifempresa'},
@@ -29046,7 +29118,7 @@ applyLang(idiomaParaMi());
   function esPermisoAgrupado(ref){
     if (!ref) return false;
     if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' ||
-        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c69' || ref === 'c70' || ref === 'c71' || ref === 'c72' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
+        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c74' || ref === 'c69' || ref === 'c70' || ref === 'c71' || ref === 'c72' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
         ref === 'c28' || ref === 'c29' || ref === 'c13') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
@@ -29093,7 +29165,7 @@ applyLang(idiomaParaMi());
     /* Y los permisos de hidrocarburos (c57), de pesca (c59) y de energía
        (c61), Franklin Reyes, 3-11-2026, al final. */
     /* Y los de agua (c63), industria y comercio (c65) y transporte (c67), 4-11-2026. */
-    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c57', 'c59', 'c61', 'c63', 'c65', 'c67'], antes:['c28', 'c29', 'c13'],
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c57', 'c59', 'c61', 'c63', 'c65', 'c67', 'c73'], antes:['c28', 'c29', 'c13'],
      rotulo:function(dic){ return dic['g.sectorial']; }}
   ];
 
@@ -29571,6 +29643,7 @@ applyLang(idiomaParaMi());
     c63: {1: {clave: 'agua_solicitado',        texto: 'p_yalosolicite'}},
     c65: {1: {clave: 'industria_solicitado',   texto: 'p_yalosolicite'}},
     c67: {1: {clave: 'transporte_solicitado',  texto: 'p_yalosolicite'}},
+    c73: {1: {clave: 'interior_solicitado',    texto: 'p_yalosolicite'}},
     /* Y el permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos), con DOS pasos del inversionista: solicitarlo en el portal
        de los bomberos de su estado («Ya la solicité») e indicar en qué sede
@@ -29810,6 +29883,7 @@ applyLang(idiomaParaMi());
     c63: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c65: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c67: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c73: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Y la inscripción en el SIDCAI (c39), igual que el minero (Franklin
        Reyes, 1-10-2026, Ventanilla Única 2.3): «Inscríbete en el FONACIT a
        través del portal → Inscripción lista». Enviada no hay nada hecho; el
@@ -29864,6 +29938,7 @@ applyLang(idiomaParaMi());
     c64: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c66: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c68: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c74: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c69: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c70: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c71: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
@@ -30001,6 +30076,7 @@ applyLang(idiomaParaMi());
                         c63: {campo: 'area_agua', valor: VALOR_PRESENCIAL, si: 'c63_presencial'},
                         c65: [{campo: 'area_industria', valor: VALOR_PRESENCIAL, si: 'c65_presencial'},
                               {campo: 'permiso_industria', valor: PERMISO_AIT.promo, si: 'c65_promo'}],
+                        c73: {campo: 'area_interior', valor: VALOR_PRESENCIAL, si: 'c73_presencial'},
                         c67: [{campo: 'area_transporte', valor: VALOR_PRESENCIAL, si: 'c67_presencial'},
                               {campo: 'permiso_transporte', valores: [PERMISO_AIT.exp, PERMISO_AIT.ido, PERMISO_AIT.set, PERMISO_AIT.rav], si: 'c67_inac'}],
                         /* Pesca y embarcaciones y acuicultura se presentan en la
@@ -30042,6 +30118,7 @@ applyLang(idiomaParaMi());
     c59: {1: {campo: 'area_pesca', urls: PORTAL_DE_PESCA, clave: 'p_irinsopesca'}},
     c65: {1: {campo: 'area_industria', urls: PORTAL_DE_INDUSTRIA, clave: 'p_irindustria'}},
     c67: {1: {campo: 'area_transporte', urls: PORTAL_DE_TRANSPORTE, clave: 'p_irtransporte'}},
+    c73: {1: {campo: 'area_interior', urls: PORTAL_DE_INTERIOR, clave: 'p_irtransporte'}},
     c61: {1: {campo: 'area_energia', urls: PORTAL_DE_ENERGIA, clave: 'p_irmppee',
               claves: {'Conexión y servicio · CORPOELEC': 'p_ircorpoelec'}}},
     /* El texto del botón cambia con el ente (claves): con el INTI no se
@@ -32821,17 +32898,7 @@ applyLang(idiomaParaMi());
        /* Y el estudio de impacto ambiental, que solo pedía el permiso
           ambiental hasta el 19-10-2026 (Franklin Reyes, Permisos_MINEC: lo
           pide el sistema del MINEC). */
-       ['impacto_ambiental', 'd_ambiental'],
-       /* Y los que solo pedían los permisos del INTT en la ficha de transporte
-          hasta el 5-11-2026 (Franklin Reyes): se fueron de la ficha, y el que
-          los subió los sigue teniendo en la bóveda. */
-       ['numero_patronal_ivss', 'd_trivss'], ['solvencia_islr', 'd_trislr'],
-       ['carta_rutas_cps', 'd_trcartacps'], ['documento_objeto_transporte', 'd_trobjeto'],
-       ['registro_sunacoop', 'd_trsunacoop'], ['certificado_vehiculo', 'd_trvehiculo'],
-       ['poliza_rcv', 'd_trpoliza'], ['informe_seguridad_vehiculo', 'd_trinforme'],
-       ['fotos_vehiculos', 'd_trfotos'], ['aval_terminal', 'd_traval'],
-       ['ultimo_dt', 'd_trdt'], ['rotc_vigente', 'd_trrotc'],
-       ['revision_vehiculo', 'd_trrevision'], ['estudio_ruta', 'd_trruta']
+       ['impacto_ambiental', 'd_ambiental']
       ].forEach(function(p){
         if (!CLAVE_DE_TIPO[p[0]]) CLAVE_DE_TIPO[p[0]] = p[1];
         if (CLAVE_DE_TIPO[p[0]] === p[1]) SOLO_NOMBRE[p[0]] = true;

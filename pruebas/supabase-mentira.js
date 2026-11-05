@@ -427,6 +427,10 @@
      nombre:'Permisos de industria y comercio', fase:3, nivel:'actividad'},
     {codigo:'industria_en_proceso', ref_panel:'c66', ente:'MPPICN', activo:true, emite:null, plazo_dias:null,
      nombre:'Permiso de industria y comercio ya solicitado', fase:3, nivel:'actividad'},
+    {codigo:'permisos_interior', ref_panel:'c73', ente:'MPPRIJP', activo:true, emite:'permiso_interior',
+     nombre:'Permisos de interior, justicia y paz', fase:3, nivel:'actividad'},
+    {codigo:'interior_en_proceso', ref_panel:'c74', ente:'MPPRIJP', activo:true, emite:null, plazo_dias:null,
+     nombre:'Permiso de interior, justicia y paz ya solicitado', fase:3, nivel:'actividad'},
     {codigo:'permisos_transporte', ref_panel:'c67', ente:'MPPT', activo:true, emite:'permiso_transporte',
      nombre:'Permisos de transporte', fase:3, nivel:'actividad'},
     {codigo:'transporte_en_proceso', ref_panel:'c68', ente:'MPPT', activo:true, emite:null, plazo_dias:null,
@@ -2093,7 +2097,7 @@
         {codigo:'permiso_hidrocarburos', vence:false},
         {codigo:'permiso_pesca', vence:false},
         {codigo:'permiso_energia', vence:false},
-        {codigo:'permiso_agua', vence:false}, {codigo:'permiso_industria', vence:false}, {codigo:'permiso_transporte', vence:false},
+        {codigo:'permiso_agua', vence:false}, {codigo:'permiso_industria', vence:false}, {codigo:'permiso_transporte', vence:false}, {codigo:'permiso_interior', vence:false},
         {codigo:'planilla_minaguas', vence:false},
         {codigo:'derecho_inmueble', vence:false},
         {codigo:'constancia_hidrologica', vence:false},
@@ -3311,7 +3315,7 @@
                           'rtn_solicitado', 'ambiental_solicitado',
                           'agricola_solicitado', 'rnc_solicitado',
                           'hidrocarburos_solicitado', 'pesca_solicitado', 'energia_solicitado',
-                          'agua_solicitado', 'industria_solicitado', 'transporte_solicitado'];
+                          'agua_solicitado', 'industria_solicitado', 'transporte_solicitado', 'interior_solicitado'];
             var rCP;
             if (!args || llaves.indexOf(args.p_clave) < 0){
               rCP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};

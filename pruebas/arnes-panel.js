@@ -498,13 +498,15 @@
               ypmAguAbre, ypmAguMira, ypmAguYaMira, ypmAguAtrasMira,
               ypmIndAbre, ypmIndMira, ypmIndYaMira, ypmIndAtrasMira,
               ypmTraAbre, ypmTraMira, ypmTraYaMira, ypmTraAtrasMira,
+              /* Y interior, justicia y paz (c73/c74), 5-11-2026. */
+              ypmIjAbre, ypmIjMira, ypmIjYaMira, ypmIjAtrasMira,
               /* Y el RNC (c13/c69), 4-11-2026. */
               ypmRncAbre, ypmRncMira, ypmRncYaMira, ypmRncAtrasMira,
               /* Y la visa, la cédula y el RIF (c70 a c72), 4-11-2026. */
               ypmVisAbre, ypmVisMira, ypmVisYaMira, ypmVisAtrasMira, ypmVisGuiaMira,
               ypmCedAbre, ypmCedMira, ypmCedYaMira, ypmCedAtrasMira,
               ypmRifAbre, ypmRifMira, ypmRifYaMira, ypmRifAtrasMira, idvCierra,
-              aitAguAbre, aitAguMira, aitIndAbre, aitIndMira, aitTraAbre, aitTraMira,
+              aitAguAbre, aitAguMira, aitIndAbre, aitIndMira, aitTraAbre, aitTraMira, aitIjAbre, aitIjMira,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
@@ -888,7 +890,7 @@
        inscripciones con tarjeta propia. */
     /* Y CATORCE desde el 3-11-2026 (Franklin Reyes): hidrocarburos (c57), pesca
        (c59) y energía (c61). */
-    igual('camino: la fase 03 cuenta sus 17',         deEtapa(2, '.jcount'), '0 de 17 listos');
+    igual('camino: la fase 03 cuenta sus 18',         deEtapa(2, '.jcount'), '0 de 18 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -1236,7 +1238,7 @@
                 2-11-2026. */
              /* Y 50 con hidrocarburos, pesca y energía (c57 a c62), Franklin
                 Reyes, 3-11-2026. */
-             pendS === 60, pendS + ' por iniciar de 61 ofrecidas', '60');
+             pendS === 62, pendS + ' por iniciar de 63 ofrecidas', '62');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1261,8 +1263,8 @@
              INTI (c54), Franklin Reyes, 2-11-2026.
              Y 45 con el RNC encendido (c13) y los de c55 y c56, el mismo día.
              Y 51 con hidrocarburos, pesca y energía (c57 a c62), 3-11-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 61,
-             pend + ' por iniciar de 61 ofrecidas', '61');
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 63,
+             pend + ' por iniciar de 63 ofrecidas', '63');
       }
 
       /* ── la cadena entre trámites ──
@@ -1719,8 +1721,9 @@
            transporte, con sus tres escondidos, y el RNC ya solicitado (c69).
            Esta cuenta siguió en treinta con las seis primeras porque a la c62
            le faltaba su cierre: quedaron dentro de ella y no se veían. */
-        igual('grupo: la fase 03 se queda con treinta y siete tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 37);
+        /* Y TREINTA Y NUEVE desde el 5-11-2026: interior, justicia y paz, con su escondido. */
+        igual('grupo: la fase 03 se queda con treinta y nueve tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 39);
         igual('grupo: ninguna tarjeta queda dentro de otra',
               document.querySelectorAll('.tcard .tcard').length, 0);
         ok('grupo: y el título no es una tarjeta',
@@ -13339,6 +13342,10 @@
     ind: {madre: 'c65', ya: 'c66', p: 'yic', codigo: 'industria_en_proceso', ente: 'MPPICN',
           campos: 'area_industria permiso_industria tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 5, gestion: 'En coordinación con SUNDDE o SENCAMER', fin: 'Permiso listo'},
+    ij: {madre: 'c73', ya: 'c74', p: 'yij', codigo: 'interior_en_proceso', ente: 'MPPRIJP',
+          campos: 'area_interior permiso_interior tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'permiso_interior',
+          tarjetas: 2, gestion: 'En coordinación con el INTT', fin: 'Permiso listo'},
     tra: {madre: 'c67', ya: 'c68', p: 'ytp', codigo: 'transporte_en_proceso', ente: 'MPPT',
           campos: 'area_transporte permiso_transporte tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 2, gestion: 'En coordinación con el INAC o el INEA', fin: 'Permiso listo'},
@@ -13583,6 +13590,10 @@
   function ypmIndMira(sigue){ ypmMira('ind', sigue); }
   function ypmIndYaMira(sigue){ ypmYaMira('ind', sigue); }
   function ypmIndAtrasMira(sigue){ ypmAtrasMira('ind', sigue); }
+  function ypmIjAbre(sigue){ ypmAbre('ij', sigue); }
+  function ypmIjMira(sigue){ ypmMira('ij', sigue); }
+  function ypmIjYaMira(sigue){ ypmYaMira('ij', sigue); }
+  function ypmIjAtrasMira(sigue){ ypmAtrasMira('ij', sigue); }
   function ypmTraAbre(sigue){ ypmAbre('tra', sigue); }
   function ypmTraMira(sigue){ ypmMira('tra', sigue); }
   function ypmTraYaMira(sigue){ ypmYaMira('tra', sigue); }
@@ -13592,6 +13603,7 @@
   function aitAguAbre(sigue){ hpeAbreNueva('c63', sigue); }
   function aitIndAbre(sigue){ hpeAbreNueva('c65', sigue); }
   function aitTraAbre(sigue){ hpeAbreNueva('c67', sigue); }
+  function aitIjAbre(sigue){ hpeAbreNueva('c73', sigue); }
   function aitMira(k, x, sigue){
     if (PASE !== 'vacio') return sigue();
     var caja = document.getElementById('trReal');
@@ -13666,6 +13678,11 @@
       {area: 'SIS · SENCAMER', valor: 'Registro de empresa manufacturera (REM)', docs: 'acta_constitutiva rif_empresa cedula rif_personal', nota: 'd_nota_prov', enlace: 'https://sis.sencamer.gob.ve/'},
       {area: 'NORVEN · SENCAMER', valor: 'Marca NORVEN', docs: 'acta_constitutiva rif_empresa cedula rif_personal rif_gerente_calidad manual_calidad plan_calidad_producto catalogo_producto certificado_uso_sanitario', enlace: 'https://norven.sencamer.gob.ve/login'}]}, sigue);
   }
+  function aitIjMira(sigue){
+    aitMira('ij', {ref: 'c73', codigo: 'permisos_interior', ente: 'MPPRIJP', area: 'area_interior', permiso: 'permiso_interior', tarjetas: 2, pestanas: 2,
+      clave: 'p_irtransporte', paso: 'Solicita tu permiso en el sistema que elegiste', casos: [
+      {area: 'Planilla Única · INTT', valor: 'Registro de operadores de transporte de carga (ROTC)', docs: 'registro_mercantil_empresa cedula numero_patronal_ivss solvencia_islr certificado_vehiculo poliza_rcv', enlace: 'https://put.intt.gob.ve/'}]}, sigue);
+  }
   function aitTraMira(sigue){
     /* Sin el INTT desde el 5-11-2026 (Franklin Reyes: «INTT ya no va en transporte»):
        ni tarjeta, ni pestaña, ni opción, ni permiso. */
@@ -13706,9 +13723,9 @@
     var ini = hijos.findIndex(function(e){ return e.getAttribute('data-grupo') === 'g.sectorial'; });
     var ultimas = hijos.filter(function(e){
       return e.matches('.tcard[data-tr]') && !e.hasAttribute('data-tramo-de');
-    }).slice(-6).map(function(e){ return e.getAttribute('data-tr'); }).join(' ');
+    }).slice(-7).map(function(e){ return e.getAttribute('data-tr'); }).join(' ');
     /* Detrás de ellas, desde el 4-11-2026, agua, industria y comercio, y transporte. */
-    igual('hpe: las tres, y detrás agua, industria y transporte, al final de las licencias sectoriales', ultimas, 'c57 c59 c61 c63 c65 c67');
+    igual('hpe: las tres, y detrás agua, industria y transporte, al final de las licencias sectoriales', ultimas, 'c57 c59 c61 c63 c65 c67 c73');
     [['c57', 'Permisos de hidrocarburos', 'Ministerio del Poder Popular de Hidrocarburos'],
      ['c59', 'Permisos de pesca', 'Instituto Socialista de la Pesca y Acuicultura'],
      ['c61', 'Permisos de energía', 'Ministerio del Poder Popular para la Energía Eléctrica']].forEach(function(x){

@@ -299,7 +299,7 @@ const PROPIOS = new Set((
                 en los seis idiomas: es una decisión, no un descuido. */
 const SALTOS = new Set([
   'yt_toca_pr', 'yt_toca_sidcai', 'yt_toca_rncl', 'yt_toca_canc', 'yt_toca_saime', 'yt_toca_rifp',
-  'yt_toca_concesion', 'yt_toca_licagua', 'yt_toca_afectacion', 'yt_toca_cambioagua', 'yt_toca_senlinea',
+  'yt_toca_concesion', 'yt_toca_licagua', 'yt_toca_afectacion', 'yt_toca_cambioagua', 'yt_toca_senlinea', 'yt_toca_intt',
   'yt_toca_sis', 'yt_toca_envasados', 'yt_toca_norven', 'yt_toca_inea',
   'tag.soon', 'asst.greet',
   /* Y estos dos no son rótulos: son TROZOS que se pegan detrás de otra
@@ -839,7 +839,7 @@ function fichasDelMarcado() {
     ['o_transporte_area', 'o_tr_permiso1', 'o_tr_permiso2', 'ytp_ya_d', 'ytp_nueva_d', 'ft_c_transporte', 'yt_tr_e2_d'].forEach(k => {
       if (/INTT|Planilla Única/.test(JSON.stringify(u[k]))) conIntt.push(lang + '.' + k);
     });
-    ['o_tr_permiso3', 'yt_tr_e3', 'yt_tr_e3_d', 'yt_toca_intt', 'd_tracta', 'd_trarriendo'].forEach(k => {
+    ['o_tr_permiso3', 'yt_tr_e3', 'yt_tr_e3_d'].forEach(k => {
       if (k in u) conIntt.push(lang + '.' + k + ' sigue definida');
     });
     if ((u.o_transporte_area || []).length !== 3) conIntt.push(lang + '.o_transporte_area no trae tres');
@@ -850,26 +850,18 @@ function fichasDelMarcado() {
   const pasosC68 = PASOS.split('\n').filter(l => /^\s*c68:/.test(l) && /INTT/.test(l));
   ok('transporte: ni los pasos de la c68', pasosC68.length === 0, pasosC68.length + ' renglones');
   ok('transporte: ni el panel, ni su tarjeta, ni su portal, ni su portada',
-     !/AREA_TRANSPORTE\.int|yt_toca_intt|o_tr_permiso3|put\.intt\.gob\.ve|\.p-int\b|p-int"/.test(PANEL));
+     !/AREA_TRANSPORTE\.int|o_tr_permiso3/.test(PANEL));
   const aitPermisos = /var PERMISO_AIT = \{([\s\S]*?)\};/.exec(PANEL);
   ok('transporte: PERMISO_AIT se quedó sin los cuatro del INTT',
      !!aitPermisos && !/\b(rotc|cps|dt|med):/.test(aitPermisos[1]) && !/PERMISO_AIT\.(rotc|cps|dt|med)\b/.test(PANEL));
   ok('transporte: la licencia de conducir sigue yendo ante el INTT',
      /Solicitud de homologación ante el INTT/.test(PASOS));
-  /* Los papeles que ya se subieron siguen en la bóveda: sin nombre saldrían con
-     el código pelado (ver SOLO_NOMBRE en panel.js). */
-  const sueltos = [['numero_patronal_ivss', 'd_trivss'], ['solvencia_islr', 'd_trislr'], ['carta_rutas_cps', 'd_trcartacps'],
-    ['documento_objeto_transporte', 'd_trobjeto'], ['registro_sunacoop', 'd_trsunacoop'], ['certificado_vehiculo', 'd_trvehiculo'],
-    ['poliza_rcv', 'd_trpoliza'], ['informe_seguridad_vehiculo', 'd_trinforme'], ['fotos_vehiculos', 'd_trfotos'],
-    ['aval_terminal', 'd_traval'], ['ultimo_dt', 'd_trdt'], ['rotc_vigente', 'd_trrotc'],
-    ['revision_vehiculo', 'd_trrevision'], ['estudio_ruta', 'd_trruta']];
-  const sinNombre = [];
-  sueltos.forEach(([tipo, clave]) => {
-    if (PANEL.indexOf("['" + tipo + "', '" + clave + "']") < 0) sinNombre.push(tipo + ' en SOLO_NOMBRE');
-    if (PANEL.indexOf("tipo:'" + tipo + "'") >= 0) sinNombre.push(tipo + ' sigue de recaudo');
-    Object.keys(UI).forEach(l => { if (!UI[l][clave]) sinNombre.push(l + '.' + clave); });
-  });
-  ok('transporte: sus papeles se siguen nombrando en la bóveda, sin pedirse', sinNombre.length === 0, sinNombre.join(', '));
+  /* Desde el mismo día, el INTT está en su propia ficha (c73 y c74). */
+  const sinFicha = [];
+  Object.keys(UI).forEach(l => ['o_interior_area', 'o_ij_permiso', 'yij_titulo', 'yt_toca_intt', 'ft_c_interior', 'd_trivss', 'd_tracta'].forEach(k => { if (!UI[l][k]) sinFicha.push(l + '.' + k); }));
+  ok('interior: la ficha tiene sus textos en los 8 idiomas', sinFicha.length === 0, sinFicha.join(', '));
+  ok('interior: con sus recaudos, y sin el nombre aparte de SOLO_NOMBRE',
+     /permisos_interior: \[\s*\{tipo:/.test(PANEL) && PANEL.indexOf("['numero_patronal_ivss', 'd_trivss']") < 0);
 }
 
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');

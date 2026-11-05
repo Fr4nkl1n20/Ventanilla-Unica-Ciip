@@ -2869,6 +2869,15 @@ select arnes.comprueba(
   (select count(*) = 1 from public.tipos_tramite
     where codigo = 'rnc_en_proceso' and ref_panel = 'c69' and ente = 'RNC' and activo and emite is null and plazo_dias is null)
   and position('rnc_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
+-- Interior, justicia y paz (c73 y c74), Franklin Reyes, 5-11-2026.
+select arnes.comprueba(
+  'interior, justicia y paz: sus dos trámites, encendidos, con su marca y su motivo',
+  (select count(*) = 2 from public.tipos_tramite
+    where ref_panel in ('c73', 'c74') and ente = 'MPPRIJP' and activo and fase = 3 and nivel = 'actividad')
+  and position('''interior_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('''transporte_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('interior_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('rif_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
 -- Agua, industria y comercio, y transporte (c63 a c68), Franklin Reyes, 4-11-2026.
 select arnes.comprueba(
   'agua, industria y transporte: los seis trámites, encendidos',

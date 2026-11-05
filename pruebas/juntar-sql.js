@@ -369,7 +369,9 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
 'supabase-borrar-c35',
 /* El INTT fuera del nombre del permiso de transporte, 5-11-2026; va después
    de supabase-agua-industria-transporte, que lo escribe. */
-'supabase-transporte-sin-intt'];
+'supabase-transporte-sin-intt',
+/* Permisos de interior, justicia y paz (c73 y c74), 5-11-2026; va la última. */
+'supabase-interior-justicia-paz'];
 
 let mal = 0;
 for (const n of orden) {
