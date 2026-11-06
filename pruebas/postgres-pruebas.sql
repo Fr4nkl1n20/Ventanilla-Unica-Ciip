@@ -2878,6 +2878,18 @@ select arnes.comprueba(
   and position('''transporte_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
   and position('interior_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
   and position('rif_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
+-- Telecomunicaciones (c75 y c76) y Zona Económica Especial (c77 y c78), Franklin Reyes, 6-11-2026.
+select arnes.comprueba(
+  'telecomunicaciones y zona económica especial: sus cuatro trámites, encendidos, con sus marcas y sus motivos',
+  (select count(*) = 4 from public.tipos_tramite
+    where ref_panel in ('c75', 'c76', 'c77', 'c78') and ente in ('CONATEL', 'SNZEE') and activo and fase = 3 and nivel = 'actividad')
+  and (select count(*) = 2 from public.tipos_tramite where codigo in ('permisos_telecom', 'permisos_zee') and emite is not null)
+  and position('''telecom_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('''zee_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('''interior_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('telecom_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('zee_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('interior_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
 -- Agua, industria y comercio, y transporte (c63 a c68), Franklin Reyes, 4-11-2026.
 select arnes.comprueba(
   'agua, industria y transporte: los seis trámites, encendidos',

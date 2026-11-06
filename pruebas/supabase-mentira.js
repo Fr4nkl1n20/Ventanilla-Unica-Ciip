@@ -431,6 +431,14 @@
      nombre:'Permisos de interior, justicia y paz', fase:3, nivel:'actividad'},
     {codigo:'interior_en_proceso', ref_panel:'c74', ente:'MPPRIJP', activo:true, emite:null, plazo_dias:null,
      nombre:'Permiso de interior, justicia y paz ya solicitado', fase:3, nivel:'actividad'},
+    {codigo:'permisos_telecom', ref_panel:'c75', ente:'CONATEL', activo:true, emite:'permiso_telecom',
+     nombre:'Permisos de telecomunicaciones', fase:3, nivel:'actividad'},
+    {codigo:'telecom_en_proceso', ref_panel:'c76', ente:'CONATEL', activo:true, emite:null, plazo_dias:null,
+     nombre:'Permiso de telecomunicaciones ya solicitado', fase:3, nivel:'actividad'},
+    {codigo:'permisos_zee', ref_panel:'c77', ente:'SNZEE', activo:true, emite:'permiso_zee',
+     nombre:'Permisos de Zona Económica Especial', fase:3, nivel:'actividad'},
+    {codigo:'zee_en_proceso', ref_panel:'c78', ente:'SNZEE', activo:true, emite:null, plazo_dias:null,
+     nombre:'Permiso de Zona Económica Especial ya solicitado', fase:3, nivel:'actividad'},
     {codigo:'permisos_transporte', ref_panel:'c67', ente:'MPPT', activo:true, emite:'permiso_transporte',
      nombre:'Permisos de transporte', fase:3, nivel:'actividad'},
     {codigo:'transporte_en_proceso', ref_panel:'c68', ente:'MPPT', activo:true, emite:null, plazo_dias:null,
@@ -2098,6 +2106,14 @@
         {codigo:'permiso_pesca', vence:false},
         {codigo:'permiso_energia', vence:false},
         {codigo:'permiso_agua', vence:false}, {codigo:'permiso_industria', vence:false}, {codigo:'permiso_transporte', vence:false}, {codigo:'permiso_interior', vence:false},
+        {codigo:'permiso_telecom', vence:false}, {codigo:'permiso_zee', vence:false},
+        {codigo:'certificacion_siex', vence:false}, {codigo:'proyecto_economico_telecom', vence:false},
+        {codigo:'proyecto_tecnico_telecom', vence:false}, {codigo:'carta_financiamiento', vence:false},
+        {codigo:'solicitud_espectro', vence:false}, {codigo:'ficha_tecnica_equipo', vence:false},
+        {codigo:'certificado_homologacion_ext', vence:false}, {codigo:'descripcion_uso_red', vence:false},
+        {codigo:'perfil_empresarial', vence:false}, {codigo:'ubicacion_zee', vence:false},
+        {codigo:'certificacion_ciip_zee', vence:false}, {codigo:'convenio_zee', vence:false},
+        {codigo:'constancia_participacion_zee', vence:false},
         {codigo:'planilla_minaguas', vence:false},
         {codigo:'derecho_inmueble', vence:false},
         {codigo:'constancia_hidrologica', vence:false},
@@ -3315,7 +3331,8 @@
                           'rtn_solicitado', 'ambiental_solicitado',
                           'agricola_solicitado', 'rnc_solicitado',
                           'hidrocarburos_solicitado', 'pesca_solicitado', 'energia_solicitado',
-                          'agua_solicitado', 'industria_solicitado', 'transporte_solicitado', 'interior_solicitado'];
+                          'agua_solicitado', 'industria_solicitado', 'transporte_solicitado', 'interior_solicitado',
+                          'telecom_solicitado', 'zee_solicitado'];
             var rCP;
             if (!args || llaves.indexOf(args.p_clave) < 0){
               rCP = {data: null, error: {message: 'paso desconocido: ' + (args && args.p_clave), code: 'P0001'}};

@@ -371,7 +371,9 @@ const orden = ['supabase-setup','supabase-tramites','supabase-admin','supabase-c
    de supabase-agua-industria-transporte, que lo escribe. */
 'supabase-transporte-sin-intt',
 /* Permisos de interior, justicia y paz (c73 y c74), 5-11-2026; va la última. */
-'supabase-interior-justicia-paz'];
+'supabase-interior-justicia-paz',
+/* Telecomunicaciones (c75 y c76) y Zona Económica Especial (c77 y c78), 6-11-2026; va la última. */
+'supabase-telecom-zee'];
 
 let mal = 0;
 for (const n of orden) {

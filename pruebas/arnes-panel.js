@@ -500,6 +500,9 @@
               ypmTraAbre, ypmTraMira, ypmTraYaMira, ypmTraAtrasMira,
               /* Y interior, justicia y paz (c73/c74), 5-11-2026. */
               ypmIjAbre, ypmIjMira, ypmIjYaMira, ypmIjAtrasMira,
+              /* Y telecomunicaciones (c75/c76) y Zona Económica Especial (c77/c78), 6-11-2026. */
+              ypmTcAbre, ypmTcMira, ypmTcYaMira, ypmTcAtrasMira,
+              ypmZeAbre, ypmZeMira, ypmZeYaMira, ypmZeAtrasMira,
               /* Y el RNC (c13/c69), 4-11-2026. */
               ypmRncAbre, ypmRncMira, ypmRncYaMira, ypmRncAtrasMira,
               /* Y la visa, la cédula y el RIF (c70 a c72), 4-11-2026. */
@@ -507,6 +510,7 @@
               ypmCedAbre, ypmCedMira, ypmCedYaMira, ypmCedAtrasMira,
               ypmRifAbre, ypmRifMira, ypmRifYaMira, ypmRifAtrasMira, idvCierra,
               aitAguAbre, aitAguMira, aitIndAbre, aitIndMira, aitTraAbre, aitTraMira, aitIjAbre, aitIjMira,
+              aitTcAbre, aitTcMira, aitZeAbre, aitZeMira,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
@@ -890,7 +894,8 @@
        inscripciones con tarjeta propia. */
     /* Y CATORCE desde el 3-11-2026 (Franklin Reyes): hidrocarburos (c57), pesca
        (c59) y energía (c61). */
-    igual('camino: la fase 03 cuenta sus 18',         deEtapa(2, '.jcount'), '0 de 18 listos');
+    /* Y VEINTE desde el 6-11-2026: telecomunicaciones (c75) y Zona Económica Especial (c77). */
+    igual('camino: la fase 03 cuenta sus 20',         deEtapa(2, '.jcount'), '0 de 20 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -1238,7 +1243,8 @@
                 2-11-2026. */
              /* Y 50 con hidrocarburos, pesca y energía (c57 a c62), Franklin
                 Reyes, 3-11-2026. */
-             pendS === 62, pendS + ' por iniciar de 63 ofrecidas', '62');
+             /* Y 66 de 67 con telecomunicaciones y ZEE (c75 a c78), 6-11-2026. */
+             pendS === 66, pendS + ' por iniciar de 67 ofrecidas', '66');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1263,8 +1269,9 @@
              INTI (c54), Franklin Reyes, 2-11-2026.
              Y 45 con el RNC encendido (c13) y los de c55 y c56, el mismo día.
              Y 51 con hidrocarburos, pesca y energía (c57 a c62), 3-11-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 63,
-             pend + ' por iniciar de 63 ofrecidas', '63');
+          /* Y 67 con telecomunicaciones y ZEE (c75 a c78), 6-11-2026. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 67,
+             pend + ' por iniciar de 67 ofrecidas', '67');
       }
 
       /* ── la cadena entre trámites ──
@@ -1722,8 +1729,9 @@
            Esta cuenta siguió en treinta con las seis primeras porque a la c62
            le faltaba su cierre: quedaron dentro de ella y no se veían. */
         /* Y TREINTA Y NUEVE desde el 5-11-2026: interior, justicia y paz, con su escondido. */
-        igual('grupo: la fase 03 se queda con treinta y nueve tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 39);
+        /* Y CUARENTA Y TRES desde el 6-11-2026: telecomunicaciones y ZEE, con sus escondidos. */
+        igual('grupo: la fase 03 se queda con cuarenta y tres tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 43);
         igual('grupo: ninguna tarjeta queda dentro de otra',
               document.querySelectorAll('.tcard .tcard').length, 0);
         ok('grupo: y el título no es una tarjeta',
@@ -13342,6 +13350,14 @@
     ind: {madre: 'c65', ya: 'c66', p: 'yic', codigo: 'industria_en_proceso', ente: 'MPPICN',
           campos: 'area_industria permiso_industria tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           tarjetas: 5, gestion: 'En coordinación con SUNDDE o SENCAMER', fin: 'Permiso listo'},
+    tc: {madre: 'c75', ya: 'c76', p: 'ytc', codigo: 'telecom_en_proceso', ente: 'CONATEL',
+          campos: 'area_telecom permiso_telecom tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'permiso_telecom',
+          tarjetas: 2, gestion: 'En coordinación con CONATEL', fin: 'Permiso listo'},
+    ze: {madre: 'c77', ya: 'c78', p: 'yze', codigo: 'zee_en_proceso', ente: 'SNZEE',
+          campos: 'area_zee permiso_zee tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'permiso_zee',
+          tarjetas: 2, gestion: 'En coordinación con la Superintendencia de las ZEE', fin: 'Permiso listo'},
     ij: {madre: 'c73', ya: 'c74', p: 'yij', codigo: 'interior_en_proceso', ente: 'MPPRIJP',
           campos: 'area_interior permiso_interior tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           queSolicito: 'permiso_interior',
@@ -13594,6 +13610,14 @@
   function ypmIjMira(sigue){ ypmMira('ij', sigue); }
   function ypmIjYaMira(sigue){ ypmYaMira('ij', sigue); }
   function ypmIjAtrasMira(sigue){ ypmAtrasMira('ij', sigue); }
+  function ypmTcAbre(sigue){ ypmAbre('tc', sigue); }
+  function ypmTcMira(sigue){ ypmMira('tc', sigue); }
+  function ypmTcYaMira(sigue){ ypmYaMira('tc', sigue); }
+  function ypmTcAtrasMira(sigue){ ypmAtrasMira('tc', sigue); }
+  function ypmZeAbre(sigue){ ypmAbre('ze', sigue); }
+  function ypmZeMira(sigue){ ypmMira('ze', sigue); }
+  function ypmZeYaMira(sigue){ ypmYaMira('ze', sigue); }
+  function ypmZeAtrasMira(sigue){ ypmAtrasMira('ze', sigue); }
   function ypmTraAbre(sigue){ ypmAbre('tra', sigue); }
   function ypmTraMira(sigue){ ypmMira('tra', sigue); }
   function ypmTraYaMira(sigue){ ypmYaMira('tra', sigue); }
@@ -13604,6 +13628,8 @@
   function aitIndAbre(sigue){ hpeAbreNueva('c65', sigue); }
   function aitTraAbre(sigue){ hpeAbreNueva('c67', sigue); }
   function aitIjAbre(sigue){ hpeAbreNueva('c73', sigue); }
+  function aitTcAbre(sigue){ hpeAbreNueva('c75', sigue); }
+  function aitZeAbre(sigue){ hpeAbreNueva('c77', sigue); }
   function aitMira(k, x, sigue){
     if (PASE !== 'vacio') return sigue();
     var caja = document.getElementById('trReal');
@@ -13683,6 +13709,17 @@
       clave: 'p_irtransporte', paso: 'Solicita tu permiso en el sistema que elegiste', casos: [
       {area: 'Planilla Única · INTT', valor: 'Registro de operadores de transporte de carga (ROTC)', docs: 'registro_mercantil_empresa cedula numero_patronal_ivss solvencia_islr certificado_vehiculo poliza_rcv', enlace: 'https://put.intt.gob.ve/'}]}, sigue);
   }
+  /* Telecomunicaciones con CONATEL, por SIGESTEL; y la ZEE, sin portal (6-11-2026). */
+  function aitTcMira(sigue){
+    aitMira('tc', {ref: 'c75', codigo: 'permisos_telecom', ente: 'CONATEL', area: 'area_telecom', permiso: 'permiso_telecom', tarjetas: 2, pestanas: 2,
+      clave: 'p_irtransporte', paso: 'Solicita tu permiso en el sistema que elegiste', casos: [
+      {area: 'SIGESTEL · CONATEL', valor: 'Registro de red privada de uso propio', docs: 'acta_constitutiva rif_empresa cedula proyecto_tecnico_telecom descripcion_uso_red', enlace: 'https://sigestel.conatel.gob.ve/site/login'}]}, sigue);
+  }
+  function aitZeMira(sigue){
+    aitMira('ze', {ref: 'c77', codigo: 'permisos_zee', ente: 'SNZEE', area: 'area_zee', permiso: 'permiso_zee', tarjetas: 2, pestanas: 2,
+      paso: 'Presenta tu solicitud ante la Superintendencia de las ZEE', casos: [
+      {area: 'Superintendencia de las ZEE', valor: 'Acceso a los incentivos fiscales y aduaneros', docs: 'rif_empresa convenio_zee constancia_participacion_zee'}]}, sigue);
+  }
   function aitTraMira(sigue){
     /* Sin el INTT desde el 5-11-2026 (Franklin Reyes: «INTT ya no va en transporte»):
        ni tarjeta, ni pestaña, ni opción, ni permiso. */
@@ -13723,9 +13760,9 @@
     var ini = hijos.findIndex(function(e){ return e.getAttribute('data-grupo') === 'g.sectorial'; });
     var ultimas = hijos.filter(function(e){
       return e.matches('.tcard[data-tr]') && !e.hasAttribute('data-tramo-de');
-    }).slice(-7).map(function(e){ return e.getAttribute('data-tr'); }).join(' ');
+    }).slice(-9).map(function(e){ return e.getAttribute('data-tr'); }).join(' ');
     /* Detrás de ellas, desde el 4-11-2026, agua, industria y comercio, y transporte. */
-    igual('hpe: las tres, y detrás agua, industria y transporte, al final de las licencias sectoriales', ultimas, 'c57 c59 c61 c63 c65 c67 c73');
+    igual('hpe: las tres, y detrás agua, industria y transporte, al final de las licencias sectoriales', ultimas, 'c57 c59 c61 c63 c65 c67 c73 c75 c77');
     [['c57', 'Permisos de hidrocarburos', 'Ministerio del Poder Popular de Hidrocarburos'],
      ['c59', 'Permisos de pesca', 'Instituto Socialista de la Pesca y Acuicultura'],
      ['c61', 'Permisos de energía', 'Ministerio del Poder Popular para la Energía Eléctrica']].forEach(function(x){

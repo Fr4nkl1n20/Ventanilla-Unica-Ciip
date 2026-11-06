@@ -4597,7 +4597,7 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .pf-ivs .ins{position:absolute; right:4%; top:47%; background:#2F4069; color:#fff; font-style:italic; font-size:3.4cqw; padding:.8cqw 2.4cqw; border-radius:1cqw 1cqw 0 0;}
 .pf-ivs .sol{position:absolute; left:6%; top:64%; color:#10106A; font-weight:800; font-size:4.6cqw;}
 .pf-ivs i{position:absolute; left:6%; width:44%; height:3.2cqw; border:1px solid #AAA;}
-.p-agu,.p-rup,.p-sen,.p-ine,.p-int{font-family:system-ui, sans-serif; overflow:hidden; background:#fff;}
+.p-agu,.p-rup,.p-sen,.p-ine,.p-int,.p-tel,.p-zee{font-family:system-ui, sans-serif; overflow:hidden; background:#fff;}
 .p-agu .ci,.p-rup .ci{position:absolute; left:0; right:0; top:0; height:20%; background:#fff; display:flex; align-items:center; gap:1.4cqw; padding:0 3cqw; font-size:2.5cqw; color:#334; white-space:nowrap;}
 .p-agu .ci em{width:6cqw; height:3.4cqw; background:linear-gradient(#F4C20D 33%, #1F4AA8 33% 66%, #D3121B 66%);}
 .p-agu .ci b{font-size:3.8cqw; color:#002856;}
@@ -4618,6 +4618,13 @@ a.tr-hacer[target="_blank"]:hover{color:var(--navy-texto);}
 .p-int{background:linear-gradient(150deg, #0B2A5B, #123F73);}
 .p-int .log{position:absolute; left:8%; top:18%; padding:1cqw 4cqw 2.4cqw; background:#1F6FB5; color:#fff; font-size:13cqw; font-weight:900; border-bottom:1.6cqw solid #F4C20D;}
 .p-int span{position:absolute; left:8%; right:8%; top:68%; color:#fff; font-size:5.6cqw; font-weight:600; line-height:1.15;}
+/* Telecomunicaciones (CONATEL) y Zona Económica Especial, 6-11-2026: dibujos aproximados, como el del INTT. */
+.p-tel{background:linear-gradient(150deg, #0A2F5C, #1560A8);}
+.p-tel .log{position:absolute; left:8%; top:18%; padding:1cqw 4cqw 2.4cqw; background:#D3121B; color:#fff; font-size:11cqw; font-weight:900; border-bottom:1.6cqw solid #F4C20D;}
+.p-tel span{position:absolute; left:8%; right:8%; top:64%; color:#fff; font-size:5.2cqw; font-weight:600; line-height:1.15;}
+.p-zee{background:linear-gradient(150deg, #0B4D33, #17824F);}
+.p-zee .log{position:absolute; left:8%; top:18%; padding:1cqw 4cqw 2.4cqw; background:#F4C20D; color:#0B4D33; font-size:13cqw; font-weight:900; border-bottom:1.6cqw solid #fff;}
+.p-zee span{position:absolute; left:8%; right:8%; top:64%; color:#fff; font-size:5.2cqw; font-weight:600; line-height:1.15;}
 .p-ine .ond{position:absolute; left:-12%; right:-12%; top:58%; bottom:-40%; background:#003777; border-radius:50% 50% 0 0;}
 .p-ine strong{position:absolute; left:8%; top:13%; font-size:16cqw; font-style:italic; font-weight:900; color:#111;}
 .p-ine span{position:absolute; left:8%; right:8%; top:70%; font-size:4.2cqw; color:#fff; line-height:1.15;}

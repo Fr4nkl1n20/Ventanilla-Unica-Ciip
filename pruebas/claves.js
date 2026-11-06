@@ -243,6 +243,9 @@ const PROPIOS = new Set((
   'Entidades Entità Entities Trabajo Trabalho Lavoro Work Contratistas ' +
   'Contratados Contractors Appaltatori Registry Register Único Única Unico ' +
   'Productiva Internacional Inversión Centro Ventanilla Inversionista ' +
+  /* La Zona Económica Especial y los nombres de CONATEL y de la Superintendencia (6-11-2026). */
+  'Zona Económica Especial Economic Zone Economica Speciale Comisión Comissão Commissione Commission ' +
+  'Telecomunicaciones Telecommunications Telecomunicações Telecomunicazioni Superintendency ' +
   /* El nombre de la casa en los cuatro idiomas latinos. «Balcão Único do
      Investidor» se llama así igual que «Ventanilla Única del
      Inversionista»: faltaba solo el portugués, y no se notó mientras el
@@ -299,7 +302,7 @@ const PROPIOS = new Set((
                 en los seis idiomas: es una decisión, no un descuido. */
 const SALTOS = new Set([
   'yt_toca_pr', 'yt_toca_sidcai', 'yt_toca_rncl', 'yt_toca_canc', 'yt_toca_saime', 'yt_toca_rifp',
-  'yt_toca_concesion', 'yt_toca_licagua', 'yt_toca_afectacion', 'yt_toca_cambioagua', 'yt_toca_senlinea', 'yt_toca_intt',
+  'yt_toca_concesion', 'yt_toca_licagua', 'yt_toca_afectacion', 'yt_toca_cambioagua', 'yt_toca_senlinea', 'yt_toca_intt', 'yt_toca_conatel', 'yt_toca_zee',
   'yt_toca_sis', 'yt_toca_envasados', 'yt_toca_norven', 'yt_toca_inea',
   'tag.soon', 'asst.greet',
   /* Y estos dos no son rótulos: son TROZOS que se pegan detrás de otra
@@ -862,6 +865,13 @@ function fichasDelMarcado() {
   ok('interior: la ficha tiene sus textos en los 8 idiomas', sinFicha.length === 0, sinFicha.join(', '));
   ok('interior: con sus recaudos, y sin el nombre aparte de SOLO_NOMBRE',
      /permisos_interior: \[\s*\{tipo:/.test(PANEL) && PANEL.indexOf("['numero_patronal_ivss', 'd_trivss']") < 0);
+  /* Telecomunicaciones (c75 y c76) y Zona Económica Especial (c77 y c78), 6-11-2026. */
+  const sinTcZe = [];
+  Object.keys(UI).forEach(l => ['o_telecom_area', 'o_tc_permiso', 'ytc_titulo', 'yt_toca_conatel', 'ft_c_telecom', 'd_tctecnico',
+                               'o_zee_area', 'o_ze_permiso', 'yze_titulo', 'yt_toca_zee', 'ft_c_zee', 'd_zeconvenio'].forEach(k => { if (!UI[l][k]) sinTcZe.push(l + '.' + k); }));
+  ok('telecomunicaciones y ZEE: las fichas tienen sus textos en los 8 idiomas', sinTcZe.length === 0, sinTcZe.join(', '));
+  ok('telecomunicaciones y ZEE: con sus recaudos',
+     /permisos_telecom: \[\s*\{tipo:/.test(PANEL) && /permisos_zee: \[\s*\{tipo:/.test(PANEL));
 }
 
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');

@@ -1124,6 +1124,10 @@ function applyLang(lang){
     c67: {ya:'c68', nueva:'c67', p:'ytp'},
     /* Y los de interior, justicia y paz, con el INTT (Franklin Reyes, 5-11-2026). */
     c73: {ya:'c74', nueva:'c73', p:'yij'},
+    /* Y los de telecomunicaciones, con CONATEL, y los de Zona Económica Especial
+       (Franklin Reyes, 6-11-2026). */
+    c75: {ya:'c76', nueva:'c75', p:'ytc'},
+    c77: {ya:'c78', nueva:'c77', p:'yze'},
     /* Y el RNC (Franklin Reyes, 4-11-2026, maquetas/rnc-tarjetas.html). */
     c13: {ya:'c69', nueva:'c13', p:'yrc'},
     /* Y la visa, la cédula y el RIF personal (Franklin Reyes, 4-11-2026,
@@ -1141,8 +1145,8 @@ function applyLang(lang){
   });
   /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
      escondida nace elegida, que solo se llega a ella eligiéndola. */
-  var YA_ELEGIDA = {c37:false, c73:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false, c13:false, c1:false, c2:false, c3:false,
-                    c44:true, c74:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true, c69:true, c70:true, c71:true, c72:true};
+  var YA_ELEGIDA = {c37:false, c73:false, c75:false, c77:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false, c13:false, c1:false, c2:false, c3:false,
+                    c44:true, c74:true, c76:true, c78:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true, c69:true, c70:true, c71:true, c72:true};
   window.CIIP_YA_ELEGIDA = function(ref){
     if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
     YA_ELEGIDA[ref] = true;
@@ -3553,6 +3557,24 @@ applyLang(idiomaParaMi());
     dt: 'Actualización de flota DT9 o DT10',
     med: 'Autorización de carga de medidas excepcionales'
   };
+  /* Telecomunicaciones (c75) y Zona Económica Especial (c77), Franklin Reyes,
+     6-11-2026: igual, letra por letra con o_telecom_area, o_tc_permiso,
+     o_zee_area y o_ze_permiso. Los recaudos de CONATEL salen de su guía de
+     SIGESTEL; los de la ZEE no están publicados (la ley manda que los fije el
+     CIIP) y van por confirmar con el CIIP. */
+  var AREA_TELECOM = 'SIGESTEL · CONATEL';
+  var PERMISO_TC = {
+    hab: 'Habilitación administrativa',
+    esp: 'Concesión de uso del espectro radioeléctrico',
+    hom: 'Homologación de equipos',
+    red: 'Registro de red privada de uso propio'
+  };
+  var AREA_ZEE = 'Superintendencia de las ZEE';
+  var PERMISO_ZE = {
+    proy: 'Presentación del proyecto para operar en la ZEE',
+    conv: 'Convenio de actividad económica',
+    inc: 'Acceso a los incentivos fiscales y aduaneros'
+  };
   var PERMISO_AIT = {
     conc: 'Concesión de aprovechamiento de aguas',
     lic: 'Licencia de aprovechamiento de aguas',
@@ -4603,6 +4625,50 @@ applyLang(idiomaParaMi());
       {tipo:'revision_vehiculo', clave:'d_trrevision', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.med]},
       {tipo:'estudio_ruta', clave:'d_trruta', siCasilla:'permiso_interior', siIgual:[PERMISO_IJ.med]}
     ],
+    /* Telecomunicaciones (c75), con CONATEL (Franklin Reyes, 6-11-2026): la guía de
+       recaudos de SIGESTEL para la habilitación, que también pide la concesión del
+       espectro; la homologación (Resolución 253) y la red de uso propio, por confirmar. */
+    permisos_telecom: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa', siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.hab, PERMISO_TC.esp, PERMISO_TC.red]},
+      {tipo:'rif_empresa', clave:'d_rifempresa', siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.hab, PERMISO_TC.esp, PERMISO_TC.hom, PERMISO_TC.red]},
+      {tipo:'cedula', clave:'d_cedrep', siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.hab, PERMISO_TC.esp, PERMISO_TC.hom, PERMISO_TC.red]},
+      {tipo:'certificacion_siex', clave:'d_tcsiex', opcional:true, siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.hab, PERMISO_TC.esp]},
+      {tipo:'estados_financieros', clave:'d_estadosfin', siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.hab, PERMISO_TC.esp]},
+      {tipo:'proyecto_economico_telecom', clave:'d_tcecon', siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.hab, PERMISO_TC.esp]},
+      {tipo:'proyecto_tecnico_telecom', clave:'d_tctecnico', siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.hab, PERMISO_TC.esp, PERMISO_TC.red]},
+      {tipo:'carta_financiamiento', clave:'d_tcfinan', opcional:true, siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.hab]},
+      {tipo:'solicitud_espectro', clave:'d_tcespectro', siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.esp]},
+      {tipo:'ficha_tecnica_equipo', clave:'d_tcficha', siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.hom]},
+      {tipo:'certificado_homologacion_ext', clave:'d_tccertext', opcional:true, siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.hom]},
+      {tipo:'descripcion_uso_red', clave:'d_tcuso', siCasilla:'permiso_telecom', siIgual:[PERMISO_TC.red]}
+    ],
+    telecom_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    /* Zona Económica Especial (c77), Franklin Reyes, 6-11-2026: propuestos, por
+       confirmar con el CIIP, que según la ley fija los requisitos y certifica. */
+    permisos_zee: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.proy]},
+      {tipo:'rif_empresa', clave:'d_rifempresa', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.proy, PERMISO_ZE.inc]},
+      {tipo:'cedula', clave:'d_cedrep', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.proy, PERMISO_ZE.conv]},
+      {tipo:'proyecto_inversion', clave:'d_proyecto', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.proy]},
+      {tipo:'perfil_empresarial', clave:'d_zeperfil', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.proy]},
+      {tipo:'estados_financieros', clave:'d_estadosfin', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.proy]},
+      {tipo:'ubicacion_zee', clave:'d_zeubicacion', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.proy]},
+      {tipo:'certificacion_ciip_zee', clave:'d_zecert', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.conv]},
+      {tipo:'poder', clave:'d_poder', opcional:true, siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.conv]},
+      {tipo:'convenio_zee', clave:'d_zeconvenio', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.inc]},
+      {tipo:'constancia_participacion_zee', clave:'d_zeconstancia', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.inc]}
+    ],
+    zee_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
     interior_en_proceso: [
       {tipo:'acta_constitutiva', clave:'d_actaempresa'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
@@ -4756,6 +4822,8 @@ applyLang(idiomaParaMi());
     c65: {aplica:'cond', cond:'ft_c_industria', modo:'portal', depende:'c6'},
     c67: {aplica:'cond', cond:'ft_c_transporte', modo:'portal', depende:'c6'},
     c73: {aplica:'cond', cond:'ft_c_interior', modo:'portal', depende:'c6'},
+    c75: {aplica:'cond', cond:'ft_c_telecom', modo:'portal', depende:'c6'},
+    c77: {aplica:'cond', cond:'ft_c_zee', modo:'portal', depende:'c6'},
     /* El SIDCAI (c39): se inscribe una vez y luego se declara cada mes,
        dentro de los quince días siguientes (Providencia 015-004-2024).
        La inscripción no tiene plazo publicado, y la ficha se salta el
@@ -5845,6 +5913,25 @@ applyLang(idiomaParaMi());
   PERMISOS_DE_INTERIOR[AREA_INTERIOR] = 'o_ij_permiso';
   var PORTAL_DE_INTERIOR = {};
   PORTAL_DE_INTERIOR[AREA_INTERIOR] = 'https://put.intt.gob.ve/';
+  /* Telecomunicaciones (c75): SIGESTEL, el sistema en línea de CONATEL, y los
+     presenciales. La Zona Económica Especial (c77) no tiene portal: se presenta
+     ante la Superintendencia con el CIIP, como el agua ante su taquilla. */
+  var TARJETAS_DE_TELECOM = {};
+  TARJETAS_DE_TELECOM[AREA_TELECOM] = {etapa: 1, toca: 'yt_toca_conatel',
+    pt: '<div class="st-pt p-tel" aria-hidden="true"><div class="log">CONATEL</div><span>SIGESTEL · Sistema de Gestión de Telecomunicaciones</span></div>'};
+  TARJETAS_DE_TELECOM[VALOR_PRESENCIAL] = tarjetaPresencial(2);
+  var ETAPAS_DE_TELECOM = [{n: 1, t: 'yt_tc_e1', d: 'yt_tc_e1_d'}, etapaPresencial(2)];
+  var PERMISOS_DE_TELECOM = {};
+  PERMISOS_DE_TELECOM[AREA_TELECOM] = 'o_tc_permiso';
+  var PORTAL_DE_TELECOM = {};
+  PORTAL_DE_TELECOM[AREA_TELECOM] = 'https://sigestel.conatel.gob.ve/site/login';
+  var TARJETAS_DE_ZEE = {};
+  TARJETAS_DE_ZEE[AREA_ZEE] = {etapa: 1, toca: 'yt_toca_zee',
+    pt: '<div class="st-pt p-zee" aria-hidden="true"><div class="log">ZEE</div><span>Zonas Económicas Especiales de Venezuela</span></div>'};
+  TARJETAS_DE_ZEE[VALOR_PRESENCIAL] = tarjetaPresencial(2);
+  var ETAPAS_DE_ZEE = [{n: 1, t: 'yt_ze_e1', d: 'yt_ze_e1_d'}, etapaPresencial(2)];
+  var PERMISOS_DE_ZEE = {};
+  PERMISOS_DE_ZEE[AREA_ZEE] = 'o_ze_permiso';
   var TARJETAS_DE_TRANSPORTE = {};
   /* Sin el INTT desde el 5-11-2026 (Franklin Reyes: «INTT ya no va en transporte,
      porque pasó al Ministerio de Interiores, Justicia y Paz»): se fueron su
@@ -6934,6 +7021,27 @@ applyLang(idiomaParaMi());
        opcionesSegun:'area_industria', opcionesDe:PERMISOS_DE_INDUSTRIA, verSi:'area_industria'},
       campoOtroTramite('permiso_industria')
     ],
+    /* Telecomunicaciones (c75) y Zona Económica Especial (c77), 6-11-2026. */
+    permisos_telecom: [
+      {n:'area_telecom', clave:'f_dondetramite', opcionesClave:'o_telecom_area', ancho:true,
+       tarjetas:TARJETAS_DE_TELECOM, etapas:ETAPAS_DE_TELECOM, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'permiso_telecom', clave:'f_permisosol', ancho:true,
+       opcionesSegun:'area_telecom', opcionesDe:PERMISOS_DE_TELECOM, verSi:'area_telecom', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_telecom')
+    ],
+    permisos_zee: [
+      {n:'area_zee', clave:'f_dondetramite', opcionesClave:'o_zee_area', ancho:true,
+       tarjetas:TARJETAS_DE_ZEE, etapas:ETAPAS_DE_ZEE, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'permiso_zee', clave:'f_permisosol', ancho:true,
+       opcionesSegun:'area_zee', opcionesDe:PERMISOS_DE_ZEE, verSi:'area_zee', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_zee')
+    ],
     permisos_interior: [
       {n:'area_interior', clave:'f_transportearea', opcionesClave:'o_interior_area', ancho:true,
        tarjetas:TARJETAS_DE_INTERIOR, etapas:ETAPAS_DE_INTERIOR, portada:portadaDibujada},
@@ -7449,6 +7557,32 @@ applyLang(idiomaParaMi());
       {n:'permiso_industria', clave:'f_yspermisoya', ancho:true,
        opcionesSegun:'area_industria', opcionesDe:PERMISOS_DE_INDUSTRIA, verSi:'area_industria'},
       campoOtroTramite('permiso_industria'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    telecom_en_proceso: [
+      {n:'area_telecom', clave:'f_dondetramite', opcionesClave:'o_telecom_area', ancho:true,
+       tarjetas:TARJETAS_DE_TELECOM, etapas:ETAPAS_DE_TELECOM, portada:portadaDibujada},
+      {n:'permiso_telecom', clave:'f_yspermisoya', ancho:true,
+       opcionesSegun:'area_telecom', opcionesDe:PERMISOS_DE_TELECOM, verSi:'area_telecom', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_telecom'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    zee_en_proceso: [
+      {n:'area_zee', clave:'f_dondetramite', opcionesClave:'o_zee_area', ancho:true,
+       tarjetas:TARJETAS_DE_ZEE, etapas:ETAPAS_DE_ZEE, portada:portadaDibujada},
+      {n:'permiso_zee', clave:'f_yspermisoya', ancho:true,
+       opcionesSegun:'area_zee', opcionesDe:PERMISOS_DE_ZEE, verSi:'area_zee', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_zee'),
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
       {n:'rif_empresa',          clave:'f_rifempresa'},
@@ -29118,7 +29252,7 @@ applyLang(idiomaParaMi());
   function esPermisoAgrupado(ref){
     if (!ref) return false;
     if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' ||
-        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c74' || ref === 'c69' || ref === 'c70' || ref === 'c71' || ref === 'c72' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
+        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c74' || ref === 'c76' || ref === 'c78' || ref === 'c69' || ref === 'c70' || ref === 'c71' || ref === 'c72' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
         ref === 'c28' || ref === 'c29' || ref === 'c13') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
@@ -29165,7 +29299,8 @@ applyLang(idiomaParaMi());
     /* Y los permisos de hidrocarburos (c57), de pesca (c59) y de energía
        (c61), Franklin Reyes, 3-11-2026, al final. */
     /* Y los de agua (c63), industria y comercio (c65) y transporte (c67), 4-11-2026. */
-    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c57', 'c59', 'c61', 'c63', 'c65', 'c67', 'c73'], antes:['c28', 'c29', 'c13'],
+    /* Y los de telecomunicaciones (c75) y Zona Económica Especial (c77), 6-11-2026. */
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c57', 'c59', 'c61', 'c63', 'c65', 'c67', 'c73', 'c75', 'c77'], antes:['c28', 'c29', 'c13'],
      rotulo:function(dic){ return dic['g.sectorial']; }}
   ];
 
@@ -29644,6 +29779,8 @@ applyLang(idiomaParaMi());
     c65: {1: {clave: 'industria_solicitado',   texto: 'p_yalosolicite'}},
     c67: {1: {clave: 'transporte_solicitado',  texto: 'p_yalosolicite'}},
     c73: {1: {clave: 'interior_solicitado',    texto: 'p_yalosolicite'}},
+    c75: {1: {clave: 'telecom_solicitado',     texto: 'p_yalosolicite'}},
+    c77: {1: {clave: 'zee_solicitado',         texto: 'p_yalosolicite'}},
     /* Y el permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos), con DOS pasos del inversionista: solicitarlo en el portal
        de los bomberos de su estado («Ya la solicité») e indicar en qué sede
@@ -29884,6 +30021,8 @@ applyLang(idiomaParaMi());
     c65: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c67: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c73: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c75: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c77: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Y la inscripción en el SIDCAI (c39), igual que el minero (Franklin
        Reyes, 1-10-2026, Ventanilla Única 2.3): «Inscríbete en el FONACIT a
        través del portal → Inscripción lista». Enviada no hay nada hecho; el
@@ -29939,6 +30078,8 @@ applyLang(idiomaParaMi());
     c66: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c68: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c74: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c76: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c78: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c69: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c70: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c71: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
@@ -30077,6 +30218,8 @@ applyLang(idiomaParaMi());
                         c65: [{campo: 'area_industria', valor: VALOR_PRESENCIAL, si: 'c65_presencial'},
                               {campo: 'permiso_industria', valor: PERMISO_AIT.promo, si: 'c65_promo'}],
                         c73: {campo: 'area_interior', valor: VALOR_PRESENCIAL, si: 'c73_presencial'},
+                        c75: {campo: 'area_telecom', valor: VALOR_PRESENCIAL, si: 'c75_presencial'},
+                        c77: {campo: 'area_zee', valor: VALOR_PRESENCIAL, si: 'c77_presencial'},
                         c67: [{campo: 'area_transporte', valor: VALOR_PRESENCIAL, si: 'c67_presencial'},
                               {campo: 'permiso_transporte', valores: [PERMISO_AIT.exp, PERMISO_AIT.ido, PERMISO_AIT.set, PERMISO_AIT.rav], si: 'c67_inac'}],
                         /* Pesca y embarcaciones y acuicultura se presentan en la
@@ -30119,6 +30262,7 @@ applyLang(idiomaParaMi());
     c65: {1: {campo: 'area_industria', urls: PORTAL_DE_INDUSTRIA, clave: 'p_irindustria'}},
     c67: {1: {campo: 'area_transporte', urls: PORTAL_DE_TRANSPORTE, clave: 'p_irtransporte'}},
     c73: {1: {campo: 'area_interior', urls: PORTAL_DE_INTERIOR, clave: 'p_irtransporte'}},
+    c75: {1: {campo: 'area_telecom', urls: PORTAL_DE_TELECOM, clave: 'p_irtransporte'}},
     c61: {1: {campo: 'area_energia', urls: PORTAL_DE_ENERGIA, clave: 'p_irmppee',
               claves: {'Conexión y servicio · CORPOELEC': 'p_ircorpoelec'}}},
     /* El texto del botón cambia con el ente (claves): con el INTI no se
