@@ -10,6 +10,7 @@ muestran (13 px), para que se vean nítidos en pantallas densas sin pesar.
 | `seniat.png` | SENIAT | Wikimedia Commons, `File:LogoSENIAT.png` |
 | `saren.png` | SAREN | Wikimedia Commons, `File:SAREN logo.png` |
 | `intt.png` | INTT | Wikimedia Commons, `File:INTT logo.png` |
+| `conatel.png` | CONATEL | conatel.gob.ve, `wp-content/uploads/2024/08/header_2_izq.png` (6-11-2026) |
 | `sapi.png` | SAPI | Sitio oficial, `sapi.gob.ve` |
 | `sencamer.png` | SENCAMER | Sitio oficial, `sencamer.gob.ve` |
 | `snc.png` | Servicio Nacional de Contrataciones | Wikimedia Commons, `File:Logo Servicio Nacional de Contrataciones.png` |
