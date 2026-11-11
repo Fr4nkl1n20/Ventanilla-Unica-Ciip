@@ -29,6 +29,7 @@ Las lee toda sesión y todo agente que trabaje en este repositorio. Las decide F
 ## Git
 - El main bueno es el remoto `ciip`: `git push ciip main`. `origin` está parado desde el 16-9-2026.
 - Subir a main solo cuando Franklin lo pide.
+- Antes de cada push, sin que haga falta pedirlo, se envía al agente `verificador` con solo el cambio pendiente (`ciip/main..HEAD`). Un candado (`.claude/hooks/exigir-verificador.js`) bloquea el push si el verificador no aprobó ese mismo commit. Si después hay otro commit, se revisa de nuevo.
 - Si hay cambios de otras sesiones en el árbol, agregar solo los archivos propios.
 - En Windows, `git show HEAD^:archivo` falla desde cmd (el `^` es escape): usar `HEAD~1`.
 
