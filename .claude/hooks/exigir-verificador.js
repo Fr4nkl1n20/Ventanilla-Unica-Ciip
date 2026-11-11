@@ -11,7 +11,10 @@ process.stdin.on('end', () => {
   let datos = {};
   try { datos = JSON.parse(entrada || '{}'); } catch (e) { return; }
   const orden = String((datos.tool_input && datos.tool_input.command) || '');
-  if (!/\bgit\b[^\n;|&]*\bpush\b/.test(orden)) return;
+  // Solo cuando «push» es la suborden de git (admite -C ruta, -c clave=valor y otras opciones antes).
+  // Así no se bloquean `git stash push`, `git log --grep push` ni un commit cuyo mensaje diga «push».
+  const esPush = /\bgit(?:\.exe)?(?:\s+(?:-C\s+(?:"[^"]*"|'[^']*'|\S+)|-c\s+\S+|--?[\w-]+(?:=\S+)?))*\s+push\b/;
+  if (!esPush.test(orden)) return;
 
   const carpeta = datos.cwd || process.env.CLAUDE_PROJECT_DIR || process.cwd();
   const git = (...args) => execFileSync('git', args, { cwd: carpeta, encoding: 'utf8' }).trim();
@@ -19,7 +22,12 @@ process.stdin.on('end', () => {
   try {
     head = git('rev-parse', 'HEAD');
     const comun = path.resolve(carpeta, git('rev-parse', '--git-common-dir'));
-    marca = fs.readFileSync(path.join(comun, 'verificado-ok'), 'utf8').trim().split(/\s+/)[0];
+    // La marca puede venir en UTF-8 (con o sin BOM) o en UTF-16 si la escribió PowerShell 5.1 con `>`.
+    const bytes = fs.readFileSync(path.join(comun, 'verificado-ok'));
+    const texto = (bytes[0] === 0xff && bytes[1] === 0xfe) ? bytes.toString('utf16le')
+      : (bytes[0] === 0xfe && bytes[1] === 0xff) ? Buffer.from(bytes).swap16().toString('utf16le')
+      : bytes.toString('utf8');
+    marca = texto.replace(/^﻿/, '').trim().split(/\s+/)[0];
   } catch (e) { /* sin marca: se bloquea */ }
 
   if (head && marca === head) return;
