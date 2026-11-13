@@ -246,6 +246,8 @@ const PROPIOS = new Set((
   /* La Zona Económica Especial y los nombres de CONATEL y de la Superintendencia (6-11-2026). */
   'Zona Económica Especial Economic Zone Economica Speciale Comisión Comissão Commissione Commission ' +
   'Telecomunicaciones Telecommunications Telecomunicações Telecomunicazioni Superintendency ' +
+  /* Los ministerios de los sectores que faltaban (13-11-2026). */
+  'Defence Defesa Difesa Habitat Housing Habitação Abitazione Saúde Salute ' +
   /* El nombre de la casa en los cuatro idiomas latinos. «Balcão Único do
      Investidor» se llama así igual que «Ventanilla Única del
      Inversionista»: faltaba solo el portugués, y no se notó mientras el
@@ -302,7 +304,7 @@ const PROPIOS = new Set((
                 en los seis idiomas: es una decisión, no un descuido. */
 const SALTOS = new Set([
   'yt_toca_pr', 'yt_toca_sidcai', 'yt_toca_rncl', 'yt_toca_canc', 'yt_toca_saime', 'yt_toca_rifp',
-  'yt_toca_concesion', 'yt_toca_licagua', 'yt_toca_afectacion', 'yt_toca_cambioagua', 'yt_toca_senlinea', 'yt_toca_intt', 'yt_toca_conatel', 'yt_toca_zee',
+  'yt_toca_concesion', 'yt_toca_licagua', 'yt_toca_afectacion', 'yt_toca_cambioagua', 'yt_toca_senlinea', 'yt_toca_intt', 'yt_toca_conatel', 'yt_toca_zee', 'yt_toca_sica', 'yt_toca_guiaunica',
   'yt_toca_sis', 'yt_toca_envasados', 'yt_toca_norven', 'yt_toca_inea',
   'tag.soon', 'asst.greet',
   /* Y estos dos no son rótulos: son TROZOS que se pegan detrás de otra
@@ -872,6 +874,13 @@ function fichasDelMarcado() {
   ok('telecomunicaciones y ZEE: las fichas tienen sus textos en los 8 idiomas', sinTcZe.length === 0, sinTcZe.join(', '));
   ok('telecomunicaciones y ZEE: con sus recaudos',
      /permisos_telecom: \[\s*\{tipo:/.test(PANEL) && /permisos_zee: \[\s*\{tipo:/.test(PANEL));
+  /* Los sectores que faltaban (c79 a c90), 13-11-2026. */
+  const sinSec = [];
+  Object.keys(UI).forEach(l => ['yfi_titulo', 'yfi_ya_c', 'ft_c_financiero', 'yde_titulo', 'yde_ya_c', 'ft_c_defensa', 'yhv_titulo', 'yhv_ya_c', 'ft_c_habitat', 'yal_titulo', 'yal_ya_c', 'ft_c_alimentacion', 'yad_titulo', 'yad_ya_c', 'ft_c_aduanas', 'ysa_titulo', 'ysa_ya_c', 'ft_c_salud',
+                               'o_solo_presencial', 'o_alimentacion_area', 'o_fi_sector', 'f_fisector', 'yt_toca_sica', 'yt_toca_guiaunica'].forEach(k => { if (!UI[l][k]) sinSec.push(l + '.' + k); }));
+  ok('sectores que faltaban: las fichas tienen sus textos en los 8 idiomas', sinSec.length === 0, sinSec.join(', '));
+  ok('sectores que faltaban: con sus recaudos',
+     ['permisos_financiero', 'financiero_en_proceso', 'permisos_defensa', 'defensa_en_proceso', 'permisos_habitat', 'habitat_en_proceso', 'permisos_alimentacion', 'alimentacion_en_proceso', 'permisos_aduanas', 'aduanas_en_proceso', 'permisos_salud', 'salud_en_proceso'].every(t => PANEL.indexOf('    ' + t + ': [\n      {tipo:') >= 0 || PANEL.indexOf('    ' + t + ': [\r\n      {tipo:') >= 0));
 }
 
 console.log('\n  ' + pasan + ' de ' + (pasan + fallan) + ' comprobaciones superadas');

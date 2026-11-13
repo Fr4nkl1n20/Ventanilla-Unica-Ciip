@@ -503,6 +503,13 @@
               /* Y telecomunicaciones (c75/c76) y Zona Económica Especial (c77/c78), 6-11-2026. */
               ypmTcAbre, ypmTcMira, ypmTcYaMira, ypmTcAtrasMira,
               ypmZeAbre, ypmZeMira, ypmZeYaMira, ypmZeAtrasMira,
+              /* Y los sectores que faltaban (c79 a c90), 13-11-2026. */
+              ypmFiAbre, ypmFiMira, ypmFiYaMira, ypmFiAtrasMira,
+              ypmDeAbre, ypmDeMira, ypmDeYaMira, ypmDeAtrasMira,
+              ypmHvAbre, ypmHvMira, ypmHvYaMira, ypmHvAtrasMira,
+              ypmAlAbre, ypmAlMira, ypmAlYaMira, ypmAlAtrasMira,
+              ypmAdAbre, ypmAdMira, ypmAdYaMira, ypmAdAtrasMira,
+              ypmSaAbre, ypmSaMira, ypmSaYaMira, ypmSaAtrasMira,
               /* Y el RNC (c13/c69), 4-11-2026. */
               ypmRncAbre, ypmRncMira, ypmRncYaMira, ypmRncAtrasMira,
               /* Y la visa, la cédula y el RIF (c70 a c72), 4-11-2026. */
@@ -511,6 +518,7 @@
               ypmRifAbre, ypmRifMira, ypmRifYaMira, ypmRifAtrasMira, idvCierra,
               aitAguAbre, aitAguMira, aitIndAbre, aitIndMira, aitTraAbre, aitTraMira, aitIjAbre, aitIjMira,
               aitTcAbre, aitTcMira, aitZeAbre, aitZeMira,
+              secAbreFi, secMiraFi, secAbreDe, secMiraDe, secAbreHv, secMiraHv, secAbreAl, secMiraAl, secAbreAd, secMiraAd, secAbreSa, secMiraSa,
               /* Ante el ente, su paso en curso (Franklin Reyes, 5-10-2026, c32). */
               escaleraEnteMira, escaleraEnteFicha,
               /* «Recaudos revisados» cierra la revisión (5-10-2026, punto 2). */
@@ -895,7 +903,8 @@
     /* Y CATORCE desde el 3-11-2026 (Franklin Reyes): hidrocarburos (c57), pesca
        (c59) y energía (c61). */
     /* Y VEINTE desde el 6-11-2026: telecomunicaciones (c75) y Zona Económica Especial (c77). */
-    igual('camino: la fase 03 cuenta sus 20',         deEtapa(2, '.jcount'), '0 de 20 listos');
+    /* Y VEINTISÉIS desde el 13-11-2026: los seis sectores que faltaban (c79 a c89). */
+    igual('camino: la fase 03 cuenta sus 26',         deEtapa(2, '.jcount'), '0 de 26 listos');
     /* Tres desde que las fases 4 y 5 se fundieron: el registro de la
        inversión extranjera tenía una etapa para él solo —y una etapa con una
        sola tarjeta dentro— y ahora comparte la 4 con el banco de activos y
@@ -1244,7 +1253,8 @@
              /* Y 50 con hidrocarburos, pesca y energía (c57 a c62), Franklin
                 Reyes, 3-11-2026. */
              /* Y 66 de 67 con telecomunicaciones y ZEE (c75 a c78), 6-11-2026. */
-             pendS === 66, pendS + ' por iniciar de 67 ofrecidas', '66');
+             /* Y 78 de 79 con los sectores que faltaban (c79 a c90), 13-11-2026. */
+             pendS === 78, pendS + ' por iniciar de 79 ofrecidas', '78');
         igual('estados: y la tarjeta del borrador pide tu accion', st('c1'), 'accion');
       }
 
@@ -1270,8 +1280,9 @@
              Y 45 con el RNC encendido (c13) y los de c55 y c56, el mismo día.
              Y 51 con hidrocarburos, pesca y energía (c57 a c62), 3-11-2026. */
           /* Y 67 con telecomunicaciones y ZEE (c75 a c78), 6-11-2026. */
-          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 67,
-             pend + ' por iniciar de 67 ofrecidas', '67');
+          /* Y 79 con los sectores que faltaban (c79 a c90), 13-11-2026. */
+          ok('estados: sin ningún trámite, ninguna tarjeta promete nada', pend === 79,
+             pend + ' por iniciar de 79 ofrecidas', '79');
       }
 
       /* ── la cadena entre trámites ──
@@ -1730,8 +1741,9 @@
            le faltaba su cierre: quedaron dentro de ella y no se veían. */
         /* Y TREINTA Y NUEVE desde el 5-11-2026: interior, justicia y paz, con su escondido. */
         /* Y CUARENTA Y TRES desde el 6-11-2026: telecomunicaciones y ZEE, con sus escondidos. */
-        igual('grupo: la fase 03 se queda con cuarenta y tres tarjetas',
-              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 43);
+        /* Y CINCUENTA Y CINCO desde el 13-11-2026: los seis sectores que faltaban, con sus escondidos. */
+        igual('grupo: la fase 03 se queda con cincuenta y cinco tarjetas',
+              rej.querySelectorAll(':scope > .tcard[data-tr]').length, 55);
         igual('grupo: ninguna tarjeta queda dentro de otra',
               document.querySelectorAll('.tcard .tcard').length, 0);
         ok('grupo: y el título no es una tarjeta',
@@ -13358,6 +13370,30 @@
           campos: 'area_zee permiso_zee tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           queSolicito: 'permiso_zee',
           tarjetas: 2, gestion: 'En coordinación con la Superintendencia de las ZEE', fin: 'Permiso listo'},
+    fi: {madre: 'c79', ya: 'c80', p: 'yfi', codigo: 'financiero_en_proceso', ente: 'Entes varios',
+          campos: 'area_financiero sector_financiero tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'tramite_presencial', etiqueta: 'f_trpresencial',
+          tarjetas: 1, gestion: 'En coordinación con SUDEBAN, el BCV, SUDEASEG o SUNAVAL', fin: 'Permiso listo'},
+    de: {madre: 'c81', ya: 'c82', p: 'yde', codigo: 'defensa_en_proceso', ente: 'MPPD',
+          campos: 'area_defensa tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'tramite_presencial', etiqueta: 'f_trpresencial',
+          tarjetas: 1, gestion: 'En coordinación con el Ministerio de Defensa', fin: 'Permiso listo'},
+    hv: {madre: 'c83', ya: 'c84', p: 'yhv', codigo: 'habitat_en_proceso', ente: 'MINHVI',
+          campos: 'area_habitat tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'tramite_presencial', etiqueta: 'f_trpresencial',
+          tarjetas: 1, gestion: 'En coordinación con el Ministerio de Hábitat y Vivienda', fin: 'Permiso listo'},
+    al: {madre: 'c85', ya: 'c86', p: 'yal', codigo: 'alimentacion_en_proceso', ente: 'SUNAGRO',
+          campos: 'area_alimentacion permiso_alimentacion tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'permiso_alimentacion',
+          tarjetas: 3, gestion: 'En coordinación con SUNAGRO', fin: 'Permiso listo'},
+    ad: {madre: 'c87', ya: 'c88', p: 'yad', codigo: 'aduanas_en_proceso', ente: 'SENIAT',
+          campos: 'area_aduanas tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'tramite_presencial', etiqueta: 'f_trpresencial',
+          tarjetas: 1, gestion: 'En coordinación con el SENIAT', fin: 'Permiso listo'},
+    sa: {madre: 'c89', ya: 'c90', p: 'ysa', codigo: 'salud_en_proceso', ente: 'MPPS',
+          campos: 'area_salud tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
+          queSolicito: 'tramite_presencial', etiqueta: 'f_trpresencial',
+          tarjetas: 1, gestion: 'En coordinación con el Ministerio de Salud', fin: 'Permiso listo'},
     ij: {madre: 'c73', ya: 'c74', p: 'yij', codigo: 'interior_en_proceso', ente: 'MPPRIJP',
           campos: 'area_interior permiso_interior tramite_presencial fecha_solicitud_ya razon_social rif_empresa representante motivo_ya detalle_ya',
           queSolicito: 'permiso_interior',
@@ -13618,6 +13654,30 @@
   function ypmZeMira(sigue){ ypmMira('ze', sigue); }
   function ypmZeYaMira(sigue){ ypmYaMira('ze', sigue); }
   function ypmZeAtrasMira(sigue){ ypmAtrasMira('ze', sigue); }
+  function ypmFiAbre(sigue){ ypmAbre('fi', sigue); }
+  function ypmFiMira(sigue){ ypmMira('fi', sigue); }
+  function ypmFiYaMira(sigue){ ypmYaMira('fi', sigue); }
+  function ypmFiAtrasMira(sigue){ ypmAtrasMira('fi', sigue); }
+  function ypmDeAbre(sigue){ ypmAbre('de', sigue); }
+  function ypmDeMira(sigue){ ypmMira('de', sigue); }
+  function ypmDeYaMira(sigue){ ypmYaMira('de', sigue); }
+  function ypmDeAtrasMira(sigue){ ypmAtrasMira('de', sigue); }
+  function ypmHvAbre(sigue){ ypmAbre('hv', sigue); }
+  function ypmHvMira(sigue){ ypmMira('hv', sigue); }
+  function ypmHvYaMira(sigue){ ypmYaMira('hv', sigue); }
+  function ypmHvAtrasMira(sigue){ ypmAtrasMira('hv', sigue); }
+  function ypmAlAbre(sigue){ ypmAbre('al', sigue); }
+  function ypmAlMira(sigue){ ypmMira('al', sigue); }
+  function ypmAlYaMira(sigue){ ypmYaMira('al', sigue); }
+  function ypmAlAtrasMira(sigue){ ypmAtrasMira('al', sigue); }
+  function ypmAdAbre(sigue){ ypmAbre('ad', sigue); }
+  function ypmAdMira(sigue){ ypmMira('ad', sigue); }
+  function ypmAdYaMira(sigue){ ypmYaMira('ad', sigue); }
+  function ypmAdAtrasMira(sigue){ ypmAtrasMira('ad', sigue); }
+  function ypmSaAbre(sigue){ ypmAbre('sa', sigue); }
+  function ypmSaMira(sigue){ ypmMira('sa', sigue); }
+  function ypmSaYaMira(sigue){ ypmYaMira('sa', sigue); }
+  function ypmSaAtrasMira(sigue){ ypmAtrasMira('sa', sigue); }
   function ypmTraAbre(sigue){ ypmAbre('tra', sigue); }
   function ypmTraMira(sigue){ ypmMira('tra', sigue); }
   function ypmTraYaMira(sigue){ ypmYaMira('tra', sigue); }
@@ -13637,6 +13697,7 @@
     igual(k + ': sus casillas', bienesCampos(caja), x.area + ' razon_social rif_empresa representante ' + x.permiso + ' tramite_presencial');
     var ts = caja ? [].slice.call(caja.querySelectorAll('.st-rej .st-tarjeta')) : [];
     igual(k + ': sus tarjetas', ts.length, x.tarjetas);
+    /* Con una sola pestaña, el panel no dibuja la barra. */
     igual(k + ': sus pestañas', caja ? caja.querySelectorAll('.st-pe').length : 0, x.pestanas);
     ok(k + ': sin enlace en las tarjetas', !!caja && !caja.querySelector('.st-tarjeta a'), 'con enlace', 'sin enlace');
     ok(k + ': hasta elegir, las casillas esperan', !!caja && !!caja.querySelector('.st-sin-elegir'), 'a la vista', 'esperando');
@@ -13715,6 +13776,79 @@
       clave: 'p_irtransporte', paso: 'Solicita tu permiso en el sistema que elegiste', casos: [
       {area: 'SIGESTEL · CONATEL', valor: 'Registro de red privada de uso propio', docs: 'acta_constitutiva rif_empresa cedula proyecto_tecnico_telecom descripcion_uso_red', enlace: 'https://sigestel.conatel.gob.ve/site/login'}]}, sigue);
   }
+  /* Los sectores que faltaban (c79 a c90), 13-11-2026: por primera vez, solo la
+     pestaña de presenciales (alimentación, además, el SICA y la Guía Única), los
+     cuatro recaudos provisionales con su nota, y el paso 1 en la oficina. */
+  function secMira(x, sigue){
+    if (PASE !== 'vacio') return sigue();
+    var caja = document.getElementById('trReal');
+    var U = window.CIIP_PASOS.ui[curLang] || {};
+    var k = x.k;
+    igual(k + ': sus casillas', bienesCampos(caja), x.campos);
+    var ts = caja ? [].slice.call(caja.querySelectorAll('.st-rej .st-tarjeta')) : [];
+    igual(k + ': sus tarjetas', ts.map(function(e){ return e.getAttribute('data-valor'); }).join(' | '), x.tarjetas);
+    igual(k + ': sus pestañas', caja ? caja.querySelectorAll('.st-pe').length : 0, x.pestanas);
+    ok(k + ': sin enlace en las tarjetas', !!caja && !caja.querySelector('.st-tarjeta a'), 'con enlace', 'sin enlace');
+    if (window.innerWidth > 640 && ts[0]) igual(k + ': la tarjeta mide como la de RUPDAE', Math.round(ts[0].getBoundingClientRect().height), 176);
+    var pre = ts.filter(function(e){ return e.getAttribute('data-valor') === 'Trámites presenciales'; })[0];
+    if (pre) pre.click();
+    var cT = caja && caja.querySelector('.sol-campo[data-campo="tramite_presencial"]');
+    ok(k + ': presenciales, sale el trámite', !!cT && !cT.hidden, 'escondido', 'a la vista');
+    if (x.sector){
+      var cS = caja.querySelector('.sol-campo[data-campo="sector_financiero"]');
+      ok(k + ': y el área, banca, seguros o valores', !!cS && !cS.hidden, 'escondida', 'a la vista');
+      igual(k + ': con sus tres áreas', bienesOpciones(caja, 'sector_financiero'), (U.o_fi_sector || []).join('|'));
+    }
+    igual(k + ': los cuatro recaudos provisionales', hpeDocsSeVen(caja), 'acta_constitutiva cedula rif_empresa rif_personal');
+    igual(k + ': con su nota', hpeNotas(caja), U.d_nota_prov);
+    var dp = {}; dp[x.area] = 'Trámites presenciales';
+    igual(k + ': sin enlace', hpeEnlace(x.ref, dp), 'sin enlace');
+    igual(k + ': su paso 1 dice que es en la oficina', hpeEscalera(x.codigo, x.ente, dp), 'Solicita tu trámite en la oficina del organismo');
+    if (x.paso){
+      var dl = {}; dl[x.area] = 'SICA · SUNAGRO';
+      igual(k + ': el SICA, su paso 1', hpeEscalera(x.codigo, x.ente, dl), x.paso);
+      igual(k + ': y sin enlace hasta confirmarlo', hpeEnlace(x.ref, dl), 'sin enlace');
+    }
+    ok(k + ': sin «undefined» en el detalle', document.body.innerText.indexOf('undefined') === -1, 'dice «undefined»', 'limpio');
+    location.hash = '';
+    setTimeout(sigue, 200);
+  }
+  function secAbreFi(sigue){ hpeAbreNueva('c79', sigue); }
+  function secMiraFi(sigue){
+    secMira({k: 'fi', ref: 'c79', codigo: 'permisos_financiero', ente: 'Entes varios', area: 'area_financiero',
+      campos: 'area_financiero razon_social rif_empresa representante sector_financiero tramite_presencial',
+      tarjetas: 'Trámites presenciales', pestanas: 0, sector: true}, sigue);
+  }
+  function secAbreDe(sigue){ hpeAbreNueva('c81', sigue); }
+  function secMiraDe(sigue){
+    secMira({k: 'de', ref: 'c81', codigo: 'permisos_defensa', ente: 'MPPD', area: 'area_defensa',
+      campos: 'area_defensa razon_social rif_empresa representante tramite_presencial',
+      tarjetas: 'Trámites presenciales', pestanas: 0}, sigue);
+  }
+  function secAbreHv(sigue){ hpeAbreNueva('c83', sigue); }
+  function secMiraHv(sigue){
+    secMira({k: 'hv', ref: 'c83', codigo: 'permisos_habitat', ente: 'MINHVI', area: 'area_habitat',
+      campos: 'area_habitat razon_social rif_empresa representante tramite_presencial',
+      tarjetas: 'Trámites presenciales', pestanas: 0}, sigue);
+  }
+  function secAbreAl(sigue){ hpeAbreNueva('c85', sigue); }
+  function secMiraAl(sigue){
+    secMira({k: 'al', ref: 'c85', codigo: 'permisos_alimentacion', ente: 'SUNAGRO', area: 'area_alimentacion',
+      campos: 'area_alimentacion razon_social rif_empresa representante permiso_alimentacion tramite_presencial',
+      tarjetas: 'SICA · SUNAGRO | Guía Única · SUNAGRO | Trámites presenciales', pestanas: 2, paso: 'Solicita tu permiso ante SUNAGRO'}, sigue);
+  }
+  function secAbreAd(sigue){ hpeAbreNueva('c87', sigue); }
+  function secMiraAd(sigue){
+    secMira({k: 'ad', ref: 'c87', codigo: 'permisos_aduanas', ente: 'SENIAT', area: 'area_aduanas',
+      campos: 'area_aduanas razon_social rif_empresa representante tramite_presencial',
+      tarjetas: 'Trámites presenciales', pestanas: 0}, sigue);
+  }
+  function secAbreSa(sigue){ hpeAbreNueva('c89', sigue); }
+  function secMiraSa(sigue){
+    secMira({k: 'sa', ref: 'c89', codigo: 'permisos_salud', ente: 'MPPS', area: 'area_salud',
+      campos: 'area_salud razon_social rif_empresa representante tramite_presencial',
+      tarjetas: 'Trámites presenciales', pestanas: 0}, sigue);
+  }
   function aitZeMira(sigue){
     aitMira('ze', {ref: 'c77', codigo: 'permisos_zee', ente: 'SNZEE', area: 'area_zee', permiso: 'permiso_zee', tarjetas: 2, pestanas: 2,
       paso: 'Presenta tu solicitud ante la Superintendencia de las ZEE', casos: [
@@ -13760,9 +13894,9 @@
     var ini = hijos.findIndex(function(e){ return e.getAttribute('data-grupo') === 'g.sectorial'; });
     var ultimas = hijos.filter(function(e){
       return e.matches('.tcard[data-tr]') && !e.hasAttribute('data-tramo-de');
-    }).slice(-9).map(function(e){ return e.getAttribute('data-tr'); }).join(' ');
+    }).slice(-15).map(function(e){ return e.getAttribute('data-tr'); }).join(' ');
     /* Detrás de ellas, desde el 4-11-2026, agua, industria y comercio, y transporte. */
-    igual('hpe: las tres, y detrás agua, industria y transporte, al final de las licencias sectoriales', ultimas, 'c57 c59 c61 c63 c65 c67 c73 c75 c77');
+    igual('hpe: las tres, y detrás agua, industria y transporte, al final de las licencias sectoriales', ultimas, 'c57 c59 c61 c63 c65 c67 c73 c75 c77 c79 c81 c83 c85 c87 c89');
     [['c57', 'Permisos de hidrocarburos', 'Ministerio del Poder Popular de Hidrocarburos'],
      ['c59', 'Permisos de pesca', 'Instituto Socialista de la Pesca y Acuicultura'],
      ['c61', 'Permisos de energía', 'Ministerio del Poder Popular para la Energía Eléctrica']].forEach(function(x){

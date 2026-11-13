@@ -1128,6 +1128,13 @@ function applyLang(lang){
        (Franklin Reyes, 6-11-2026). */
     c75: {ya:'c76', nueva:'c75', p:'ytc'},
     c77: {ya:'c78', nueva:'c77', p:'yze'},
+    /* Y los sectores que faltaban (Franklin Reyes, 13-11-2026, maquetas/sectores-faltantes.html). */
+    c79: {ya:'c80', nueva:'c79', p:'yfi'},
+    c81: {ya:'c82', nueva:'c81', p:'yde'},
+    c83: {ya:'c84', nueva:'c83', p:'yhv'},
+    c85: {ya:'c86', nueva:'c85', p:'yal'},
+    c87: {ya:'c88', nueva:'c87', p:'yad'},
+    c89: {ya:'c90', nueva:'c89', p:'ysa'},
     /* Y el RNC (Franklin Reyes, 4-11-2026, maquetas/rnc-tarjetas.html). */
     c13: {ya:'c69', nueva:'c13', p:'yrc'},
     /* Y la visa, la cédula y el RIF personal (Franklin Reyes, 4-11-2026,
@@ -1145,8 +1152,8 @@ function applyLang(lang){
   });
   /* Lo elegido, como MARCA_ELEGIDA: la de la portada pregunta y la
      escondida nace elegida, que solo se llega a ella eligiéndola. */
-  var YA_ELEGIDA = {c37:false, c73:false, c75:false, c77:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false, c13:false, c1:false, c2:false, c3:false,
-                    c44:true, c74:true, c76:true, c78:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true, c69:true, c70:true, c71:true, c72:true};
+  var YA_ELEGIDA = {c37:false, c73:false, c75:false, c77:false, c79:false, c81:false, c83:false, c85:false, c87:false, c89:false, c10:false, c28:false, c29:false, c48:false, c30:false, c51:false, c36:false, c50:false, c57:false, c59:false, c61:false, c63:false, c65:false, c67:false, c13:false, c1:false, c2:false, c3:false,
+                    c44:true, c74:true, c76:true, c78:true, c80:true, c82:true, c84:true, c86:true, c88:true, c90:true, c45:true, c46:true, c47:true, c49:true, c53:true, c54:true, c55:true, c56:true, c58:true, c60:true, c62:true, c64:true, c66:true, c68:true, c69:true, c70:true, c71:true, c72:true};
   window.CIIP_YA_ELEGIDA = function(ref){
     if (!GUIA_YA_DE[ref] || YA_ELEGIDA[ref]) return;
     YA_ELEGIDA[ref] = true;
@@ -4663,6 +4670,80 @@ applyLang(idiomaParaMi());
       {tipo:'convenio_zee', clave:'d_zeconvenio', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.inc]},
       {tipo:'constancia_participacion_zee', clave:'d_zeconstancia', siCasilla:'permiso_zee', siIgual:[PERMISO_ZE.inc]}
     ],
+    /* Los sectores que faltaban (c79 a c90), Franklin Reyes, 13-11-2026: sin la lista de
+       la base del CIIP todavía, los cuatro de siempre, provisionales (NOTA_DE_RECAUDOS). */
+    permisos_financiero: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    financiero_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    permisos_defensa: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    defensa_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    permisos_habitat: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    habitat_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    permisos_alimentacion: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    alimentacion_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    permisos_aduanas: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    aduanas_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    permisos_salud: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
+    salud_en_proceso: [
+      {tipo:'acta_constitutiva', clave:'d_actaempresa'},
+      {tipo:'rif_empresa',       clave:'d_rifempresa'},
+      {tipo:'cedula',            clave:'d_cedrep'},
+      {tipo:'rif_personal',      clave:'d_rifrep'}
+    ],
     zee_en_proceso: [
       {tipo:'acta_constitutiva', clave:'d_actaempresa'},
       {tipo:'rif_empresa',       clave:'d_rifempresa'},
@@ -4706,6 +4787,12 @@ applyLang(idiomaParaMi());
      3-11-2026). Con campo y valor, sólo con esa área elegida. */
   var NOTA_DE_RECAUDOS = {
     permisos_hidrocarburos: [{clave:'d_nota_hid'}],
+    permisos_financiero: [{clave:'d_nota_prov'}],
+    permisos_defensa: [{clave:'d_nota_prov'}],
+    permisos_habitat: [{clave:'d_nota_prov'}],
+    permisos_alimentacion: [{clave:'d_nota_prov'}],
+    permisos_aduanas: [{clave:'d_nota_prov'}],
+    permisos_salud: [{clave:'d_nota_prov'}],
     permisos_pesca: [{clave:'d_nota_pes', campo:'area_pesca', valor:AREA_PESCA_BUQUES}],
     permisos_energia: [{clave:'d_nota_ren', campo:'area_energia', valor:AREA_ENERGIA_RENOV}],
     permisos_agua: [{clave:'d_nota_prov', campo:'permiso_agua', valores:[PERMISO_AIT.afec, PERMISO_AIT.ocup, PERMISO_AIT.modi]}],
@@ -4824,6 +4911,12 @@ applyLang(idiomaParaMi());
     c73: {aplica:'cond', cond:'ft_c_interior', modo:'portal', depende:'c6'},
     c75: {aplica:'cond', cond:'ft_c_telecom', modo:'portal', depende:'c6'},
     c77: {aplica:'cond', cond:'ft_c_zee', modo:'portal', depende:'c6'},
+    c79: {aplica:'cond', cond:'ft_c_financiero', modo:'portal', depende:'c6'},
+    c81: {aplica:'cond', cond:'ft_c_defensa', modo:'portal', depende:'c6'},
+    c83: {aplica:'cond', cond:'ft_c_habitat', modo:'portal', depende:'c6'},
+    c85: {aplica:'cond', cond:'ft_c_alimentacion', modo:'portal', depende:'c6'},
+    c87: {aplica:'cond', cond:'ft_c_aduanas', modo:'portal', depende:'c6'},
+    c89: {aplica:'cond', cond:'ft_c_salud', modo:'portal', depende:'c6'},
     /* El SIDCAI (c39): se inscribe una vez y luego se declara cada mes,
        dentro de los quince días siguientes (Providencia 015-004-2024).
        La inscripción no tiene plazo publicado, y la ficha se salta el
@@ -5932,6 +6025,21 @@ applyLang(idiomaParaMi());
   var ETAPAS_DE_ZEE = [{n: 1, t: 'yt_ze_e1', d: 'yt_ze_e1_d'}, etapaPresencial(2)];
   var PERMISOS_DE_ZEE = {};
   PERMISOS_DE_ZEE[AREA_ZEE] = 'o_ze_permiso';
+  /* Los sectores que faltaban (c79 a c90), 13-11-2026: hasta que llegue la lista de la
+     base del CIIP, solo la pestaña de presenciales; alimentación, además, con el SICA
+     y la Guía Única de SUNAGRO, sin enlace hasta confirmarlo con el CIIP. */
+  var TARJETAS_SOLO_PRESENCIAL = {};
+  TARJETAS_SOLO_PRESENCIAL[VALOR_PRESENCIAL] = tarjetaPresencial(1);
+  var ETAPAS_SOLO_PRESENCIAL = [etapaPresencial(1)];
+  var AREA_SICA = 'SICA · SUNAGRO';
+  var AREA_GUIA_UNICA = 'Guía Única · SUNAGRO';
+  var TARJETAS_DE_ALIMENTACION = {};
+  TARJETAS_DE_ALIMENTACION[AREA_SICA] = {etapa: 1, toca: 'yt_toca_sica',
+    pt: '<div class="st-pt p-sun" aria-hidden="true"><div class="log">SICA</div><span>Sistema Integral de Control Agroalimentario</span></div>'};
+  TARJETAS_DE_ALIMENTACION[AREA_GUIA_UNICA] = {etapa: 1, toca: 'yt_toca_guiaunica',
+    pt: '<div class="st-pt p-sun" aria-hidden="true"><div class="log">SUNAGRO</div><span>Guía Única de Movilización, Seguimiento y Control</span></div>'};
+  TARJETAS_DE_ALIMENTACION[VALOR_PRESENCIAL] = tarjetaPresencial(2);
+  var ETAPAS_DE_ALIMENTACION = [{n: 1, t: 'yt_al_e1', d: 'yt_al_e1_d'}, etapaPresencial(2)];
   var TARJETAS_DE_TRANSPORTE = {};
   /* Sin el INTT desde el 5-11-2026 (Franklin Reyes: «INTT ya no va en transporte,
      porque pasó al Ministerio de Interiores, Justicia y Paz»): se fueron su
@@ -7042,6 +7150,58 @@ applyLang(idiomaParaMi());
        opcionesSegun:'area_zee', opcionesDe:PERMISOS_DE_ZEE, verSi:'area_zee', verDistinto:VALOR_PRESENCIAL},
       campoPresencial('area_zee')
     ],
+    /* Los sectores que faltaban (c79 a c90), 13-11-2026. */
+    permisos_financiero: [
+      {n:'area_financiero', clave:'f_dondetramite', opcionesClave:'o_solo_presencial', ancho:true,
+       tarjetas:TARJETAS_SOLO_PRESENCIAL, etapas:ETAPAS_SOLO_PRESENCIAL, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'sector_financiero', clave:'f_fisector', opcionesClave:'o_fi_sector', ancho:true, verSi:'area_financiero'},
+      campoPresencial('area_financiero')
+    ],
+    permisos_defensa: [
+      {n:'area_defensa', clave:'f_dondetramite', opcionesClave:'o_solo_presencial', ancho:true,
+       tarjetas:TARJETAS_SOLO_PRESENCIAL, etapas:ETAPAS_SOLO_PRESENCIAL, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      campoPresencial('area_defensa')
+    ],
+    permisos_habitat: [
+      {n:'area_habitat', clave:'f_dondetramite', opcionesClave:'o_solo_presencial', ancho:true,
+       tarjetas:TARJETAS_SOLO_PRESENCIAL, etapas:ETAPAS_SOLO_PRESENCIAL, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      campoPresencial('area_habitat')
+    ],
+    permisos_alimentacion: [
+      {n:'area_alimentacion', clave:'f_dondetramite', opcionesClave:'o_alimentacion_area', ancho:true,
+       tarjetas:TARJETAS_DE_ALIMENTACION, etapas:ETAPAS_DE_ALIMENTACION, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      {n:'permiso_alimentacion', clave:'f_permisosol', ancho:true,
+       verSi:'area_alimentacion', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_alimentacion')
+    ],
+    permisos_aduanas: [
+      {n:'area_aduanas', clave:'f_dondetramite', opcionesClave:'o_solo_presencial', ancho:true,
+       tarjetas:TARJETAS_SOLO_PRESENCIAL, etapas:ETAPAS_SOLO_PRESENCIAL, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      campoPresencial('area_aduanas')
+    ],
+    permisos_salud: [
+      {n:'area_salud', clave:'f_dondetramite', opcionesClave:'o_solo_presencial', ancho:true,
+       tarjetas:TARJETAS_SOLO_PRESENCIAL, etapas:ETAPAS_SOLO_PRESENCIAL, portada:portadaDibujada},
+      {n:'razon_social',          clave:'f_razon',         ancho:true},
+      {n:'rif_empresa',           clave:'f_rifempresa'},
+      {n:'representante',         clave:'f_representante'},
+      campoPresencial('area_salud')
+    ],
     permisos_interior: [
       {n:'area_interior', clave:'f_transportearea', opcionesClave:'o_interior_area', ancho:true,
        tarjetas:TARJETAS_DE_INTERIOR, etapas:ETAPAS_DE_INTERIOR, portada:portadaDibujada},
@@ -7583,6 +7743,75 @@ applyLang(idiomaParaMi());
       {n:'permiso_zee', clave:'f_yspermisoya', ancho:true,
        opcionesSegun:'area_zee', opcionesDe:PERMISOS_DE_ZEE, verSi:'area_zee', verDistinto:VALOR_PRESENCIAL},
       campoPresencial('area_zee'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    financiero_en_proceso: [
+      {n:'area_financiero', clave:'f_dondetramite', opcionesClave:'o_solo_presencial', ancho:true,
+       tarjetas:TARJETAS_SOLO_PRESENCIAL, etapas:ETAPAS_SOLO_PRESENCIAL, portada:portadaDibujada},
+      {n:'sector_financiero', clave:'f_fisector', opcionesClave:'o_fi_sector', ancho:true, verSi:'area_financiero'},
+      campoPresencial('area_financiero'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    defensa_en_proceso: [
+      {n:'area_defensa', clave:'f_dondetramite', opcionesClave:'o_solo_presencial', ancho:true,
+       tarjetas:TARJETAS_SOLO_PRESENCIAL, etapas:ETAPAS_SOLO_PRESENCIAL, portada:portadaDibujada},
+      campoPresencial('area_defensa'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    habitat_en_proceso: [
+      {n:'area_habitat', clave:'f_dondetramite', opcionesClave:'o_solo_presencial', ancho:true,
+       tarjetas:TARJETAS_SOLO_PRESENCIAL, etapas:ETAPAS_SOLO_PRESENCIAL, portada:portadaDibujada},
+      campoPresencial('area_habitat'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    alimentacion_en_proceso: [
+      {n:'area_alimentacion', clave:'f_dondetramite', opcionesClave:'o_alimentacion_area', ancho:true,
+       tarjetas:TARJETAS_DE_ALIMENTACION, etapas:ETAPAS_DE_ALIMENTACION, portada:portadaDibujada},
+      {n:'permiso_alimentacion', clave:'f_yspermisoya', ancho:true,
+       verSi:'area_alimentacion', verDistinto:VALOR_PRESENCIAL},
+      campoPresencial('area_alimentacion'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    aduanas_en_proceso: [
+      {n:'area_aduanas', clave:'f_dondetramite', opcionesClave:'o_solo_presencial', ancho:true,
+       tarjetas:TARJETAS_SOLO_PRESENCIAL, etapas:ETAPAS_SOLO_PRESENCIAL, portada:portadaDibujada},
+      campoPresencial('area_aduanas'),
+      {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
+      {n:'razon_social',         clave:'f_razon',       ancho:true},
+      {n:'rif_empresa',          clave:'f_rifempresa'},
+      {n:'representante',        clave:'f_yarep'},
+      {n:'motivo_ya',            clave:'f_yamotivo',    opcionesClave:'o_ya_motivo'},
+      {n:'detalle_ya',           clave:'f_yadetalle',   opcional:true}
+    ],
+    salud_en_proceso: [
+      {n:'area_salud', clave:'f_dondetramite', opcionesClave:'o_solo_presencial', ancho:true,
+       tarjetas:TARJETAS_SOLO_PRESENCIAL, etapas:ETAPAS_SOLO_PRESENCIAL, portada:portadaDibujada},
+      campoPresencial('area_salud'),
       {n:'fecha_solicitud_ya',   clave:'f_yafecha',     tipo:'date'},
       {n:'razon_social',         clave:'f_razon',       ancho:true},
       {n:'rif_empresa',          clave:'f_rifempresa'},
@@ -10690,6 +10919,10 @@ applyLang(idiomaParaMi());
     MINAGUAS: 'el Ministerio del Poder Popular de Atención de las Aguas',
     MPPICN: 'el Ministerio del Poder Popular de Industrias y Comercio Nacional',
     MPPT: 'el Ministerio del Poder Popular para el Transporte',
+    MPPD: 'el Ministerio del Poder Popular para la Defensa',
+    MINHVI: 'el Ministerio del Poder Popular para Hábitat y Vivienda',
+    SUNAGRO: 'la Superintendencia Nacional de Gestión Agroalimentaria',
+    MPPS: 'el Ministerio del Poder Popular para la Salud',
     'Entes varios': 'los organismos correspondientes'
   };
   function enteCompleto(ente, municipio){
@@ -29252,7 +29485,7 @@ applyLang(idiomaParaMi());
   function esPermisoAgrupado(ref){
     if (!ref) return false;
     if (ref === 'c49' || ref === 'c53' || ref === 'c54' || ref === 'c55' || ref === 'c56' ||
-        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c74' || ref === 'c76' || ref === 'c78' || ref === 'c69' || ref === 'c70' || ref === 'c71' || ref === 'c72' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
+        ref === 'c58' || ref === 'c60' || ref === 'c62' || ref === 'c64' || ref === 'c66' || ref === 'c68' || ref === 'c74' || ref === 'c76' || ref === 'c78' || ref === 'c80' || ref === 'c82' || ref === 'c84' || ref === 'c86' || ref === 'c88' || ref === 'c90' || ref === 'c69' || ref === 'c70' || ref === 'c71' || ref === 'c72' || ref === 'c37' || ref === 'c44' || ref === 'c10' || ref === 'c45' || ref === 'c46' ||
         ref === 'c28' || ref === 'c29' || ref === 'c13') return true;
     return GRUPOS.some(function(g){ return g.refs.indexOf(ref) >= 0; });
   }
@@ -29300,7 +29533,8 @@ applyLang(idiomaParaMi());
        (c61), Franklin Reyes, 3-11-2026, al final. */
     /* Y los de agua (c63), industria y comercio (c65) y transporte (c67), 4-11-2026. */
     /* Y los de telecomunicaciones (c75) y Zona Económica Especial (c77), 6-11-2026. */
-    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c57', 'c59', 'c61', 'c63', 'c65', 'c67', 'c73', 'c75', 'c77'], antes:['c28', 'c29', 'c13'],
+    /* Y los sectores que faltaban (c79 a c89), 13-11-2026. */
+    {clave:'g.sectorial', refs:['c48', 'c30', 'c36', 'c39', 'c50', 'c51', 'c57', 'c59', 'c61', 'c63', 'c65', 'c67', 'c73', 'c75', 'c77', 'c79', 'c81', 'c83', 'c85', 'c87', 'c89'], antes:['c28', 'c29', 'c13'],
      rotulo:function(dic){ return dic['g.sectorial']; }}
   ];
 
@@ -29781,6 +30015,12 @@ applyLang(idiomaParaMi());
     c73: {1: {clave: 'interior_solicitado',    texto: 'p_yalosolicite'}},
     c75: {1: {clave: 'telecom_solicitado',     texto: 'p_yalosolicite'}},
     c77: {1: {clave: 'zee_solicitado',         texto: 'p_yalosolicite'}},
+    c79: {1: {clave: 'financiero_solicitado', texto: 'p_yalosolicite'}},
+    c81: {1: {clave: 'defensa_solicitado', texto: 'p_yalosolicite'}},
+    c83: {1: {clave: 'habitat_solicitado', texto: 'p_yalosolicite'}},
+    c85: {1: {clave: 'alimentacion_solicitado', texto: 'p_yalosolicite'}},
+    c87: {1: {clave: 'aduanas_solicitado', texto: 'p_yalosolicite'}},
+    c89: {1: {clave: 'salud_solicitado', texto: 'p_yalosolicite'}},
     /* Y el permiso de bomberos (Franklin Reyes, 1-10-2026, Permiso de
        Bomberos), con DOS pasos del inversionista: solicitarlo en el portal
        de los bomberos de su estado («Ya la solicité») e indicar en qué sede
@@ -30023,6 +30263,12 @@ applyLang(idiomaParaMi());
     c73: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c75: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c77: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c79: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c81: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c83: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c85: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c87: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c89: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     /* Y la inscripción en el SIDCAI (c39), igual que el minero (Franklin
        Reyes, 1-10-2026, Ventanilla Única 2.3): «Inscríbete en el FONACIT a
        través del portal → Inscripción lista». Enviada no hay nada hecho; el
@@ -30080,6 +30326,12 @@ applyLang(idiomaParaMi());
     c74: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c76: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c78: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c80: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c82: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c84: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c86: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c88: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
+    c90: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c69: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c70: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
     c71: {borrador:0, devuelto:0, enviado:0, en_revision:0, ante_el_ente:1},
@@ -30220,6 +30472,12 @@ applyLang(idiomaParaMi());
                         c73: {campo: 'area_interior', valor: VALOR_PRESENCIAL, si: 'c73_presencial'},
                         c75: {campo: 'area_telecom', valor: VALOR_PRESENCIAL, si: 'c75_presencial'},
                         c77: {campo: 'area_zee', valor: VALOR_PRESENCIAL, si: 'c77_presencial'},
+                        c79: {campo: 'area_financiero', valor: VALOR_PRESENCIAL, si: 'c79_presencial'},
+                        c81: {campo: 'area_defensa', valor: VALOR_PRESENCIAL, si: 'c81_presencial'},
+                        c83: {campo: 'area_habitat', valor: VALOR_PRESENCIAL, si: 'c83_presencial'},
+                        c85: {campo: 'area_alimentacion', valor: VALOR_PRESENCIAL, si: 'c85_presencial'},
+                        c87: {campo: 'area_aduanas', valor: VALOR_PRESENCIAL, si: 'c87_presencial'},
+                        c89: {campo: 'area_salud', valor: VALOR_PRESENCIAL, si: 'c89_presencial'},
                         c67: [{campo: 'area_transporte', valor: VALOR_PRESENCIAL, si: 'c67_presencial'},
                               {campo: 'permiso_transporte', valores: [PERMISO_AIT.exp, PERMISO_AIT.ido, PERMISO_AIT.set, PERMISO_AIT.rav], si: 'c67_inac'}],
                         /* Pesca y embarcaciones y acuicultura se presentan en la

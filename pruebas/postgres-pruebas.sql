@@ -2878,6 +2878,26 @@ select arnes.comprueba(
   and position('''transporte_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
   and position('interior_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
   and position('rif_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
+-- Los sectores que faltaban (c79 a c90), Franklin Reyes, 13-11-2026.
+select arnes.comprueba(
+  'sectores que faltaban: sus doce trámites, encendidos, con sus marcas y sus motivos',
+  (select count(*) = 12 from public.tipos_tramite
+    where ref_panel in ('c79', 'c80', 'c81', 'c82', 'c83', 'c84', 'c85', 'c86', 'c87', 'c88', 'c89', 'c90') and activo and fase = 3 and nivel = 'actividad')
+  and (select count(*) = 6 from public.tipos_tramite where codigo in ('permisos_financiero', 'permisos_defensa', 'permisos_habitat', 'permisos_alimentacion', 'permisos_aduanas', 'permisos_salud') and emite is not null)
+  and position('''financiero_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('financiero_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('''defensa_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('defensa_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('''habitat_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('habitat_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('''alimentacion_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('alimentacion_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('''aduanas_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('aduanas_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('''salud_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('salud_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0
+  and position('''zee_solicitado''' in pg_get_functiondef('public.confirma_paso(uuid, text)'::regprocedure)) > 0
+  and position('zee_en_proceso' in pg_get_functiondef('public.estadisticas_control()'::regprocedure)) > 0);
 -- Telecomunicaciones (c75 y c76) y Zona Económica Especial (c77 y c78), Franklin Reyes, 6-11-2026.
 select arnes.comprueba(
   'telecomunicaciones y zona económica especial: sus cuatro trámites, encendidos, con sus marcas y sus motivos',
